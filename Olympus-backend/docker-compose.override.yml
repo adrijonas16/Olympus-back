@@ -1,0 +1,14 @@
+
+services:
+  olympus-api:
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=(local);Database=OLYMPUSDB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True"
+      Jwt__Key: "claveDeDesarrolloLocalSegura123456789"
+      Jwt__Issuer: "OlympusAPI"
+      Jwt__Audience: "OlympusUsers"
+    ports:
+      - "5000:80"
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/obj
