@@ -1,14 +1,18 @@
+version: '3.4'
 
 services:
-  olympus-api:
-    environment:
-      ConnectionStrings__DefaultConnection: "Server=142.93.50.164;Database=OLYMPUSDB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True"
-      Jwt__Key: "claveDeDesarrolloLocalSegura123456789"
-      Jwt__Issuer: "OlympusAPI"
-      Jwt__Audience: "OlympusUsers"
+  olympus-backend:
+    container_name: olympus-backend
+    image: olympus-backend
+    build:
+      context: .
+      dockerfile: Olympus-backend/Dockerfile
     ports:
-      - "5000:80"
+      - "5000:8080"  # Cambia 5000 si quieres otro puerto en tu PC
+    environment:
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - DOTNET_HOST_PATH=/root/.dotnet/tools
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
     volumes:
-      - .:/app
-      - /app/bin
-      - /app/obj
+      - ./Olympus-backend:/src/Olympus-backend
