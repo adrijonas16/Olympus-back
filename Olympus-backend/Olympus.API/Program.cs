@@ -30,8 +30,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Agregar controladores
+// 🔹 Agregar controladores
 builder.Services.AddControllers();
+
+// 🔹 Configurar CORS para permitir frontend local
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://161.35.59.115")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -47,6 +59,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// 🔹 Usar política CORS
+app.UseCors("AllowFrontend");
 
 // 🔹 Habilitar autenticación y autorización
 app.UseAuthentication();
