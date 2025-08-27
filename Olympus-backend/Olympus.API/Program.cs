@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.Configuracion;
+using CapaNegocio.Servicio.Configuracion;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Olympus.API.Extensions;
 using System.Text;
-using CapaDatos.DataContext;
-using CapaDatos.Repositorios;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,7 @@ builder.Services.AddDbContext<OlympusContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 🔹 Agregar repositorios
-builder.Services.AddScoped<UsuariosRepository>();
+builder.Services.AgregarServiciosAplicacion();
 
 // 🔹 Configurar autenticación con JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -38,12 +40,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://161.35.59.115")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy.WithOrigins(
+            "http://161.35.59.115:3000", // Producción
+            "http://localhost:3000"      // Desarrollo
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
+
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();

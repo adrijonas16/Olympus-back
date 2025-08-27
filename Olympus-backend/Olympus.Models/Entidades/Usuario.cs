@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modelos
+namespace Modelos.Entidades
 {
     public partial class Usuario
     {
@@ -23,11 +23,5 @@ namespace Modelos
         public DateTime FechaActualizacion { get; set; }
 
         public bool Activo { get; set; }
-    }
-
-    public class LoginRequest
-    {
-        public string Correo { get; set; }
-        public string Password { get; set; }
     }
 }

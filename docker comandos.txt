@@ -1,0 +1,2 @@
+docker build -t olympus-backend .
+docker run -d -p 8080:8080 --name olympus-api olympus-backend
