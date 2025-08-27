@@ -8,7 +8,7 @@ namespace Modelos.DTO.Configuracion
 {
     public class CFGRespuestaGenericaDTO
     {
-        public string Codigo { get; set; }          
-        public string Mensaje { get; set; } = "";
+        public string Codigo { get; set; } = string.Empty;
+        public string Mensaje { get; set; } = string.Empty;
     }
 }
