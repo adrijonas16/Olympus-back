@@ -15,6 +15,6 @@ namespace Modelos.DTO.Seguridad
 
     public class LoginResponseDTO: CFGRespuestaGenericaDTO
     {
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
     }
 }
