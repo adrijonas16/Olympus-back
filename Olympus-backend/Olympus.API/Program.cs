@@ -1,6 +1,4 @@
 ﻿using CapaDatos.DataContext;
-using CapaDatos.Repositorio.Configuracion;
-using CapaNegocio.Servicio.Configuracion;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,9 +7,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Agregar conexión a la base de datos
+var connectionString = builder.Environment.IsDevelopment()
+    ? builder.Configuration.GetConnectionString("Development")
+    : builder.Configuration.GetConnectionString("Production");
+
 builder.Services.AddDbContext<OlympusContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString)
+);
+
 
 // 🔹 Agregar repositorios
 builder.Services.AgregarServiciosAplicacion();
@@ -42,7 +45,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "http://161.35.59.115:3000", // Producción
-            "http://localhost:3000"      // Desarrollo
+            "http://localhost:5173"      // Desarrollo
         )
         .AllowAnyHeader()
         .AllowAnyMethod()

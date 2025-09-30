@@ -12,6 +12,8 @@ namespace CapaNegocio.Configuracion
         public const string _M_MENSAJE_ERROR = "Ocurrió un error al procesar la solicitud. Por favor, inténtelo de nuevo más tarde.";
         public const string _M_CREDENCIALES_INVALIDAS = "Credenciales inválidas.";
         public const string _M_NO_AUTORIZADO = "No tiene permisos para realizar esta acción.";
+        public const string _M_NO_AREAS_PARA_MOSTRAR = "No hay areas que mostrar.";
+        public const string _M_NO_MODULOS_PARA_MOSTRAR = "No hay modulos que mostrar.";
 
         // Códigos
         public const string _C_ERROR_CONTROLADO = "ERROR_CONTROLADO";

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Modelos.Entidades
+﻿namespace Modelos.Entidades
 {
     public partial class Usuario
     {
@@ -20,7 +14,11 @@ namespace Modelos.Entidades
 
         public DateTime FechaCreacion { get; set; }
 
-        public DateTime FechaActualizacion { get; set; }
+        public int UsuarioCreacion { get; set; }
+
+        public DateTime FechaModificacion { get; set; }
+
+        public int UsuarioModificacion { get; set; }
 
         public bool Activo { get; set; }
     }

@@ -13,11 +13,13 @@ public class SEGModLoginService : ISEGModLoginService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _config;
+    private readonly IErrorLogService _errorLogService;
 
-    public SEGModLoginService(IUnitOfWork unitOfWork, IConfiguration config)
+    public SEGModLoginService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
     {
         _unitOfWork = unitOfWork;
         _config = config;
+        _errorLogService = errorLogService;
     }
 
     /// <summary>
@@ -52,6 +54,7 @@ public class SEGModLoginService : ISEGModLoginService
         }
         catch (Exception ex)
         {
+            _errorLogService.RegistrarError(ex);
             respuesta.Codigo = SR._C_ERROR_CRITICO;
             respuesta.Mensaje = ex.Message;
         }
@@ -63,7 +66,7 @@ public class SEGModLoginService : ISEGModLoginService
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new Claim(ClaimTypes.Email, usuario.Correo),
+            new Claim(ClaimTypes.Name, usuario.Nombre),
             new Claim(ClaimTypes.Role, usuario.Rol ?? "Usuario")
         };
 
@@ -74,7 +77,7 @@ public class SEGModLoginService : ISEGModLoginService
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(2),
+            expires: DateTime.Now.AddHours(5),
             signingCredentials: creds
         );
 

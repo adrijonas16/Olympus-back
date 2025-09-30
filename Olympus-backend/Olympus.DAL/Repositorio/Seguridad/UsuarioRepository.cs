@@ -37,7 +37,7 @@ namespace CapaDatos.Repositorio.Configuracion
 
         public Usuario? ObtenerPorCorreo(string correo)
         {
-            return _context.Usuarios.FirstOrDefault(u => u.Correo == correo);
+            return _context.Usuario.FirstOrDefault(u => u.Correo == correo);
         }
     }
 }

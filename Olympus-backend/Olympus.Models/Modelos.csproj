@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="DTO\Academica\" />
+    <Folder Include="DTO\Desarrollo y Producto\" />
+    <Folder Include="DTO\Finanzas\" />
+    <Folder Include="DTO\Logistica\" />
+    <Folder Include="DTO\Relaciones Publicas\" />
+    <Folder Include="DTO\RRHH\" />
+  </ItemGroup>
+
 </Project>

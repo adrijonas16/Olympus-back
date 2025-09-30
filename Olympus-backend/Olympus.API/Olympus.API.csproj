@@ -15,4 +15,13 @@
     <ProjectReference Include="..\Olympus.Models\Modelos.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Academica\" />
+    <Folder Include="Controllers\Desarrollo y Producto\" />
+    <Folder Include="Controllers\Finanzas\" />
+    <Folder Include="Controllers\Logistica\" />
+    <Folder Include="Controllers\Relaciones Publicas\" />
+    <Folder Include="Controllers\RRHH\" />
+  </ItemGroup>
+
 </Project>

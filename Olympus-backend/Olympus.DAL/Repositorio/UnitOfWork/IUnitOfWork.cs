@@ -12,6 +12,10 @@ namespace CapaDatos.Repositorio.UnitOfWork
     {
         // Aquí defines tus repositorios
         IUsuarioRepository UsuarioRepository { get; }
+        IErrorLogRepository ErrorLogRepository { get; }
+        IAreaRepository AreaRepository { get; }
+        IModuloRepository ModuloRepository { get; }
+        IFormularioRepository FormularioRepository { get; }
 
         // Guardar cambios
         Task<int> SaveChangesAsync();

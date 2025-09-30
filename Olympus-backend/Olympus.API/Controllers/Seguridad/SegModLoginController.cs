@@ -10,12 +10,21 @@ namespace Olympus.API.Controllers.Configuracion
     public class SegModLoginController : ControllerBase
     {
         private readonly ISEGModLoginService _loginService;
+        private readonly IErrorLogService _errorLogService;
 
-        public SegModLoginController(ISEGModLoginService loginService)
+        public SegModLoginController(ISEGModLoginService loginService, IErrorLogService errorLogService)
         {
             _loginService = loginService;
+            _errorLogService = errorLogService;
         }
 
+        /// <summary>
+        /// Método de Loegueo
+        /// </summary>
+        /// <UsuarioCreacion>Adriana Chipana</UsuarioCreacion>
+        /// <FechaCreacion>2025-08-27</FechaCreacion>
+        /// <UsuarioModificacion>Adriana Chipana</UsuarioModificacion>
+        /// <FechaModificacion>2025-08-28</FechaModificacion>
         [HttpPost("login")]
         public LoginResponseDTO Login([FromBody] LoginRequest request)
         {
@@ -26,11 +35,11 @@ namespace Olympus.API.Controllers.Configuracion
             }
             catch (Exception ex)
             {
+                _errorLogService.RegistrarError(ex);
                 respuesta.Codigo = SR._C_ERROR_CRITICO;
                 respuesta.Mensaje = ex.Message;
             }
             return respuesta;
         }
-
     }
 }
