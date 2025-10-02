@@ -1,5 +1,6 @@
 ﻿using CapaDatos.DataContext;
 using CapaDatos.Repositorio.Configuracion;
+using CapaDatos.Repositorio.Seguridad;
 
 namespace CapaDatos.Repositorio.UnitOfWork
 {
@@ -12,6 +13,7 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private AreaRepository _areaRepository;
         private ModuloRepository _moduloRepository;
         private FormularioRepository _formularioRepository;
+        private UserTokenRepository _userTokenRepository;
 
         public IUsuarioRepository UsuarioRepository
             => _usuarioRepository ??= new UsuarioRepository(_context);
@@ -23,6 +25,8 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _moduloRepository ??= new ModuloRepository(_context);
         public IFormularioRepository FormularioRepository
             => _formularioRepository ??= new FormularioRepository(_context);
+        public IUserTokenRepository UserTokenRepository
+            => _userTokenRepository ??= new UserTokenRepository(_context);
 
         public UnitOfWork(OlympusContext context)
         {

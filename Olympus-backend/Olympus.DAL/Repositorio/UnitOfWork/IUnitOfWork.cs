@@ -1,4 +1,5 @@
 ﻿using CapaDatos.Repositorio.Configuracion;
+using CapaDatos.Repositorio.Seguridad;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace CapaDatos.Repositorio.UnitOfWork
         IAreaRepository AreaRepository { get; }
         IModuloRepository ModuloRepository { get; }
         IFormularioRepository FormularioRepository { get; }
+        IUserTokenRepository UserTokenRepository { get; }
 
         // Guardar cambios
         Task<int> SaveChangesAsync();

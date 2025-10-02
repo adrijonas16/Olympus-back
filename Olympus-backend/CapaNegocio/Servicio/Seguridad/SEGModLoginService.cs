@@ -48,6 +48,33 @@ public class SEGModLoginService : ISEGModLoginService
 
             Token = GenerarToken(usuario);
 
+            try
+            {
+                DateTime expiration = DateTime.Now.AddHours(5);
+
+                var userToken = new UserToken
+                {
+                    IdUsuario = usuario.Id,
+                    Token = Token,
+                    Expiration = expiration,
+                    IsRevoked = false,
+                    Estado = true,
+                    IdMigracion = null,
+                    FechaCreacion = DateTime.Now,
+                    UsuarioCreacion = usuario.Nombre ?? "SYSTEM",
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModificacion = usuario.Nombre ?? "SYSTEM",
+                    Usuario = usuario
+                };
+
+                _unitOfWork.UserTokenRepository.Insertar(userToken);
+
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception exToken)
+            {
+                _errorLogService.RegistrarError(exToken);
+            }
             respuesta.Codigo = SR._C_SIN_ERROR;
             respuesta.Mensaje = string.Empty;
             respuesta.Token = Token;

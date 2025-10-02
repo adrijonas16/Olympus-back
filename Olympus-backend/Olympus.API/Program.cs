@@ -7,9 +7,12 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Environment.IsDevelopment()
-    ? builder.Configuration.GetConnectionString("Development")
-    : builder.Configuration.GetConnectionString("Production");
+var connectionString = builder.Configuration.GetConnectionString("Production")
+    ?? throw new InvalidOperationException("Connection string 'Production' not found.");
+
+//var connectionString = builder.Environment.IsDevelopment()
+//    ? builder.Configuration.GetConnectionString("Development")
+//    : builder.Configuration.GetConnectionString("Production");
 
 builder.Services.AddDbContext<OlympusContext>(options =>
     options.UseSqlServer(connectionString)

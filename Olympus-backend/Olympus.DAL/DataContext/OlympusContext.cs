@@ -12,6 +12,8 @@ public partial class OlympusContext : DbContext
     { }
 
     public virtual DbSet<Usuario> Usuario { get; set; }
+
+    public virtual DbSet<UserToken> UserToken { get; set; }
     public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
 
     public IDbConnection CreateConnection()
