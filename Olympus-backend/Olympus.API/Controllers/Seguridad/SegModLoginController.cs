@@ -1,5 +1,6 @@
 ﻿using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modelos.DTO.Seguridad;
 
@@ -26,6 +27,7 @@ namespace Olympus.API.Controllers.Configuracion
         /// <UsuarioModificacion>Adriana Chipana</UsuarioModificacion>
         /// <FechaModificacion>2025-08-28</FechaModificacion>
         [HttpPost("login")]
+        [AllowAnonymous]
         public LoginResponseDTO Login([FromBody] LoginRequest request)
         {
             LoginResponseDTO respuesta = new LoginResponseDTO();
