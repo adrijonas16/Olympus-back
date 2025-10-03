@@ -29,7 +29,7 @@ public class SEGModLoginService : ISEGModLoginService
     /// <FechaCreacion>2025-08-27</FechaCreacion>
     /// <UsuarioModificacion>Adriana Chipana</UsuarioModificacion>
     /// <FechaModificacion>2025-08-28</FechaModificacion>
-    public LoginResponseDTO Autenticar(string correo, string password)
+    public LoginResponseDTO Autenticar(string correo, string password, string ip)
     {
         LoginResponseDTO respuesta = new LoginResponseDTO();
         string Token = string.Empty;
@@ -46,7 +46,7 @@ public class SEGModLoginService : ISEGModLoginService
                 return respuesta;
             }
 
-            Token = GenerarToken(usuario);
+            Token = GenerarToken(usuario, ip);
 
             try
             {
@@ -88,13 +88,14 @@ public class SEGModLoginService : ISEGModLoginService
         return respuesta;
     }
 
-    private string GenerarToken(Usuario usuario)
+    private string GenerarToken(Usuario usuario, string ip)
     {
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
             new Claim(ClaimTypes.Name, usuario.Nombre),
-            new Claim(ClaimTypes.Role, usuario.Rol ?? "Usuario")
+            new Claim(ClaimTypes.Role, usuario.Rol ?? "Usuario"),
+            new Claim("ip", ip ?? string.Empty)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));

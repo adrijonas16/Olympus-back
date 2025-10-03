@@ -11,11 +11,13 @@ namespace Olympus.API.Controllers.Configuracion
     {
         private readonly ICFGModPermisosService _areaService;
         private readonly IErrorLogService _errorLogService;
+        private readonly TokenService _tokenService;
 
-        public CFGModPermisosController(ICFGModPermisosService areaService, IErrorLogService errorLogService)
+        public CFGModPermisosController(ICFGModPermisosService areaService, IErrorLogService errorLogService, TokenService tokenService)
         {
             _areaService = areaService;
             _errorLogService = errorLogService;
+            _tokenService = tokenService;
         }
 
         /// <summary>
@@ -24,8 +26,22 @@ namespace Olympus.API.Controllers.Configuracion
         /// <UsuarioCreacion>Adriana Chipana</UsuarioCreacion>
         /// <FechaCreacion>2025-09-02</FechaCreacion>
         [HttpGet("ObtenerTodas")]
-        public CFGModPermisosTAreaDTORPT ObtenerTodas()
+        public IActionResult ObtenerTodas()
         {
+            string token = Request.Headers["Authorization"];
+            var tokenRenovado = _tokenService.VerificarYRenovarToken(token);
+
+            if (tokenRenovado == null)
+            {
+                return Unauthorized(new CFGModPermisosTAreaDTORPT
+                {
+                    Codigo = SR._C_ERROR_UNAUTHORIZED,
+                    Mensaje = "Token inválido, expirado o revocado"
+                });
+            }
+
+            Response.Headers.Add("X-Token-Renewed", tokenRenovado);
+
             CFGModPermisosTAreaDTORPT respuesta = new CFGModPermisosTAreaDTORPT();
             try
             {
@@ -37,7 +53,7 @@ namespace Olympus.API.Controllers.Configuracion
                 respuesta.Codigo = SR._C_ERROR_CRITICO;
                 respuesta.Mensaje = ex.Message;
             }
-            return respuesta;
+            return Ok(respuesta);
         }
 
         /// <summary>

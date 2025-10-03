@@ -1,4 +1,5 @@
 ﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,9 +19,11 @@ builder.Services.AddDbContext<OlympusContext>(options =>
     options.UseSqlServer(connectionString)
 );
 
-
 // 🔹 Agregar repositorios
 builder.Services.AgregarServiciosAplicacion();
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<TokenService>();
 
 // 🔹 Configurar autenticación con JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

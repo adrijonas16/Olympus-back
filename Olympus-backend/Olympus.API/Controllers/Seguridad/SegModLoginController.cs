@@ -31,7 +31,7 @@ namespace Olympus.API.Controllers.Configuracion
             LoginResponseDTO respuesta = new LoginResponseDTO();
             try
             {
-                respuesta = _loginService.Autenticar(request.Correo, request.Password);
+                respuesta = _loginService.Autenticar(request.Correo, request.Password, request.Ip);
             }
             catch (Exception ex)
             {
