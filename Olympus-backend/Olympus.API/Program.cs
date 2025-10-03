@@ -41,6 +41,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddDefaultAuthorizationPolicy();
+
 // 🔹 Agregar controladores
 builder.Services.AddControllers();
 
