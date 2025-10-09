@@ -2,6 +2,7 @@
 using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using CapaNegocio.Servicio.Venta;
 
 namespace Olympus.API.Extensions
 {
@@ -24,7 +25,14 @@ namespace Olympus.API.Extensions
             services.AddScoped<ICFGModPermisosService, CFGModPermisosService>();
 
             // Aquí agregas todos los demás servicios
-
+            services.AddScoped<IVTAModVentaPersonaService, VTAModVentaPersonaService>();
+            services.AddScoped<IVTAModVentaAsesorService, VTAModVentaAsesorService>();
+            services.AddScoped<IVTAModVentaEstadoService, VTAModVentaEstadoService>();
+            services.AddScoped<IVTAModVentaControlOportunidadService, VTAModVentaControlOportunidadService>();
+            services.AddScoped<IVTAModVentaMotivoService, VTAModVentaMotivoService>();
+            services.AddScoped<IVTAModVentaOportunidadService, VTAModVentaOportunidadService>();
+            services.AddScoped<IVTAModVentaHistorialEstadoService, VTAModVentaHistorialEstadoService>();
+            services.AddScoped<IVTAModVentaHistorialInteraccionService, VTAModVentaHistorialInteraccionService>();
             return services;
         }
     }

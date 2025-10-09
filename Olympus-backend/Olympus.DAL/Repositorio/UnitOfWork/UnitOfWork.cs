@@ -1,6 +1,7 @@
 ﻿using CapaDatos.DataContext;
 using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.Seguridad;
+using CapaDatos.Repositorio.Venta;
 
 namespace CapaDatos.Repositorio.UnitOfWork
 {
@@ -14,6 +15,14 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private ModuloRepository _moduloRepository;
         private FormularioRepository _formularioRepository;
         private UserTokenRepository _userTokenRepository;
+        private PersonaRepository _personaRepository;
+        private AsesorRepository _asesorRepository;
+        private EstadoRepository _estadoRepository;
+        private MotivoRepository _motivoRepository;
+        private OportunidadRepository _oportunidadRepository;
+        private ControlOportunidadRepository _controlOportunidadRepository;
+        private HistorialEstadoRepository _historialEstadoRepository;
+        private HistorialInteraccionRepository _historialInteraccionRepository;
 
         public IUsuarioRepository UsuarioRepository
             => _usuarioRepository ??= new UsuarioRepository(_context);
@@ -27,6 +36,22 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _formularioRepository ??= new FormularioRepository(_context);
         public IUserTokenRepository UserTokenRepository
             => _userTokenRepository ??= new UserTokenRepository(_context);
+        public IPersonaRepository PersonaRepository
+            => _personaRepository ??= new PersonaRepository(_context);
+        public IAsesorRepository AsesorRepository
+            => _asesorRepository ??= new AsesorRepository(_context);
+        public IEstadoRepository EstadoRepository
+         => _estadoRepository ??= new EstadoRepository(_context);
+        public IMotivoRepository MotivoRepository
+            => _motivoRepository ??= new MotivoRepository(_context);
+        public IOportunidadRepository OportunidadRepository
+            => _oportunidadRepository ??= new OportunidadRepository(_context);
+        public IControlOportunidadRepository ControlOportunidadRepository
+            => _controlOportunidadRepository ??= new ControlOportunidadRepository(_context);
+        public IHistorialEstadoRepository HistorialEstadoRepository
+            => _historialEstadoRepository ??= new HistorialEstadoRepository(_context);
+        public IHistorialInteraccionRepository HistorialInteraccionRepository
+            => _historialInteraccionRepository ??= new HistorialInteraccionRepository(_context);
 
         public UnitOfWork(OlympusContext context)
         {

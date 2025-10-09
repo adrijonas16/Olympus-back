@@ -1,11 +1,6 @@
 ﻿using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.Seguridad;
-using Microsoft.AspNetCore.DataProtection.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CapaDatos.Repositorio.Venta;
 
 namespace CapaDatos.Repositorio.UnitOfWork
 {
@@ -18,6 +13,14 @@ namespace CapaDatos.Repositorio.UnitOfWork
         IModuloRepository ModuloRepository { get; }
         IFormularioRepository FormularioRepository { get; }
         IUserTokenRepository UserTokenRepository { get; }
+        IPersonaRepository PersonaRepository { get; }
+        IEstadoRepository EstadoRepository { get; }
+        IAsesorRepository AsesorRepository { get; }
+        IMotivoRepository MotivoRepository { get; }
+        IControlOportunidadRepository ControlOportunidadRepository { get; }
+        IOportunidadRepository OportunidadRepository { get; }
+        IHistorialEstadoRepository HistorialEstadoRepository { get; }
+        IHistorialInteraccionRepository HistorialInteraccionRepository { get; }
 
         // Guardar cambios
         Task<int> SaveChangesAsync();
