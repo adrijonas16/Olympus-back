@@ -181,5 +181,40 @@ namespace Olympus.API.Controllers.Venta
             }
             return respuesta;
         }
+
+        /// <summary>
+        /// Obtiene todas las oportunidades con detalle (persona nombre/apellidos + último historial con asesor/estado/motivo)
+        /// </summary>
+        [HttpGet("ObtenerTodasConDetalle")]
+        public VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle()
+        {
+            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+            try
+            {
+                respuesta = _oportunidadService.ObtenerTodasConDetalle();
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
+        [HttpGet("Detalle/PorId/{id}")]
+        public VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId(int id)
+        {
+            var dto = new VTAModVentaTOportunidadDetalleDTO();
+            try
+            {
+                dto = _oportunidadService.ObtenerDetallePorId(id);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+            }
+            return dto;
+        }
     }
 }

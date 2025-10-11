@@ -1,6 +1,7 @@
 ﻿using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
@@ -292,5 +293,197 @@ namespace CapaNegocio.Servicio.Venta
             }
             return respuesta;
         }
+
+        public VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle()
+        {
+            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+            try
+            {
+                var lista = _unitOfWork.OportunidadRepository.ObtenerTodos()
+                    .AsNoTracking()
+                    .Select(o => new VTAModVentaTOportunidadDetalleDTO
+                    {
+                        Id = o.Id,
+                        IdPersona = o.IdPersona,
+                        PersonaNombres = o.Persona != null ? o.Persona.Nombres : string.Empty,
+                        PersonaApellidos = o.Persona != null ? o.Persona.Apellidos : string.Empty,
+                        CodigoLanzamiento = o.CodigoLanzamiento ?? string.Empty,
+                        Estado = o.Estado,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
+
+                        HistorialEstado = o.HistorialEstado
+                            .OrderByDescending(h => h.FechaCreacion)
+                            .Select(h => new VTAModVentaTHistorialEstadoDetalleDTO
+                            {
+                                Id = h.Id,
+                                IdOportunidad = h.IdOportunidad,
+                                IdAsesor = h.IdAsesor,
+                                IdMotivo = h.IdMotivo,
+                                IdEstado = h.IdEstado,
+                                Observaciones = h.Observaciones ?? string.Empty,
+                                CantidadLlamadasContestadas = h.CantidadLlamadasContestadas,
+                                CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas,
+                                TotalMarcaciones = (h.CantidadLlamadasContestadas ?? 0) + (h.CantidadLlamadasNoContestadas ?? 0),
+                                FechaCreacion = h.FechaCreacion,
+
+                                Asesor = h.Asesor == null ? null : new VTAModVentaTAsesorDTO
+                                {
+                                    Id = h.Asesor.Id,
+                                    IdPais = h.Asesor.IdPais,
+                                    Nombres = h.Asesor.Nombres,
+                                    Apellidos = h.Asesor.Apellidos,
+                                    Celular = h.Asesor.Celular,
+                                    PrefijoPaisCelular = h.Asesor.PrefijoPaisCelular,
+                                    Correo = h.Asesor.Correo,
+                                    AreaTrabajo = h.Asesor.AreaTrabajo,
+                                    Cesado = h.Asesor.Cesado,
+                                    Estado = h.Asesor.Estado
+                                },
+
+                                EstadoReferencia = h.EstadoReferencia == null ? null : new VTAModVentaTEstadoDTO
+                                {
+                                    Id = h.EstadoReferencia.Id,
+                                    Nombre = h.EstadoReferencia.Nombre,
+                                    Descripcion = h.EstadoReferencia.Descripcion,
+                                    IdMigracion = h.EstadoReferencia.IdMigracion,
+                                    Estado = h.EstadoReferencia.EstadoControl
+                                },
+
+                                Motivo = h.Motivo == null ? null : new VTAModVentaTMotivoDTO
+                                {
+                                    Id = h.Motivo.Id,
+                                    Detalle = h.Motivo.Detalle,
+                                    IdMigracion = h.Motivo.IdMigracion,
+                                    Estado = h.Motivo.Estado
+                                }
+                            })
+                            .FirstOrDefault(),
+
+                        HistorialInteraccion = o.HistorialInteracciones
+                            .Where(hi => hi.Tipo == "Recordatorio")
+                            .OrderByDescending(hi => hi.FechaRecordatorio) // ordenar por fecha de recordatorio descendente
+                            .Select(hi => new VTAModVentaTHistorialInteraccionDTO
+                            {
+                                Id = hi.Id,
+                                IdOportunidad = hi.IdOportunidad,
+                                Detalle = hi.Detalle ?? string.Empty,
+                                Tipo = hi.Tipo ?? string.Empty,
+                                Celular = hi.Celular ?? string.Empty,
+                                FechaRecordatorio = hi.FechaRecordatorio,
+                                IdMigracion = hi.IdMigracion,
+                                Estado = hi.Estado
+                            })
+                            .ToList()
+                    })
+                    .ToList();
+
+                respuesta.Oportunidad = lista;
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
+        public VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId(int id)
+        {
+            var dto = new VTAModVentaTOportunidadDetalleDTO();
+            try
+            {
+                var entidad = _unitOfWork.OportunidadRepository.ObtenerTodos()
+                    .AsNoTracking()
+                    .Where(o => o.Id == id)
+                    .Select(o => new VTAModVentaTOportunidadDetalleDTO
+                    {
+                        Id = o.Id,
+                        IdPersona = o.IdPersona,
+                        PersonaNombres = o.Persona != null ? o.Persona.Nombres : string.Empty,
+                        PersonaApellidos = o.Persona != null ? o.Persona.Apellidos : string.Empty,
+                        CodigoLanzamiento = o.CodigoLanzamiento ?? string.Empty,
+                        Estado = o.Estado,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
+
+                        HistorialEstado = o.HistorialEstado
+                            .OrderByDescending(h => h.FechaCreacion)
+                            .Select(h => new VTAModVentaTHistorialEstadoDetalleDTO
+                            {
+                                Id = h.Id,
+                                IdOportunidad = h.IdOportunidad,
+                                IdAsesor = h.IdAsesor,
+                                IdMotivo = h.IdMotivo,
+                                IdEstado = h.IdEstado,
+                                Observaciones = h.Observaciones ?? string.Empty,
+                                CantidadLlamadasContestadas = h.CantidadLlamadasContestadas,
+                                CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas,
+                                TotalMarcaciones = (h.CantidadLlamadasContestadas ?? 0) + (h.CantidadLlamadasNoContestadas ?? 0),
+                                FechaCreacion = h.FechaCreacion,
+
+                                Asesor = h.Asesor == null ? null : new VTAModVentaTAsesorDTO
+                                {
+                                    Id = h.Asesor.Id,
+                                    IdPais = h.Asesor.IdPais,
+                                    Nombres = h.Asesor.Nombres,
+                                    Apellidos = h.Asesor.Apellidos,
+                                    Celular = h.Asesor.Celular,
+                                    PrefijoPaisCelular = h.Asesor.PrefijoPaisCelular,
+                                    Correo = h.Asesor.Correo,
+                                    AreaTrabajo = h.Asesor.AreaTrabajo,
+                                    Cesado = h.Asesor.Cesado,
+                                    Estado = h.Asesor.Estado
+                                },
+
+                                EstadoReferencia = h.EstadoReferencia == null ? null : new VTAModVentaTEstadoDTO
+                                {
+                                    Id = h.EstadoReferencia.Id,
+                                    Nombre = h.EstadoReferencia.Nombre,
+                                    Descripcion = h.EstadoReferencia.Descripcion,
+                                    IdMigracion = h.EstadoReferencia.IdMigracion,
+                                    Estado = h.EstadoReferencia.EstadoControl
+                                },
+
+                                Motivo = h.Motivo == null ? null : new VTAModVentaTMotivoDTO
+                                {
+                                    Id = h.Motivo.Id,
+                                    Detalle = h.Motivo.Detalle,
+                                    IdMigracion = h.Motivo.IdMigracion,
+                                    Estado = h.Motivo.Estado
+                                }
+                            })
+                            .FirstOrDefault(),
+
+                        HistorialInteraccion = o.HistorialInteracciones
+                            .OrderBy(h => h.FechaModificacion)
+                            .Select(h => new VTAModVentaTHistorialInteraccionDTO
+                            {
+                                Id = h.Id,
+                                IdOportunidad = h.IdOportunidad,
+                                Detalle = h.Detalle ?? string.Empty,
+                                Tipo = h.Tipo ?? string.Empty,
+                                Celular = h.Celular ?? string.Empty,
+                                FechaModificacion = h.FechaModificacion,
+                                IdMigracion = h.IdMigracion,
+                                Estado = h.Estado
+                            })
+                            .ToList()
+                    })
+                    .FirstOrDefault();
+
+                if (entidad != null) dto = entidad;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+            }
+
+            return dto;
+        }
+
     }
 }
