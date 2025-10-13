@@ -1,4 +1,5 @@
 ﻿using CapaDatos.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Modelos.Entidades;
 
 namespace CapaDatos.Repositorio.Venta
@@ -34,7 +35,9 @@ namespace CapaDatos.Repositorio.Venta
 
         public Asesor? ObtenerPorId(int id)
         {
-            return _context.Asesor.FirstOrDefault(a => a.Id == id);
+            return _context.Asesor
+               .Include(p => p.Pais)
+               .FirstOrDefault(p => p.Id == id);
         }
 
         public IQueryable<Asesor> ObtenerTodos()

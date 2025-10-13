@@ -23,6 +23,7 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private ControlOportunidadRepository _controlOportunidadRepository;
         private HistorialEstadoRepository _historialEstadoRepository;
         private HistorialInteraccionRepository _historialInteraccionRepository;
+        private PaisRepository _paisRepository;
 
         public IUsuarioRepository UsuarioRepository
             => _usuarioRepository ??= new UsuarioRepository(_context);
@@ -52,6 +53,8 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _historialEstadoRepository ??= new HistorialEstadoRepository(_context);
         public IHistorialInteraccionRepository HistorialInteraccionRepository
             => _historialInteraccionRepository ??= new HistorialInteraccionRepository(_context);
+        public IPaisRepository PaisRepository
+            => _paisRepository ??= new PaisRepository(_context);
 
         public UnitOfWork(OlympusContext context)
         {

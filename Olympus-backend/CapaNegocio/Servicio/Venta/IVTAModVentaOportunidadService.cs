@@ -13,6 +13,7 @@ namespace CapaNegocio.Servicio.Venta
         VTAModVentaTHistorialEstadoDTORPT ObtenerHistorialEstadoPorOportunidad(int idOportunidad);
         VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle();
         VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId(int id);
+        VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle_SP_Multi(string? tipoInteraccion = null);
         CFGRespuestaGenericaDTO Insertar(VTAModVentaTOportunidadDTO dto);
         CFGRespuestaGenericaDTO Actualizar(VTAModVentaTOportunidadDTO dto);
         CFGRespuestaGenericaDTO Eliminar(int id);

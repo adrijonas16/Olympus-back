@@ -23,6 +23,7 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<ControlOportunidad> ControlOportunidad { get; set; }
     public virtual DbSet<HistorialEstado> HistorialEstado { get; set; }
     public virtual DbSet<HistorialInteraccion> HistorialInteraccion { get; set; }
+    public virtual DbSet<Pais> Pais { get; set; }
 
     public IDbConnection CreateConnection()
     {
@@ -113,6 +114,18 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.FechaModificacion)
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.IdPais)
+            .HasColumnName("IdPais");
+
+            entity.HasOne(p => p.Pais)
+                .WithMany(pa => pa.Personas)
+                .HasForeignKey(p => p.IdPais)
+                .HasConstraintName("FK_Persona_Pais")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // índice opcional
+            entity.HasIndex(e => e.IdPais).HasDatabaseName("IX_Persona_IdPais");
         });
 
         // Configuración Asesor
@@ -152,6 +165,18 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.FechaModificacion)
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.IdPais)
+                .HasColumnName("IdPais");
+
+            entity.HasOne(p => p.Pais)
+                .WithMany(pa => pa.Asesores)
+                .HasForeignKey(p => p.IdPais)
+                .HasConstraintName("FK_Asesor_Pais")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // índice opcional
+            entity.HasIndex(e => e.IdPais).HasDatabaseName("IX_Asesor_IdPais");
         });
 
         // Configuración Estado
@@ -431,6 +456,57 @@ public partial class OlympusContext : DbContext
 
             // Índice para optimizar búsquedas por IdOportunidad
             entity.HasIndex("IdOportunidad").HasDatabaseName("IX_HistorialInteraccion_IdOportunidad");
+        });
+
+        // Configuración Pais
+        modelBuilder.Entity<Pais>(entity =>
+        {
+            entity.ToTable("Pais", schema: "mdm");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Nombre)
+                  .HasMaxLength(150)
+                  .IsUnicode(false)
+                  .IsRequired();
+
+            entity.Property(e => e.PrefijoCelularPais);
+
+            entity.Property(e => e.DigitoMaximo);
+
+            entity.Property(e => e.DigitoMinimo);
+
+            entity.Property(e => e.Estado)
+                  .HasColumnName("Estado");
+
+            entity.Property(e => e.UsuarioCreacion)
+                  .HasMaxLength(50)
+                  .IsUnicode(false)
+                  .IsRequired();
+
+            entity.Property(e => e.UsuarioModificacion)
+                  .HasMaxLength(50)
+                  .IsUnicode(false)
+                  .IsRequired();
+
+            entity.Property(e => e.FechaCreacion)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.FechaModificacion)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.IdMigracion).HasColumnName("IdMigracion");
+
+            // RowVersion / timestamp
+            entity.Property(e => e.RowVersion)
+                  .IsRowVersion()
+                  .IsConcurrencyToken()
+                  .HasColumnType("rowversion")
+                  .HasColumnName("RowVersion");
+
+            // índice opcional si quieres buscar por Nombre
+            entity.HasIndex(e => e.Nombre).HasDatabaseName("IX_Pais_Nombre");
         });
 
 

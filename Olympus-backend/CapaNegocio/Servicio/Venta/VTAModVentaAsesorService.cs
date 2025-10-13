@@ -31,6 +31,7 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         Id = a.Id,
                         IdPais = a.IdPais,
+                        Pais = a.Pais != null ? a.Pais.Nombre : string.Empty,
                         Nombres = a.Nombres,
                         Apellidos = a.Apellidos,
                         Celular = a.Celular,
@@ -65,6 +66,7 @@ namespace CapaNegocio.Servicio.Venta
                 {
                     dto.Id = ent.Id;
                     dto.IdPais = ent.IdPais;
+                    dto.Pais = ent.Pais != null ? ent.Pais.Nombre : string.Empty;
                     dto.Nombres = ent.Nombres;
                     dto.Apellidos = ent.Apellidos;
                     dto.Celular = ent.Celular;
@@ -130,6 +132,17 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
                     respuesta.Mensaje = SR._M_NO_ENCONTRADO;
                     return respuesta;
+                }
+                if (dto.IdPais.HasValue)
+                {
+                    var pais = _unitOfWork.PaisRepository.ObtenerPorId(dto.IdPais.Value);
+                    if (pais == null)
+                    {
+                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                        respuesta.Mensaje = "País no encontrado.";
+                        return respuesta;
+                    }
+                    // Estado del Pais
                 }
 
                 ent.IdPais = dto.IdPais;

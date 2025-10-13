@@ -27,5 +27,6 @@ namespace Modelos.Entidades
 
         // Navegación
         public List<Oportunidad> Oportunidades { get; set; } = new List<Oportunidad>();
+        public Pais? Pais { get; set; }
     }
 }

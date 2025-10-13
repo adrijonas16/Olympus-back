@@ -11,6 +11,7 @@ namespace Modelos.DTO.Venta
     {
         public int Id { get; set; }
         public int? IdPais { get; set; }
+        public string Pais { get; set; } = string.Empty;
         public string Nombres { get; set; } = string.Empty;
         public string Apellidos { get; set; } = string.Empty;
         public string Celular { get; set; } = string.Empty;

@@ -216,5 +216,26 @@ namespace Olympus.API.Controllers.Venta
             }
             return dto;
         }
+        /// <summary>
+        /// Endpoint que ejecuta la versión con SP
+        /// Query param opcional: tipoInteraccion
+        /// Ejemplo: GET api/VTAModVentaOportunidad/ObtenerTodasConDetalle_SP_Multi?tipoInteraccion=Recordatorio
+        /// </summary>
+        [HttpGet("ObtenerTodasConDetalle_SP_Multi")]
+        public VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle_SP_Multi([FromQuery] string? tipoInteraccion = null)
+        {
+            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+            try
+            {
+                respuesta = _oportunidadService.ObtenerTodasConDetalle_SP_Multi(tipoInteraccion);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
     }
 }

@@ -43,7 +43,6 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.Oportunidad.AsQueryable();
         }
-        // Trae la oportunidad incluyendo la Persona (EAGER LOAD).
         public Oportunidad? ObtenerPorIdConPersona(int id)
         {
             return _context.Oportunidad
@@ -52,10 +51,8 @@ namespace CapaDatos.Repositorio.Venta
                 .FirstOrDefault(o => o.Id == id);
         }
 
-        // Devuelve la Persona asociada a una oportunidad
         public Persona? ObtenerPersonaPorOportunidad(int idOportunidad)
         {
-            // EF traduce a un JOIN SELECT y solo trae columnas de Persona.
             return _context.Oportunidad
                 .AsNoTracking()
                 .Where(o => o.Id == idOportunidad)
@@ -63,7 +60,6 @@ namespace CapaDatos.Repositorio.Venta
                 .FirstOrDefault();
         }
 
-        // Devuelve la lista de personas relacionadas a un conjunto de oportunidades
         public List<Persona> ObtenerPersonasPorOportunidades(IEnumerable<int> idsOportunidad)
         {
             return _context.Oportunidad
@@ -75,7 +71,6 @@ namespace CapaDatos.Repositorio.Venta
                 .ToList()!;
         }
 
-        // Devuelve todas las oportunidades con su persona
         public IQueryable<Oportunidad> ObtenerTodosConPersona()
         {
             return _context.Oportunidad

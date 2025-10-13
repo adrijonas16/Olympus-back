@@ -26,5 +26,6 @@ namespace Modelos.Entidades
 
         // Navegación
         public List<HistorialEstado> HistorialEstado { get; set; } = new List<HistorialEstado>();
+        public Pais? Pais { get; set; }
     }
 }
