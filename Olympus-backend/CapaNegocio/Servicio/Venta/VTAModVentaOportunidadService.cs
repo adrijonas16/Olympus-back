@@ -36,7 +36,8 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         Id = o.Id,
                         IdPersona = o.IdPersona,
-                        CodigoLanzamiento = o.CodigoLanzamiento,
+                        IdLanzamiento = o.IdLanzamiento,
+                        CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
                         Estado = o.Estado
                     })
                     .ToList();
@@ -64,7 +65,8 @@ namespace CapaNegocio.Servicio.Venta
                 {
                     dto.Id = ent.Id;
                     dto.IdPersona = ent.IdPersona;
-                    dto.CodigoLanzamiento = ent.CodigoLanzamiento ?? string.Empty;
+                    dto.IdLanzamiento = ent.IdLanzamiento;
+                    dto.CodigoLanzamiento = ent.Lanzamiento != null ? ent.Lanzamiento.CodigoLanzamiento : string.Empty;
                     dto.Estado = ent.Estado;
                 }
             }
@@ -80,10 +82,18 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
+                var lanzamiento = _unitOfWork.LanzamientoRepository.ObtenerPorId(dto.IdLanzamiento);
+                if (lanzamiento == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
+                    return respuesta;
+                }
+
                 var ent = new Oportunidad
                 {
                     IdPersona = dto.IdPersona,
-                    CodigoLanzamiento = dto.CodigoLanzamiento,
+                    IdLanzamiento = dto.IdLanzamiento,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
                     UsuarioCreacion = "SYSTEM",
@@ -111,6 +121,14 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
+                var lanzamiento = _unitOfWork.LanzamientoRepository.ObtenerPorId(dto.IdLanzamiento);
+                if (lanzamiento == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
+                    return respuesta;
+                }
+
                 var ent = _unitOfWork.OportunidadRepository.ObtenerPorId(dto.Id);
                 if (ent == null)
                 {
@@ -120,7 +138,7 @@ namespace CapaNegocio.Servicio.Venta
                 }
 
                 ent.IdPersona = dto.IdPersona;
-                ent.CodigoLanzamiento = dto.CodigoLanzamiento;
+                ent.IdLanzamiento = dto.IdLanzamiento;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
                 ent.UsuarioModificacion = "SYSTEM";
@@ -178,7 +196,8 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         Id = o.Id,
                         IdPersona = o.IdPersona,
-                        CodigoLanzamiento = o.CodigoLanzamiento,
+                        IdLanzamiento = o.IdLanzamiento,
+                        CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
                         Estado = o.Estado
                     })
                     .ToList();
@@ -309,7 +328,8 @@ namespace CapaNegocio.Servicio.Venta
                         IdPersona = o.IdPersona,
                         PersonaNombres = o.Persona != null ? o.Persona.Nombres : string.Empty,
                         PersonaApellidos = o.Persona != null ? o.Persona.Apellidos : string.Empty,
-                        CodigoLanzamiento = o.CodigoLanzamiento ?? string.Empty,
+                        IdLanzamiento = o.IdLanzamiento,
+                        CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
                         Estado = o.Estado,
                         FechaCreacion = o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
@@ -407,7 +427,8 @@ namespace CapaNegocio.Servicio.Venta
                         IdPersona = o.IdPersona,
                         PersonaNombres = o.Persona != null ? o.Persona.Nombres : string.Empty,
                         PersonaApellidos = o.Persona != null ? o.Persona.Apellidos : string.Empty,
-                        CodigoLanzamiento = o.CodigoLanzamiento ?? string.Empty,
+                        IdLanzamiento = o.IdLanzamiento,
+                        CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
                         Estado = o.Estado,
                         FechaCreacion = o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,

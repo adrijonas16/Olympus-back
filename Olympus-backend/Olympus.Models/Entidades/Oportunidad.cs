@@ -10,7 +10,7 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public int IdPersona { get; set; }
-        public string CodigoLanzamiento { get; set; } = string.Empty;
+        public int IdLanzamiento { get; set; }
         public bool Estado { get; set; }
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -20,6 +20,7 @@ namespace Modelos.Entidades
 
         // FKs / Navegación
         public Persona? Persona { get; set; }
+        public Lanzamiento? Lanzamiento { get; set; }
         public List<ControlOportunidad> ControlOportunidades { get; set; } = new List<ControlOportunidad>();
         public List<HistorialEstado> HistorialEstado { get; set; } = new List<HistorialEstado>();
         public List<HistorialInteraccion> HistorialInteracciones { get; set; } = new List<HistorialInteraccion>();

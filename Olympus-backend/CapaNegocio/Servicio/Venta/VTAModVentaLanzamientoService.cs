@@ -5,45 +5,42 @@ using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CapaNegocio.Servicio.Venta
 {
-    public class VTAModVentaAsesorService : IVTAModVentaAsesorService
+    public class VTAModVentaLanzamientoService : IVTAModVentaLanzamientoService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly IErrorLogService _errorLogService;
 
-        public VTAModVentaAsesorService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
+        public VTAModVentaLanzamientoService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _errorLogService = errorLogService;
         }
 
-        public VTAModVentaTAsesorDTORPT ObtenerTodas()
+        public VTAModVentaTLanzamientoDTORPT ObtenerTodas()
         {
-            var respuesta = new VTAModVentaTAsesorDTORPT();
+            var respuesta = new VTAModVentaTLanzamientoDTORPT();
             try
             {
-                var lista = _unitOfWork.AsesorRepository.ObtenerTodos()
-                    .Select(a => new VTAModVentaTAsesorDTO
+                var lista = _unitOfWork.LanzamientoRepository.ObtenerTodos()
+                    .Select(l => new VTAModVentaTLanzamientoDTO
                     {
-                        Id = a.Id,
-                        IdPais = a.IdPais,
-                        Pais = a.Pais != null ? a.Pais.Nombre : string.Empty,
-                        Nombres = a.Nombres,
-                        Apellidos = a.Apellidos,
-                        Celular = a.Celular,
-                        PrefijoPaisCelular = a.PrefijoPaisCelular,
-                        Correo = a.Correo,
-                        AreaTrabajo = a.AreaTrabajo,
-                        Cesado = a.Cesado,
-                        Estado = a.Estado
+                        Id = l.Id,
+                        CodigoLanzamiento = l.CodigoLanzamiento ?? string.Empty,
+                        Estado = l.Estado
                     })
                     .ToList();
 
-                respuesta.Asesor = lista;
+                respuesta.Lanzamiento = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -56,24 +53,16 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
-        public VTAModVentaTAsesorDTO ObtenerPorId(int id)
+        public VTAModVentaTLanzamientoDTO ObtenerPorId(int id)
         {
-            var dto = new VTAModVentaTAsesorDTO();
+            var dto = new VTAModVentaTLanzamientoDTO();
             try
             {
-                var ent = _unitOfWork.AsesorRepository.ObtenerPorId(id);
+                var ent = _unitOfWork.LanzamientoRepository.ObtenerPorId(id);
                 if (ent != null)
                 {
                     dto.Id = ent.Id;
-                    dto.IdPais = ent.IdPais;
-                    dto.Pais = ent.Pais != null ? ent.Pais.Nombre : string.Empty;
-                    dto.Nombres = ent.Nombres;
-                    dto.Apellidos = ent.Apellidos;
-                    dto.Celular = ent.Celular;
-                    dto.PrefijoPaisCelular = ent.PrefijoPaisCelular;
-                    dto.Correo = ent.Correo;
-                    dto.AreaTrabajo = ent.AreaTrabajo;
-                    dto.Cesado = ent.Cesado;
+                    dto.CodigoLanzamiento = ent.CodigoLanzamiento ?? string.Empty;
                     dto.Estado = ent.Estado;
                 }
             }
@@ -84,32 +73,32 @@ namespace CapaNegocio.Servicio.Venta
             return dto;
         }
 
-        public CFGRespuestaGenericaDTO Insertar(VTAModVentaTAsesorDTO dto)
+        public CFGRespuestaGenericaDTO Insertar(VTAModVentaTLanzamientoDTO dto)
         {
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                if (dto.IdPais.HasValue)
+                // Validación básica
+                if (string.IsNullOrWhiteSpace(dto.CodigoLanzamiento))
                 {
-                    var pais = _unitOfWork.PaisRepository.ObtenerPorId(dto.IdPais.Value);
-                    if (pais == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "País no encontrado.";
-                        return respuesta;
-                    }
-                    // Estado del Pais
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "El CodigoLanzamiento es requerido.";
+                    return respuesta;
                 }
-                var ent = new Asesor
+
+                // Validar unicidad (evitar duplicados en la app antes de que lo haga la BD)
+                var existe = _unitOfWork.LanzamientoRepository.ObtenerTodos()
+                    .Any(x => x.CodigoLanzamiento == dto.CodigoLanzamiento);
+                if (existe)
                 {
-                    IdPais = dto.IdPais,
-                    Nombres = dto.Nombres,
-                    Apellidos = dto.Apellidos,
-                    Celular = dto.Celular,
-                    PrefijoPaisCelular = dto.PrefijoPaisCelular,
-                    Correo = dto.Correo,
-                    AreaTrabajo = dto.AreaTrabajo,
-                    Cesado = dto.Cesado,
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "CodigoLanzamiento ya existe.";
+                    return respuesta;
+                }
+
+                var ent = new Lanzamiento
+                {
+                    CodigoLanzamiento = dto.CodigoLanzamiento,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
                     UsuarioCreacion = "SYSTEM",
@@ -117,7 +106,7 @@ namespace CapaNegocio.Servicio.Venta
                     UsuarioModificacion = "SYSTEM"
                 };
 
-                _unitOfWork.AsesorRepository.Insertar(ent);
+                _unitOfWork.LanzamientoRepository.Insertar(ent);
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
                 respuesta.Codigo = SR._C_SIN_ERROR;
@@ -132,43 +121,42 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
-        public CFGRespuestaGenericaDTO Actualizar(VTAModVentaTAsesorDTO dto)
+        public CFGRespuestaGenericaDTO Actualizar(VTAModVentaTLanzamientoDTO dto)
         {
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                var ent = _unitOfWork.AsesorRepository.ObtenerPorId(dto.Id);
+                var ent = _unitOfWork.LanzamientoRepository.ObtenerPorId(dto.Id);
                 if (ent == null)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
                     respuesta.Mensaje = SR._M_NO_ENCONTRADO;
                     return respuesta;
                 }
-                if (dto.IdPais.HasValue)
+
+                if (string.IsNullOrWhiteSpace(dto.CodigoLanzamiento))
                 {
-                    var pais = _unitOfWork.PaisRepository.ObtenerPorId(dto.IdPais.Value);
-                    if (pais == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "País no encontrado.";
-                        return respuesta;
-                    }
-                    // Estado del Pais
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "El CodigoLanzamiento es requerido.";
+                    return respuesta;
                 }
 
-                ent.IdPais = dto.IdPais;
-                ent.Nombres = dto.Nombres;
-                ent.Apellidos = dto.Apellidos;
-                ent.Celular = dto.Celular;
-                ent.PrefijoPaisCelular = dto.PrefijoPaisCelular;
-                ent.Correo = dto.Correo;
-                ent.AreaTrabajo = dto.AreaTrabajo;
-                ent.Cesado = dto.Cesado;
+                // Validar unicidad excluyendo el actual
+                var existe = _unitOfWork.LanzamientoRepository.ObtenerTodos()
+                    .Any(x => x.CodigoLanzamiento == dto.CodigoLanzamiento && x.Id != dto.Id);
+                if (existe)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "CodigoLanzamiento ya existe.";
+                    return respuesta;
+                }
+
+                ent.CodigoLanzamiento = dto.CodigoLanzamiento;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
                 ent.UsuarioModificacion = "SYSTEM";
 
-                _unitOfWork.AsesorRepository.Actualizar(ent);
+                _unitOfWork.LanzamientoRepository.Actualizar(ent);
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
                 respuesta.Codigo = SR._C_SIN_ERROR;
@@ -188,7 +176,7 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                var success = _unitOfWork.AsesorRepository.Eliminar(id);
+                var success = _unitOfWork.LanzamientoRepository.Eliminar(id);
                 if (!success)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;

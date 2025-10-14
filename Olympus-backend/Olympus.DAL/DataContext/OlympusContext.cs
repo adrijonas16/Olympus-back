@@ -24,6 +24,7 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<HistorialEstado> HistorialEstado { get; set; }
     public virtual DbSet<HistorialInteraccion> HistorialInteraccion { get; set; }
     public virtual DbSet<Pais> Pais { get; set; }
+    public virtual DbSet<Lanzamiento> Lanzamiento { get; set; }
 
     public IDbConnection CreateConnection()
     {
@@ -241,10 +242,6 @@ public partial class OlympusContext : DbContext
             entity.ToTable("Oportunidad", schema: "adm");
             entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.CodigoLanzamiento)
-                .HasMaxLength(255)
-                .IsUnicode(false);
-
             entity.Property(e => e.Estado)
                 .HasColumnName("Estado");
 
@@ -269,8 +266,7 @@ public partial class OlympusContext : DbContext
                 .HasColumnName("IdPersona")
                 .IsRequired();
 
-            // Relación: muchas Oportunidad -> 1 Persona, forzar FK usando la propiedad IdPersona
-            // Si Persona tiene colección de Oportunidades cambia WithMany() por WithMany(p => p.Oportunidades)
+            // Muchas Oportunidad -> 1 Persona, forzar FK usando la propiedad IdPersona
             entity.HasOne(o => o.Persona)
                   .WithMany(p => p.Oportunidades)
                   .HasForeignKey(o => o.IdPersona)
@@ -279,6 +275,19 @@ public partial class OlympusContext : DbContext
 
             // Índice
             entity.HasIndex(e => e.IdPersona).HasDatabaseName("IX_Oportunidad_IdPersona");
+
+            // FK Lanzamiento.Id
+            entity.Property(e => e.IdLanzamiento)
+                  .HasColumnName("IdLanzamiento")
+                  .IsRequired();
+
+            entity.HasOne(o => o.Lanzamiento)
+                  .WithMany(l => l.Oportunidades)
+                  .HasForeignKey(o => o.IdLanzamiento)
+                  .HasConstraintName("FK_Oportunidad_Lanzamiento")
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => e.IdLanzamiento).HasDatabaseName("IX_Oportunidad_IdLanzamiento");
         });
 
         // Configuración ControlOportunidad
@@ -509,6 +518,33 @@ public partial class OlympusContext : DbContext
             entity.HasIndex(e => e.Nombre).HasDatabaseName("IX_Pais_Nombre");
         });
 
+        // Configuración Lanzamiento
+        modelBuilder.Entity<Lanzamiento>(entity =>
+        {
+            entity.ToTable("Lanzamiento", schema: "adm");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.CodigoLanzamiento)
+                  .HasMaxLength(255)
+                  .IsUnicode(false);
+
+            entity.Property(e => e.Estado).HasColumnName("Estado");
+
+            entity.Property(e => e.FechaCreacion)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.FechaModificacion)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.UsuarioCreacion)
+                  .HasMaxLength(50)
+                  .IsUnicode(false);
+            entity.Property(e => e.UsuarioModificacion)
+                  .HasMaxLength(50)
+                  .IsUnicode(false);
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }

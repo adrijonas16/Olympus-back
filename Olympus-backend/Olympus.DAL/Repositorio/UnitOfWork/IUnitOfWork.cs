@@ -22,6 +22,7 @@ namespace CapaDatos.Repositorio.UnitOfWork
         IHistorialEstadoRepository HistorialEstadoRepository { get; }
         IHistorialInteraccionRepository HistorialInteraccionRepository { get; }
         IPaisRepository PaisRepository { get; }
+        ILanzamientoRepository LanzamientoRepository { get; }
 
         // Guardar cambios
         Task<int> SaveChangesAsync();
