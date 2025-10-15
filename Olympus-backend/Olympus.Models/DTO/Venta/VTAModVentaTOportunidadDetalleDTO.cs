@@ -17,6 +17,8 @@ namespace Modelos.DTO.Venta
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; }
 
         public VTAModVentaTHistorialEstadoDetalleDTO? HistorialEstado { get; set; }
         public List<VTAModVentaTHistorialInteraccionDTO> HistorialInteraccion { get; set; } = new();

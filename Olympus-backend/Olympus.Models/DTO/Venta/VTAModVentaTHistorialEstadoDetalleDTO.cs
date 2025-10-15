@@ -18,7 +18,11 @@ namespace Modelos.DTO.Venta
         public int? CantidadLlamadasContestadas { get; set; }
         public int? CantidadLlamadasNoContestadas { get; set; }
         public int TotalMarcaciones { get; set; }
+        public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; }
 
         public VTAModVentaTAsesorDTO? Asesor { get; set; }
         public VTAModVentaTEstadoDTO? EstadoReferencia { get; set; }

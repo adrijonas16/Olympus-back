@@ -20,6 +20,10 @@ namespace Modelos.DTO.Venta
         public string AreaTrabajo { get; set; } = string.Empty;
         public bool? Cesado { get; set; }
         public bool Estado { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; }
     }
     public class VTAModVentaTAsesorDTORPT : CFGRespuestaGenericaDTO
     {

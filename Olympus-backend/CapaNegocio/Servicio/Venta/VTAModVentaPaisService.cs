@@ -39,7 +39,11 @@ namespace CapaNegocio.Servicio.Venta
                         PrefijoCelularPais = p.PrefijoCelularPais,
                         DigitoMaximo = p.DigitoMaximo,
                         DigitoMinimo = p.DigitoMinimo,
-                        Estado = p.Estado
+                        Estado = p.Estado,
+                        UsuarioCreacion = p.UsuarioCreacion,
+                        FechaCreacion = p.FechaCreacion,
+                        UsuarioModificacion = p.UsuarioModificacion,
+                        FechaModificacion = p.FechaModificacion
                     })
                     .ToList();
 
@@ -70,6 +74,10 @@ namespace CapaNegocio.Servicio.Venta
                     dto.DigitoMaximo = ent.DigitoMaximo;
                     dto.DigitoMinimo = ent.DigitoMinimo;
                     dto.Estado = ent.Estado;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)

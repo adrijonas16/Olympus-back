@@ -36,7 +36,10 @@ namespace CapaNegocio.Servicio.Venta
                         Celular = h.Celular,
                         FechaRecordatorio = h.FechaRecordatorio,
                         Estado = h.Estado,
-                        IdMigracion = h.IdMigracion
+                        UsuarioCreacion = h.UsuarioCreacion,
+                        FechaCreacion = h.FechaCreacion,
+                        UsuarioModificacion = h.UsuarioModificacion,
+                        FechaModificacion = h.FechaModificacion,
                     })
                     .ToList();
 
@@ -68,7 +71,10 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Celular = ent.Celular;
                     dto.FechaRecordatorio = ent.FechaRecordatorio;
                     dto.Estado = ent.Estado;
-                    dto.IdMigracion = ent.IdMigracion;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)
@@ -91,7 +97,6 @@ namespace CapaNegocio.Servicio.Venta
                     Celular = dto.Celular,
                     FechaRecordatorio = dto.FechaRecordatorio,
                     Estado = dto.Estado,
-                    IdMigracion = dto.IdMigracion,
                     FechaCreacion = DateTime.UtcNow,
                     UsuarioCreacion = "SYSTEM",
                     FechaModificacion = DateTime.UtcNow,
@@ -132,7 +137,6 @@ namespace CapaNegocio.Servicio.Venta
                 ent.Celular = dto.Celular;
                 ent.FechaRecordatorio = dto.FechaRecordatorio;
                 ent.Estado = dto.Estado;
-                ent.IdMigracion = dto.IdMigracion;
                 ent.FechaModificacion = DateTime.UtcNow;
                 ent.UsuarioModificacion = "SYSTEM";
 

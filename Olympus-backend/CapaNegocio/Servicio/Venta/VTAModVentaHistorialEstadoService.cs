@@ -38,7 +38,10 @@ namespace CapaNegocio.Servicio.Venta
                         CantidadLlamadasContestadas = h.CantidadLlamadasContestadas ?? 0,
                         CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas ?? 0,
                         Estado = h.Estado,
-                        IdMigracion = h.IdMigracion
+                        UsuarioCreacion = h.UsuarioCreacion,
+                        FechaCreacion = h.FechaCreacion,
+                        UsuarioModificacion = h.UsuarioModificacion,
+                        FechaModificacion = h.FechaModificacion,
                     })
                     .ToList();
 
@@ -72,7 +75,10 @@ namespace CapaNegocio.Servicio.Venta
                     dto.CantidadLlamadasContestadas = ent.CantidadLlamadasContestadas ?? 0;
                     dto.CantidadLlamadasNoContestadas = ent.CantidadLlamadasNoContestadas ?? 0;
                     dto.Estado = ent.Estado;
-                    dto.IdMigracion = ent.IdMigracion;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)
@@ -97,7 +103,6 @@ namespace CapaNegocio.Servicio.Venta
                     CantidadLlamadasContestadas = dto.CantidadLlamadasContestadas,
                     CantidadLlamadasNoContestadas = dto.CantidadLlamadasNoContestadas,
                     Estado = dto.Estado,
-                    IdMigracion = dto.IdMigracion,
                     FechaCreacion = DateTime.UtcNow,
                     UsuarioCreacion = "SYSTEM",
                     FechaModificacion = DateTime.UtcNow,
@@ -140,7 +145,6 @@ namespace CapaNegocio.Servicio.Venta
                 ent.CantidadLlamadasContestadas = dto.CantidadLlamadasContestadas;
                 ent.CantidadLlamadasNoContestadas = dto.CantidadLlamadasNoContestadas;
                 ent.Estado = dto.Estado;
-                ent.IdMigracion = dto.IdMigracion;
                 ent.FechaModificacion = DateTime.UtcNow;
                 ent.UsuarioModificacion = "SYSTEM";
 

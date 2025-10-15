@@ -31,8 +31,11 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         Id = m.Id,
                         Detalle = m.Detalle,
-                        IdMigracion = m.IdMigracion,
-                        Estado = m.Estado
+                        Estado = m.Estado,
+                        UsuarioCreacion = m.UsuarioCreacion,
+                        FechaCreacion = m.FechaCreacion,
+                        UsuarioModificacion = m.UsuarioModificacion,
+                        FechaModificacion = m.FechaModificacion
                     })
                     .ToList();
 
@@ -59,8 +62,11 @@ namespace CapaNegocio.Servicio.Venta
                 {
                     dto.Id = ent.Id;
                     dto.Detalle = ent.Detalle;
-                    dto.IdMigracion = ent.IdMigracion;
                     dto.Estado = ent.Estado;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)
@@ -78,7 +84,6 @@ namespace CapaNegocio.Servicio.Venta
                 var ent = new Motivo
                 {
                     Detalle = dto.Detalle,
-                    IdMigracion = dto.IdMigracion,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
                     UsuarioCreacion = "SYSTEM",
@@ -115,7 +120,6 @@ namespace CapaNegocio.Servicio.Venta
                 }
 
                 ent.Detalle = dto.Detalle;
-                ent.IdMigracion = dto.IdMigracion;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
                 ent.UsuarioModificacion = "SYSTEM";

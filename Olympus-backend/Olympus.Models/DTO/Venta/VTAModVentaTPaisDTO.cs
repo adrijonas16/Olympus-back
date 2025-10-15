@@ -15,6 +15,10 @@ namespace Modelos.DTO.Venta
         public int DigitoMaximo { get; set; }
         public int DigitoMinimo { get; set; }
         public bool Estado { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; }
     }
 
     public class VTAModVentaTPaisDTORPT : CFGRespuestaGenericaDTO

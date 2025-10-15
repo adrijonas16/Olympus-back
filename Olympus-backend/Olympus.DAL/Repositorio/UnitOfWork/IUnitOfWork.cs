@@ -1,6 +1,7 @@
 ﻿using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.Seguridad;
 using CapaDatos.Repositorio.Venta;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CapaDatos.Repositorio.UnitOfWork
 {
@@ -26,5 +27,8 @@ namespace CapaDatos.Repositorio.UnitOfWork
 
         // Guardar cambios
         Task<int> SaveChangesAsync();
+        Task<IDbContextTransaction> BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

@@ -15,7 +15,7 @@ namespace Modelos.DTO.Venta
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
-        public string UsuarioModificacion { get; set; } = string.Empty;
+        public string? UsuarioModificacion { get; set; }
 
     }
 

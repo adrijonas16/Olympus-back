@@ -36,7 +36,11 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         Id = l.Id,
                         CodigoLanzamiento = l.CodigoLanzamiento ?? string.Empty,
-                        Estado = l.Estado
+                        Estado = l.Estado,
+                        UsuarioCreacion = l.UsuarioCreacion,
+                        FechaCreacion = l.FechaCreacion,
+                        UsuarioModificacion = l.UsuarioModificacion,
+                        FechaModificacion = l.FechaModificacion,
                     })
                     .ToList();
 
@@ -64,6 +68,10 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Id = ent.Id;
                     dto.CodigoLanzamiento = ent.CodigoLanzamiento ?? string.Empty;
                     dto.Estado = ent.Estado;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)

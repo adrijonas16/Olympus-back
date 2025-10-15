@@ -38,7 +38,11 @@ namespace CapaNegocio.Servicio.Venta
                         IdPersona = o.IdPersona,
                         IdLanzamiento = o.IdLanzamiento,
                         CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
-                        Estado = o.Estado
+                        Estado = o.Estado,
+                        UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioModificacion = o.UsuarioModificacion,
+                        FechaModificacion = o.FechaModificacion
                     })
                     .ToList();
 
@@ -68,6 +72,10 @@ namespace CapaNegocio.Servicio.Venta
                     dto.IdLanzamiento = ent.IdLanzamiento;
                     dto.CodigoLanzamiento = ent.Lanzamiento != null ? ent.Lanzamiento.CodigoLanzamiento : string.Empty;
                     dto.Estado = ent.Estado;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion ?? string.Empty;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)
@@ -79,18 +87,43 @@ namespace CapaNegocio.Servicio.Venta
 
         public CFGRespuestaGenericaDTO Insertar(VTAModVentaTOportunidadDTO dto)
         {
-            var respuesta = new CFGRespuestaGenericaDTO();
+            var respuesta = new VTAModVentaTOportunidadDTORPT();
             try
             {
+                // Validar Lanzamiento obligatorio
                 var lanzamiento = _unitOfWork.LanzamientoRepository.ObtenerPorId(dto.IdLanzamiento);
                 if (lanzamiento == null)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
+                    respuesta.Mensaje = "Lanzamiento no encontrado.";
                     return respuesta;
                 }
 
-                var ent = new Oportunidad
+                // Validar Asesor si fue enviado
+                if (dto.IdAsesor.HasValue)
+                {
+                    var asesor = _unitOfWork.AsesorRepository.ObtenerPorId(dto.IdAsesor.Value);
+                    if (asesor == null)
+                    {
+                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                        respuesta.Mensaje = "Asesor no encontrado.";
+                        return respuesta;
+                    }
+                }
+
+                // Validar que exista el estado inicial (Id = 2)
+                var estadoInicial = _unitOfWork.EstadoRepository.ObtenerPorId(2);
+                if (estadoInicial == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Estado inicial no encontrado";
+                    return respuesta;
+                }
+
+                _unitOfWork.BeginTransactionAsync().GetAwaiter().GetResult();
+
+                // Crear Oportunidad
+                var oportunidad = new Oportunidad
                 {
                     IdPersona = dto.IdPersona,
                     IdLanzamiento = dto.IdLanzamiento,
@@ -101,14 +134,73 @@ namespace CapaNegocio.Servicio.Venta
                     UsuarioModificacion = "SYSTEM"
                 };
 
-                _unitOfWork.OportunidadRepository.Insertar(ent);
-                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                _unitOfWork.OportunidadRepository.Insertar(oportunidad);
 
+                // Crear HistorialEstado vinculado a la Oportunidad
+                var historialEstado = new HistorialEstado
+                {
+                    Oportunidad = oportunidad,
+                    IdAsesor = dto.IdAsesor,
+                    IdMotivo = null,
+                    IdEstado = estadoInicial.Id,
+                    Observaciones = "Estado inicial al crear oportunidad",
+                    CantidadLlamadasContestadas = 0,
+                    CantidadLlamadasNoContestadas = 0,
+                    Estado = true,
+                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioCreacion = "SYSTEM",
+                    FechaModificacion = DateTime.UtcNow,
+                    UsuarioModificacion = "SYSTEM"
+                };
+
+                _unitOfWork.HistorialEstadoRepository.Insertar(historialEstado);
+
+                // Crear HistorialInteraccion tipo "Recordatorio"
+                var historialInteraccion = new HistorialInteraccion
+                {
+                    Oportunidad = oportunidad,
+                    Detalle = "Recordatorio generado al crear oportunidad",
+                    Tipo = "Recordatorio",
+                    Celular = string.Empty,
+                    FechaRecordatorio = dto.FechaRecordatorio,
+                    Estado = true,
+                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioCreacion = "SYSTEM",
+                    FechaModificacion = DateTime.UtcNow,
+                    UsuarioModificacion = "SYSTEM"
+                };
+
+                _unitOfWork.HistorialInteraccionRepository.Insertar(historialInteraccion);
+
+                // Guardar todo en una sola operación y confirmar transacción
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                _unitOfWork.CommitTransactionAsync().GetAwaiter().GetResult();
+
+                var dtoCreado = new VTAModVentaTOportunidadDTO
+                {
+                    Id = oportunidad.Id,
+                    IdPersona = oportunidad.IdPersona,
+                    IdLanzamiento = oportunidad.IdLanzamiento,
+                    CodigoLanzamiento = lanzamiento?.CodigoLanzamiento ?? string.Empty,
+                    Estado = oportunidad.Estado,
+                    IdAsesor = dto.IdAsesor,
+                    FechaRecordatorio = dto.FechaRecordatorio,
+                    FechaCreacion = oportunidad.FechaCreacion,
+                    UsuarioCreacion = oportunidad.UsuarioCreacion,
+                    FechaModificacion = oportunidad.FechaModificacion,
+                    UsuarioModificacion = oportunidad.UsuarioModificacion
+                };
+
+                respuesta.Oportunidad.Add(dtoCreado);
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
             catch (Exception ex)
             {
+                try { 
+                    _unitOfWork.RollbackTransactionAsync().GetAwaiter().GetResult(); 
+                } 
+                catch { }
                 _errorLogService.RegistrarError(ex);
                 respuesta.Codigo = SR._C_ERROR_CRITICO;
                 respuesta.Mensaje = ex.Message;
@@ -118,7 +210,7 @@ namespace CapaNegocio.Servicio.Venta
 
         public CFGRespuestaGenericaDTO Actualizar(VTAModVentaTOportunidadDTO dto)
         {
-            var respuesta = new CFGRespuestaGenericaDTO();
+            var respuesta = new VTAModVentaTOportunidadDTORPT();
             try
             {
                 var lanzamiento = _unitOfWork.LanzamientoRepository.ObtenerPorId(dto.IdLanzamiento);
@@ -146,6 +238,22 @@ namespace CapaNegocio.Servicio.Venta
                 _unitOfWork.OportunidadRepository.Actualizar(ent);
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
+                var dtoActualizado = new VTAModVentaTOportunidadDTO
+                {
+                    Id = ent.Id,
+                    IdPersona = ent.IdPersona,
+                    IdLanzamiento = ent.IdLanzamiento,
+                    CodigoLanzamiento = lanzamiento?.CodigoLanzamiento ?? string.Empty,
+                    Estado = ent.Estado,
+                    IdAsesor = dto.IdAsesor,
+                    FechaRecordatorio = dto.FechaRecordatorio,
+                    FechaCreacion = ent.FechaCreacion,
+                    UsuarioCreacion = ent.UsuarioCreacion,
+                    FechaModificacion = ent.FechaModificacion,
+                    UsuarioModificacion = ent.UsuarioModificacion
+                };
+
+                respuesta.Oportunidad.Add(dtoActualizado);
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -198,7 +306,11 @@ namespace CapaNegocio.Servicio.Venta
                         IdPersona = o.IdPersona,
                         IdLanzamiento = o.IdLanzamiento,
                         CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
-                        Estado = o.Estado
+                        Estado = o.Estado,
+                        UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioModificacion = o.UsuarioModificacion,
+                        FechaModificacion = o.FechaModificacion
                     })
                     .ToList();
 
@@ -229,8 +341,11 @@ namespace CapaNegocio.Servicio.Venta
                         Nombre = c.Nombre,
                         Url = c.Url ?? string.Empty,
                         Detalle = c.Detalle ?? string.Empty,
-                        IdMigracion = c.IdMigracion,
-                        Estado = c.Estado
+                        Estado = c.Estado,
+                        UsuarioCreacion = c.UsuarioCreacion ?? string.Empty,
+                        FechaCreacion = c.FechaCreacion,
+                        UsuarioModificacion = c.UsuarioModificacion,
+                        FechaModificacion = c.FechaModificacion
                     })
                     .ToList();
 
@@ -262,8 +377,11 @@ namespace CapaNegocio.Servicio.Venta
                         Tipo = h.Tipo ?? string.Empty,
                         Celular = h.Celular ?? string.Empty,
                         FechaRecordatorio = h.FechaRecordatorio,
-                        IdMigracion = h.IdMigracion,
-                        Estado = h.Estado
+                        Estado = h.Estado,
+                        UsuarioCreacion = h.UsuarioCreacion ?? string.Empty,
+                        FechaCreacion = h.FechaCreacion,
+                        UsuarioModificacion = h.UsuarioModificacion,
+                        FechaModificacion = h.FechaModificacion
                     })
                     .ToList();
 
@@ -297,8 +415,11 @@ namespace CapaNegocio.Servicio.Venta
                         Observaciones = h.Observaciones ?? string.Empty,
                         CantidadLlamadasContestadas = h.CantidadLlamadasContestadas,
                         CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas,
-                        IdMigracion = h.IdMigracion,
-                        Estado = h.Estado
+                        Estado = h.Estado,
+                        UsuarioCreacion = h.UsuarioCreacion ?? string.Empty,
+                        FechaCreacion = h.FechaCreacion,
+                        UsuarioModificacion = h.UsuarioModificacion ?? string.Empty,
+                        FechaModificacion = h.FechaModificacion 
                     })
                     .ToList();
 
@@ -331,8 +452,10 @@ namespace CapaNegocio.Servicio.Venta
                         IdLanzamiento = o.IdLanzamiento,
                         CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
                         Estado = o.Estado,
-                        FechaCreacion = o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioModificacion = o.UsuarioModificacion,
+                        FechaModificacion = o.FechaModificacion,
 
                         HistorialEstado = o.HistorialEstado
                             .OrderByDescending(h => h.FechaCreacion)
@@ -347,7 +470,10 @@ namespace CapaNegocio.Servicio.Venta
                                 CantidadLlamadasContestadas = h.CantidadLlamadasContestadas,
                                 CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas,
                                 TotalMarcaciones = (h.CantidadLlamadasContestadas ?? 0) + (h.CantidadLlamadasNoContestadas ?? 0),
+                                UsuarioCreacion = h.UsuarioCreacion ?? string.Empty,
                                 FechaCreacion = h.FechaCreacion,
+                                UsuarioModificacion = h.UsuarioModificacion,
+                                FechaModificacion = h.FechaModificacion,
 
                                 Asesor = h.Asesor == null ? null : new VTAModVentaTAsesorDTO
                                 {
@@ -360,7 +486,11 @@ namespace CapaNegocio.Servicio.Venta
                                     Correo = h.Asesor.Correo,
                                     AreaTrabajo = h.Asesor.AreaTrabajo,
                                     Cesado = h.Asesor.Cesado,
-                                    Estado = h.Asesor.Estado
+                                    Estado = h.Asesor.Estado,
+                                    UsuarioCreacion = h.Asesor.UsuarioCreacion ?? string.Empty,
+                                    FechaCreacion = h.Asesor.FechaCreacion,
+                                    UsuarioModificacion = h.Asesor.UsuarioModificacion,
+                                    FechaModificacion = h.Asesor.FechaModificacion
                                 },
 
                                 EstadoReferencia = h.EstadoReferencia == null ? null : new VTAModVentaTEstadoDTO
@@ -369,15 +499,22 @@ namespace CapaNegocio.Servicio.Venta
                                     Nombre = h.EstadoReferencia.Nombre,
                                     Descripcion = h.EstadoReferencia.Descripcion,
                                     IdMigracion = h.EstadoReferencia.IdMigracion,
-                                    Estado = h.EstadoReferencia.EstadoControl
+                                    Estado = h.EstadoReferencia.EstadoControl,
+                                    UsuarioCreacion = h.EstadoReferencia.UsuarioCreacion ?? string.Empty,
+                                    FechaCreacion = h.EstadoReferencia.FechaCreacion,
+                                    UsuarioModificacion = h.EstadoReferencia.UsuarioModificacion,
+                                    FechaModificacion = h.EstadoReferencia.FechaModificacion
                                 },
 
                                 Motivo = h.Motivo == null ? null : new VTAModVentaTMotivoDTO
                                 {
                                     Id = h.Motivo.Id,
                                     Detalle = h.Motivo.Detalle,
-                                    IdMigracion = h.Motivo.IdMigracion,
-                                    Estado = h.Motivo.Estado
+                                    Estado = h.Motivo.Estado,
+                                    UsuarioCreacion = h.Motivo.UsuarioCreacion ?? string.Empty,
+                                    FechaCreacion = h.Motivo.FechaCreacion,
+                                    UsuarioModificacion = h.Motivo.UsuarioModificacion,
+                                    FechaModificacion = h.Motivo.FechaModificacion
                                 }
                             })
                             .FirstOrDefault(),
@@ -393,8 +530,11 @@ namespace CapaNegocio.Servicio.Venta
                                 Tipo = hi.Tipo ?? string.Empty,
                                 Celular = hi.Celular ?? string.Empty,
                                 FechaRecordatorio = hi.FechaRecordatorio,
-                                IdMigracion = hi.IdMigracion,
-                                Estado = hi.Estado
+                                Estado = hi.Estado,
+                                UsuarioCreacion = hi.UsuarioCreacion ?? string.Empty,
+                                FechaCreacion = hi.FechaCreacion,
+                                UsuarioModificacion = hi.UsuarioModificacion,
+                                FechaModificacion = hi.FechaModificacion
                             })
                             .ToList()
                     })
@@ -430,8 +570,10 @@ namespace CapaNegocio.Servicio.Venta
                         IdLanzamiento = o.IdLanzamiento,
                         CodigoLanzamiento = o.Lanzamiento != null ? o.Lanzamiento.CodigoLanzamiento : string.Empty,
                         Estado = o.Estado,
-                        FechaCreacion = o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioModificacion = o.UsuarioModificacion,
+                        FechaModificacion = o.FechaModificacion,
 
                         HistorialEstado = o.HistorialEstado
                             .OrderByDescending(h => h.FechaCreacion)
@@ -446,7 +588,10 @@ namespace CapaNegocio.Servicio.Venta
                                 CantidadLlamadasContestadas = h.CantidadLlamadasContestadas,
                                 CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas,
                                 TotalMarcaciones = (h.CantidadLlamadasContestadas ?? 0) + (h.CantidadLlamadasNoContestadas ?? 0),
+                                UsuarioCreacion = h.UsuarioCreacion ?? string.Empty,
                                 FechaCreacion = h.FechaCreacion,
+                                UsuarioModificacion = h.UsuarioModificacion,
+                                FechaModificacion = h.FechaModificacion,
 
                                 Asesor = h.Asesor == null ? null : new VTAModVentaTAsesorDTO
                                 {
@@ -459,7 +604,11 @@ namespace CapaNegocio.Servicio.Venta
                                     Correo = h.Asesor.Correo,
                                     AreaTrabajo = h.Asesor.AreaTrabajo,
                                     Cesado = h.Asesor.Cesado,
-                                    Estado = h.Asesor.Estado
+                                    Estado = h.Asesor.Estado,
+                                    UsuarioCreacion = h.Asesor.UsuarioCreacion ?? string.Empty,
+                                    FechaCreacion = h.Asesor.FechaCreacion,
+                                    UsuarioModificacion = h.Asesor.UsuarioModificacion,
+                                    FechaModificacion = h.Asesor.FechaModificacion
                                 },
 
                                 EstadoReferencia = h.EstadoReferencia == null ? null : new VTAModVentaTEstadoDTO
@@ -468,15 +617,22 @@ namespace CapaNegocio.Servicio.Venta
                                     Nombre = h.EstadoReferencia.Nombre,
                                     Descripcion = h.EstadoReferencia.Descripcion,
                                     IdMigracion = h.EstadoReferencia.IdMigracion,
-                                    Estado = h.EstadoReferencia.EstadoControl
+                                    Estado = h.EstadoReferencia.EstadoControl,
+                                    UsuarioCreacion = h.EstadoReferencia.UsuarioCreacion ?? string.Empty,
+                                    FechaCreacion = h.EstadoReferencia.FechaCreacion,
+                                    UsuarioModificacion = h.EstadoReferencia.UsuarioModificacion,
+                                    FechaModificacion = h.EstadoReferencia.FechaModificacion
                                 },
 
                                 Motivo = h.Motivo == null ? null : new VTAModVentaTMotivoDTO
                                 {
                                     Id = h.Motivo.Id,
                                     Detalle = h.Motivo.Detalle,
-                                    IdMigracion = h.Motivo.IdMigracion,
-                                    Estado = h.Motivo.Estado
+                                    Estado = h.Motivo.Estado,
+                                    UsuarioCreacion = h.Motivo.UsuarioCreacion ?? string.Empty,
+                                    FechaCreacion = h.Motivo.FechaCreacion,
+                                    UsuarioModificacion = h.Motivo.UsuarioModificacion,
+                                    FechaModificacion = h.Motivo.FechaModificacion
                                 }
                             })
                             .FirstOrDefault(),
@@ -491,8 +647,11 @@ namespace CapaNegocio.Servicio.Venta
                                 Tipo = h.Tipo ?? string.Empty,
                                 Celular = h.Celular ?? string.Empty,
                                 FechaModificacion = h.FechaModificacion,
-                                IdMigracion = h.IdMigracion,
-                                Estado = h.Estado
+                                Estado = h.Estado,
+                                UsuarioCreacion = h.UsuarioCreacion ?? string.Empty,
+                                FechaCreacion = h.FechaCreacion,
+                                UsuarioModificacion = h.UsuarioModificacion,
+                                FechaRecordatorio = h.FechaRecordatorio
                             })
                             .ToList()
                     })
@@ -599,7 +758,6 @@ namespace CapaNegocio.Servicio.Venta
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Motivo_Id")),
                                 Detalle = reader.IsDBNull(reader.GetOrdinal("Motivo_Detalle")) ? string.Empty : reader.GetString(reader.GetOrdinal("Motivo_Detalle")),
-                                IdMigracion = reader.IsDBNull(reader.GetOrdinal("Motivo_IdMigracion")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("Motivo_IdMigracion")),
                                 Estado = !reader.IsDBNull(reader.GetOrdinal("Motivo_Estado")) && reader.GetBoolean(reader.GetOrdinal("Motivo_Estado"))
                             }
                         };
@@ -621,7 +779,6 @@ namespace CapaNegocio.Servicio.Venta
                             Nombre = reader.IsDBNull(reader.GetOrdinal("Nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("Nombre")),
                             Url = reader.IsDBNull(reader.GetOrdinal("Url")) ? string.Empty : reader.GetString(reader.GetOrdinal("Url")),
                             Detalle = reader.IsDBNull(reader.GetOrdinal("Detalle")) ? string.Empty : reader.GetString(reader.GetOrdinal("Detalle")),
-                            IdMigracion = reader.IsDBNull(reader.GetOrdinal("IdMigracion")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdMigracion")),
                             Estado = !reader.IsDBNull(reader.GetOrdinal("Estado")) && reader.GetBoolean(reader.GetOrdinal("Estado"))
                         };
                         if (!dictControles.TryGetValue(idOpp, out var list)) { list = new List<VTAModVentaTControlOportunidadDTO>(); dictControles[idOpp] = list; }
@@ -643,7 +800,6 @@ namespace CapaNegocio.Servicio.Venta
                             Tipo = reader.IsDBNull(reader.GetOrdinal("Tipo")) ? string.Empty : reader.GetString(reader.GetOrdinal("Tipo")),
                             Celular = reader.IsDBNull(reader.GetOrdinal("Celular")) ? string.Empty : reader.GetString(reader.GetOrdinal("Celular")),
                             FechaRecordatorio = reader.IsDBNull(reader.GetOrdinal("FechaRecordatorio")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("FechaRecordatorio")),
-                            IdMigracion = reader.IsDBNull(reader.GetOrdinal("IdMigracion")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdMigracion")),
                             Estado = !reader.IsDBNull(reader.GetOrdinal("Estado")) && reader.GetBoolean(reader.GetOrdinal("Estado"))
                         };
                         if (!dictInteracciones.TryGetValue(idOpp, out var list)) { list = new List<VTAModVentaTHistorialInteraccionDTO>(); dictInteracciones[idOpp] = list; }

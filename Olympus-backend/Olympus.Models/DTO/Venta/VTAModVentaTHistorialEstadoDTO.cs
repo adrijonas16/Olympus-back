@@ -17,8 +17,11 @@ namespace Modelos.DTO.Venta
         public string Observaciones { get; set; } = string.Empty;
         public int? CantidadLlamadasContestadas { get; set; }
         public int? CantidadLlamadasNoContestadas { get; set; }
-        public int? IdMigracion { get; set; }
         public bool Estado { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; }
     }
     public class VTAModVentaTHistorialEstadoDTORPT : CFGRespuestaGenericaDTO
     {

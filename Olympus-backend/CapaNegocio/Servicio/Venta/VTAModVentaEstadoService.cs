@@ -33,7 +33,11 @@ namespace CapaNegocio.Servicio.Venta
                         Nombre = e.Nombre,
                         Descripcion = e.Descripcion,
                         IdMigracion = e.IdMigracion,
-                        Estado = e.EstadoControl
+                        Estado = e.EstadoControl,
+                        UsuarioCreacion = e.UsuarioCreacion,
+                        FechaCreacion = e.FechaCreacion,
+                        UsuarioModificacion = e.UsuarioModificacion,
+                        FechaModificacion = e.FechaModificacion
                     })
                     .ToList();
 
@@ -63,6 +67,10 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Descripcion = ent.Descripcion;
                     dto.IdMigracion = ent.IdMigracion;
                     dto.Estado = ent.EstadoControl;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)

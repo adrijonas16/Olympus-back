@@ -2,12 +2,15 @@
 using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.Seguridad;
 using CapaDatos.Repositorio.Venta;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CapaDatos.Repositorio.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly OlympusContext _context;
+
+        private IDbContextTransaction? _transaction;
 
         private UsuarioRepository _usuarioRepository;
         private ErrorLogRepository _errorLogRepository;
@@ -67,6 +70,45 @@ namespace CapaDatos.Repositorio.UnitOfWork
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            if (_transaction != null)
+                return _transaction;
+
+            _transaction = await _context.Database.BeginTransactionAsync();
+            return _transaction;
+        }
+
+        public async Task CommitTransactionAsync()
+        {
+            if (_transaction == null) return;
+
+            try
+            {
+                await _transaction.CommitAsync();
+            }
+            finally
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        public async Task RollbackTransactionAsync()
+        {
+            if (_transaction == null) return;
+
+            try
+            {
+                await _transaction.RollbackAsync();
+            }
+            finally
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
         }
 
         public void Dispose()

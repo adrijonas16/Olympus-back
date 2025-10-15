@@ -39,7 +39,11 @@ namespace CapaNegocio.Servicio.Venta
                         Correo = a.Correo,
                         AreaTrabajo = a.AreaTrabajo,
                         Cesado = a.Cesado,
-                        Estado = a.Estado
+                        Estado = a.Estado,
+                        UsuarioCreacion = a.UsuarioCreacion,
+                        FechaCreacion = a.FechaCreacion,
+                        UsuarioModificacion = a.UsuarioModificacion,
+                        FechaModificacion = a.FechaModificacion
                     })
                     .ToList();
 
@@ -75,6 +79,10 @@ namespace CapaNegocio.Servicio.Venta
                     dto.AreaTrabajo = ent.AreaTrabajo;
                     dto.Cesado = ent.Cesado;
                     dto.Estado = ent.Estado;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
                 }
             }
             catch (Exception ex)
