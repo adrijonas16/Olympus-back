@@ -32,12 +32,12 @@ namespace CapaNegocio.Servicio.Venta
                         Id = a.Id,
                         IdPais = a.IdPais,
                         Pais = a.Pais != null ? a.Pais.Nombre : string.Empty,
-                        Nombres = a.Nombres,
-                        Apellidos = a.Apellidos,
-                        Celular = a.Celular,
-                        PrefijoPaisCelular = a.PrefijoPaisCelular,
-                        Correo = a.Correo,
-                        AreaTrabajo = a.AreaTrabajo,
+                        Nombres = a.Nombres ?? string.Empty,
+                        Apellidos = a.Apellidos ?? string.Empty,
+                        Celular = a.Celular ?? string.Empty,
+                        PrefijoPaisCelular = a.PrefijoPaisCelular ?? string.Empty,
+                        Correo = a.Correo ?? string.Empty,
+                        AreaTrabajo = a.AreaTrabajo ?? string.Empty,
                         Cesado = a.Cesado,
                         Estado = a.Estado,
                         UsuarioCreacion = a.UsuarioCreacion,
@@ -47,7 +47,7 @@ namespace CapaNegocio.Servicio.Venta
                     })
                     .ToList();
 
-                respuesta.Asesor = lista;
+                respuesta.Asesores = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -71,12 +71,12 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Id = ent.Id;
                     dto.IdPais = ent.IdPais;
                     dto.Pais = ent.Pais != null ? ent.Pais.Nombre : string.Empty;
-                    dto.Nombres = ent.Nombres;
-                    dto.Apellidos = ent.Apellidos;
-                    dto.Celular = ent.Celular;
-                    dto.PrefijoPaisCelular = ent.PrefijoPaisCelular;
-                    dto.Correo = ent.Correo;
-                    dto.AreaTrabajo = ent.AreaTrabajo;
+                    dto.Nombres = ent.Nombres ?? string.Empty;
+                    dto.Apellidos = ent.Apellidos ?? string.Empty;
+                    dto.Celular = ent.Celular ?? string.Empty;
+                    dto.PrefijoPaisCelular = ent.PrefijoPaisCelular ?? string.Empty;
+                    dto.Correo = ent.Correo ?? string.Empty;
+                    dto.AreaTrabajo = ent.AreaTrabajo ?? string.Empty;
                     dto.Cesado = ent.Cesado;
                     dto.Estado = ent.Estado;
                     dto.UsuarioCreacion = ent.UsuarioCreacion;
@@ -120,9 +120,9 @@ namespace CapaNegocio.Servicio.Venta
                     Cesado = dto.Cesado,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = "SYSTEM",
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
                     FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = "SYSTEM"
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
                 };
 
                 _unitOfWork.AsesorRepository.Insertar(ent);
@@ -174,7 +174,7 @@ namespace CapaNegocio.Servicio.Venta
                 ent.Cesado = dto.Cesado;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
-                ent.UsuarioModificacion = "SYSTEM";
+                ent.UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
 
                 _unitOfWork.AsesorRepository.Actualizar(ent);
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();

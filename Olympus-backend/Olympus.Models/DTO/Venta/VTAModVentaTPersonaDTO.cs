@@ -28,6 +28,6 @@ namespace Modelos.DTO.Venta
     }
     public class VTAModVentaTPersonaDTORPT : CFGRespuestaGenericaDTO
     {
-        public List<VTAModVentaTPersonaDTO> Persona { get; set; } = new List<VTAModVentaTPersonaDTO>();
+        public List<VTAModVentaTPersonaDTO> Personas { get; set; } = new List<VTAModVentaTPersonaDTO>();
     }
 }

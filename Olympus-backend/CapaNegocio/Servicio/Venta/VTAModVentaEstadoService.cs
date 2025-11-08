@@ -26,22 +26,29 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new VTAModVentaTEstadoDTORPT();
             try
             {
-                var lista = _unitOfWork.EstadoRepository.ObtenerTodos()
-                    .Select(e => new VTAModVentaTEstadoDTO
-                    {
-                        Id = e.Id,
-                        Nombre = e.Nombre,
-                        Descripcion = e.Descripcion,
-                        IdMigracion = e.IdMigracion,
-                        Estado = e.EstadoControl,
-                        UsuarioCreacion = e.UsuarioCreacion,
-                        FechaCreacion = e.FechaCreacion,
-                        UsuarioModificacion = e.UsuarioModificacion,
-                        FechaModificacion = e.FechaModificacion
-                    })
-                    .ToList();
+                var estados = _unitOfWork.EstadoRepository.ObtenerTodos().ToList();
 
-                respuesta.Estado = lista;
+                var tipoIds = estados.Where(e => e.IdTipo > 0).Select(e => e.IdTipo).Distinct().ToList();
+                var tipos = _unitOfWork.TipoRepository.ObtenerTodos()
+                    .Where(t => tipoIds.Contains(t.Id))
+                    .ToDictionary(t => t.Id, t => t.Nombre);
+
+                var lista = estados.Select(e => new VTAModVentaTEstadoDTO
+                {
+                    Id = e.Id,
+                    Nombre = e.Nombre,
+                    Descripcion = e.Descripcion,
+                    IdTipo = e.IdTipo,
+                    TipoNombre = tipos.ContainsKey(e.IdTipo) ? tipos[e.IdTipo] : string.Empty,
+                    TipoCategoria = tipos.ContainsKey(e.IdTipo) ? (_unitOfWork.TipoRepository.ObtenerPorId(e.IdTipo)?.Categoria ?? string.Empty) : string.Empty,
+                    Estado = e.EstadoControl,
+                    FechaCreacion = e.FechaCreacion,
+                    UsuarioCreacion = e.UsuarioCreacion,
+                    FechaModificacion = e.FechaModificacion,
+                    UsuarioModificacion = e.UsuarioModificacion
+                }).ToList();
+
+                respuesta.Estados = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -65,12 +72,18 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Id = ent.Id;
                     dto.Nombre = ent.Nombre;
                     dto.Descripcion = ent.Descripcion;
-                    dto.IdMigracion = ent.IdMigracion;
+                    dto.IdTipo = ent.IdTipo;
+                    if (ent.IdTipo > 0)
+                    {
+                        var tipo = _unitOfWork.TipoRepository.ObtenerPorId(ent.IdTipo);
+                        dto.TipoNombre = tipo?.Nombre ?? string.Empty;
+                        dto.TipoCategoria = tipo?.Categoria ?? string.Empty;
+                    }
                     dto.Estado = ent.EstadoControl;
-                    dto.UsuarioCreacion = ent.UsuarioCreacion;
                     dto.FechaCreacion = ent.FechaCreacion;
-                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
                     dto.FechaModificacion = ent.FechaModificacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
                 }
             }
             catch (Exception ex)
@@ -87,14 +100,14 @@ namespace CapaNegocio.Servicio.Venta
             {
                 var ent = new Estado
                 {
-                    Nombre = dto.Nombre,
-                    Descripcion = dto.Descripcion,
-                    IdMigracion = dto.IdMigracion,
+                    Nombre = dto.Nombre?.Trim() ?? string.Empty,
+                    Descripcion = dto.Descripcion?.Trim() ?? string.Empty,
+                    IdTipo = dto.IdTipo,
                     EstadoControl = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = "SYSTEM",
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
                     FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = "SYSTEM"
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
                 };
 
                 _unitOfWork.EstadoRepository.Insertar(ent);
@@ -127,7 +140,6 @@ namespace CapaNegocio.Servicio.Venta
 
                 ent.Nombre = dto.Nombre;
                 ent.Descripcion = dto.Descripcion;
-                ent.IdMigracion = dto.IdMigracion;
                 ent.EstadoControl = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
                 ent.UsuarioModificacion = "SYSTEM";

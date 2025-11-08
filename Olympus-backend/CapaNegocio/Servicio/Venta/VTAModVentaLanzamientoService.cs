@@ -44,7 +44,7 @@ namespace CapaNegocio.Servicio.Venta
                     })
                     .ToList();
 
-                respuesta.Lanzamiento = lista;
+                respuesta.Lanzamientos = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -86,7 +86,6 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                // Validación básica
                 if (string.IsNullOrWhiteSpace(dto.CodigoLanzamiento))
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
@@ -109,9 +108,9 @@ namespace CapaNegocio.Servicio.Venta
                     CodigoLanzamiento = dto.CodigoLanzamiento,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = "SYSTEM",
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
                     FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = "SYSTEM"
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
                 };
 
                 _unitOfWork.LanzamientoRepository.Insertar(ent);
@@ -162,7 +161,7 @@ namespace CapaNegocio.Servicio.Venta
                 ent.CodigoLanzamiento = dto.CodigoLanzamiento;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
-                ent.UsuarioModificacion = "SYSTEM";
+                ent.UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
 
                 _unitOfWork.LanzamientoRepository.Actualizar(ent);
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();

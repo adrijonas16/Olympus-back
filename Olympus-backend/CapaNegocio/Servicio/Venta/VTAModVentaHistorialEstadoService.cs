@@ -32,9 +32,8 @@ namespace CapaNegocio.Servicio.Venta
                         Id = h.Id,
                         IdOportunidad = h.IdOportunidad,
                         IdAsesor = h.IdAsesor,
-                        IdMotivo = h.IdMotivo,
                         IdEstado = h.IdEstado,
-                        Observaciones = h.Observaciones,
+                        Observaciones = h.Observaciones ?? string.Empty,
                         CantidadLlamadasContestadas = h.CantidadLlamadasContestadas ?? 0,
                         CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas ?? 0,
                         Estado = h.Estado,
@@ -69,9 +68,8 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Id = ent.Id;
                     dto.IdOportunidad = ent.IdOportunidad;
                     dto.IdAsesor = ent.IdAsesor;
-                    dto.IdMotivo = ent.IdMotivo;
                     dto.IdEstado = ent.IdEstado;
-                    dto.Observaciones = ent.Observaciones;
+                    dto.Observaciones = ent.Observaciones ?? string.Empty;
                     dto.CantidadLlamadasContestadas = ent.CantidadLlamadasContestadas ?? 0;
                     dto.CantidadLlamadasNoContestadas = ent.CantidadLlamadasNoContestadas ?? 0;
                     dto.Estado = ent.Estado;
@@ -97,7 +95,6 @@ namespace CapaNegocio.Servicio.Venta
                 {
                     IdOportunidad = dto.IdOportunidad,
                     IdAsesor = dto.IdAsesor,
-                    IdMotivo = dto.IdMotivo,
                     IdEstado = dto.IdEstado,
                     Observaciones = dto.Observaciones,
                     CantidadLlamadasContestadas = dto.CantidadLlamadasContestadas,
@@ -139,7 +136,6 @@ namespace CapaNegocio.Servicio.Venta
 
                 ent.IdOportunidad = dto.IdOportunidad;
                 ent.IdAsesor = dto.IdAsesor;
-                ent.IdMotivo = dto.IdMotivo;
                 ent.IdEstado = dto.IdEstado;
                 ent.Observaciones = dto.Observaciones;
                 ent.CantidadLlamadasContestadas = dto.CantidadLlamadasContestadas;

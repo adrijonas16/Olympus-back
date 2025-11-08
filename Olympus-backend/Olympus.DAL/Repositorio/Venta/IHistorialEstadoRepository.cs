@@ -9,5 +9,6 @@ namespace CapaDatos.Repositorio.Venta
         bool Eliminar(int id);
         HistorialEstado? ObtenerPorId(int id);
         IQueryable<HistorialEstado> ObtenerTodos();
+        IQueryable<HistorialEstado> Query();
     }
 }

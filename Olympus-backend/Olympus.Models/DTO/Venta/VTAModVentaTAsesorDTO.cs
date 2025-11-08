@@ -27,6 +27,6 @@ namespace Modelos.DTO.Venta
     }
     public class VTAModVentaTAsesorDTORPT : CFGRespuestaGenericaDTO
     {
-        public List<VTAModVentaTAsesorDTO> Asesor { get; set; } = new List<VTAModVentaTAsesorDTO>();
+        public List<VTAModVentaTAsesorDTO> Asesores { get; set; } = new List<VTAModVentaTAsesorDTO>();
     }
 }

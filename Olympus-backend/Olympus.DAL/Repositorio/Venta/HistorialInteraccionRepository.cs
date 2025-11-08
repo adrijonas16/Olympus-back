@@ -41,5 +41,10 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.HistorialInteraccion.AsQueryable();
         }
+
+        public IQueryable<HistorialInteraccion> Query()
+        {
+            return _context.HistorialInteraccion.AsQueryable();
+        }
     }
 }

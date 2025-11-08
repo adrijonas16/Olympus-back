@@ -10,8 +10,8 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public int IdOportunidad { get; set; }
+        public int IdTipo { get; set; }
         public string Detalle { get; set; } = string.Empty;
-        public string Tipo { get; set; } = string.Empty;
         public string Celular { get; set; } = string.Empty;
         public DateTime? FechaRecordatorio { get; set; }
         public bool Estado { get; set; }
@@ -22,6 +22,7 @@ namespace Modelos.Entidades
         public string UsuarioModificacion { get; set; } = string.Empty;
 
         // Navegación
+        public Tipo? Tipo { get; set; }
         public Oportunidad? Oportunidad { get; set; }
     }
 }

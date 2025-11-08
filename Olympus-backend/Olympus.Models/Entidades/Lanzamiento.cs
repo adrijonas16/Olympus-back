@@ -10,14 +10,14 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public string CodigoLanzamiento { get; set; } = string.Empty;
-        public bool Estado { get; set; }
+        public bool Estado { get; set; } = true;
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
 
-        // Navegación
-        public List<Oportunidad> Oportunidades { get; set; } = new List<Oportunidad>();
+        // Navegación inversa
+        public List<Producto> Productos { get; set; } = new List<Producto>();
     }
 }

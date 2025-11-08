@@ -77,5 +77,10 @@ namespace CapaDatos.Repositorio.Venta
                 .AsNoTracking()
                 .Include(o => o.Persona);
         }
+
+        public IQueryable<Oportunidad> Query()
+        {
+            return _context.Oportunidad.AsNoTracking().AsQueryable();
+        }
     }
 }

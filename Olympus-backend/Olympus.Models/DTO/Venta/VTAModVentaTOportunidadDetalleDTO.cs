@@ -10,7 +10,6 @@ namespace Modelos.DTO.Venta
     {
         public int Id { get; set; }
         public int IdPersona { get; set; }
-        public int IdLanzamiento { get; set; }
         public string CodigoLanzamiento { get; set; } = string.Empty;
         public string PersonaNombres { get; set; } = string.Empty;
         public string PersonaApellidos { get; set; } = string.Empty;

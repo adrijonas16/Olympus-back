@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Modelos.Entidades
 {
@@ -10,7 +7,8 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public int IdPersona { get; set; }
-        public int IdLanzamiento { get; set; }
+        public int? IdProducto { get; set; }
+        public string? CodigoLanzamiento { get; set; } = string.Empty;
         public bool Estado { get; set; }
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -18,11 +16,12 @@ namespace Modelos.Entidades
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
 
-        // FKs / Navegación
+        // Navegaciones
         public Persona? Persona { get; set; }
-        public Lanzamiento? Lanzamiento { get; set; }
+        public Producto? Producto { get; set; }
         public List<ControlOportunidad> ControlOportunidades { get; set; } = new List<ControlOportunidad>();
         public List<HistorialEstado> HistorialEstado { get; set; } = new List<HistorialEstado>();
         public List<HistorialInteraccion> HistorialInteracciones { get; set; } = new List<HistorialInteraccion>();
+        public List<Inversion> Inversion { get; set; } = new List<Inversion>();
     }
 }

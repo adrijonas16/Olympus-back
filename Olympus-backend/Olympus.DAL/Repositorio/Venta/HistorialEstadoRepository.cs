@@ -1,4 +1,5 @@
 ﻿using CapaDatos.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Modelos.Entidades;
 
 namespace CapaDatos.Repositorio.Venta
@@ -39,7 +40,11 @@ namespace CapaDatos.Repositorio.Venta
 
         public IQueryable<HistorialEstado> ObtenerTodos()
         {
-            return _context.HistorialEstado.AsQueryable();
+            return _context.HistorialEstado.AsNoTracking().AsQueryable();
+        }
+        public IQueryable<HistorialEstado> Query()
+        {
+            return _context.HistorialEstado.AsNoTracking().AsQueryable();
         }
     }
 }

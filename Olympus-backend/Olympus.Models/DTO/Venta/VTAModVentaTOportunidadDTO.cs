@@ -11,15 +11,15 @@ namespace Modelos.DTO.Venta
     {
         public int Id { get; set; }
         public int IdPersona { get; set; }
-        public int IdLanzamiento { get; set; }
-        public int? IdAsesor { get; set; }
-        public DateTime? FechaRecordatorio { get; set; }
-        public string CodigoLanzamiento { get; set; } = string.Empty;
+        public string PersonaNombre { get; set; } = string.Empty;
+        public int? IdProducto { get; set; }
+        public string ProductoNombre { get; set; } = string.Empty;
+        public string? CodigoLanzamiento { get; set; } = string.Empty;
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
-        public DateTime? FechaModificacion { get; set; }
-        public string? UsuarioModificacion { get; set; }
+        public DateTime FechaModificacion { get; set; }
+        public string UsuarioModificacion { get; set; } = string.Empty;
 
     }
     public class VTAModVentaTOportunidadDTORPT : CFGRespuestaGenericaDTO

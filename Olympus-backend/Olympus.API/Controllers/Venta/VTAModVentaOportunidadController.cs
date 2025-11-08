@@ -102,140 +102,159 @@ namespace Olympus.API.Controllers.Venta
             }
             return respuesta;
         }
-        /// <summary>
-        /// Obtiene todas las oportunidades de una persona
-        /// </summary>
-        [HttpGet("ObtenerPorPersona/{idPersona}")]
-        public VTAModVentaTOportunidadDTORPT ObtenerPorPersona(int idPersona)
-        {
-            var respuesta = new VTAModVentaTOportunidadDTORPT();
-            try
-            {
-                respuesta = _oportunidadService.ObtenerPorPersona(idPersona);
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
-        }
+        ///// <summary>
+        ///// Obtiene todas las oportunidades de una persona
+        ///// </summary>
+        //[HttpGet("ObtenerPorPersona/{idPersona}")]
+        //public VTAModVentaTOportunidadDTORPT ObtenerPorPersona(int idPersona)
+        //{
+        //    var respuesta = new VTAModVentaTOportunidadDTORPT();
+        //    try
+        //    {
+        //        respuesta = _oportunidadService.ObtenerPorPersona(idPersona);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //        respuesta.Codigo = SR._C_ERROR_CRITICO;
+        //        respuesta.Mensaje = ex.Message;
+        //    }
+        //    return respuesta;
+        //}
 
-        /// <summary>
-        /// Obtiene todos los ControlOportunidad asociados a una Oportunidad.
-        /// </summary>
-        [HttpGet("ControlOportunidad/PorOportunidad/{idOportunidad}")]
-        public VTAModVentaTControlOportunidadDTORPT ObtenerControlOportunidadPorOportunidad(int idOportunidad)
-        {
-            var respuesta = new VTAModVentaTControlOportunidadDTORPT();
-            try
-            {
-                respuesta = _oportunidadService.ObtenerControlOportunidadesPorOportunidad(idOportunidad);
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
-        }
+        ///// <summary>
+        ///// Obtiene todos los ControlOportunidad asociados a una Oportunidad.
+        ///// </summary>
+        //[HttpGet("ControlOportunidad/PorOportunidad/{idOportunidad}")]
+        //public VTAModVentaTControlOportunidadDTORPT ObtenerControlOportunidadPorOportunidad(int idOportunidad)
+        //{
+        //    var respuesta = new VTAModVentaTControlOportunidadDTORPT();
+        //    try
+        //    {
+        //        respuesta = _oportunidadService.ObtenerControlOportunidadesPorOportunidad(idOportunidad);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //        respuesta.Codigo = SR._C_ERROR_CRITICO;
+        //        respuesta.Mensaje = ex.Message;
+        //    }
+        //    return respuesta;
+        //}
 
-        /// <summary>
-        /// Obtiene todos los HistorialInteraccion asociados a una Oportunidad.
-        /// </summary>
-        [HttpGet("HistorialInteraccion/PorOportunidad/{idOportunidad}")]
-        public VTAModVentaTHistorialInteraccionDTORPT ObtenerHistorialInteraccionPorOportunidad(int idOportunidad)
-        {
-            var respuesta = new VTAModVentaTHistorialInteraccionDTORPT();
-            try
-            {
-                respuesta = _oportunidadService.ObtenerHistorialInteraccionesPorOportunidad(idOportunidad);
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
-        }
+        ///// <summary>
+        ///// Obtiene todos los HistorialInteraccion asociados a una Oportunidad.
+        ///// </summary>
+        //[HttpGet("HistorialInteraccion/PorOportunidad/{idOportunidad}")]
+        //public VTAModVentaTHistorialInteraccionDTORPT ObtenerHistorialInteraccionPorOportunidad(int idOportunidad)
+        //{
+        //    var respuesta = new VTAModVentaTHistorialInteraccionDTORPT();
+        //    try
+        //    {
+        //        respuesta = _oportunidadService.ObtenerHistorialInteraccionesPorOportunidad(idOportunidad);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //        respuesta.Codigo = SR._C_ERROR_CRITICO;
+        //        respuesta.Mensaje = ex.Message;
+        //    }
+        //    return respuesta;
+        //}
 
-        /// <summary>
-        /// Obtiene todos los HistorialEstado de una Oportunidad
-        /// </summary>
-        [HttpGet("HistorialEstado/PorOportunidad/{idOportunidad}")]
-        public VTAModVentaTHistorialEstadoDTORPT ObtenerHistorialEstadoPorOportunidad(int idOportunidad)
-        {
-            var respuesta = new VTAModVentaTHistorialEstadoDTORPT();
-            try
-            {
-                respuesta = _oportunidadService.ObtenerHistorialEstadoPorOportunidad(idOportunidad);
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
-        }
+        ///// <summary>
+        ///// Obtiene todos los HistorialEstado de una Oportunidad
+        ///// </summary>
+        //[HttpGet("HistorialEstado/PorOportunidad/{idOportunidad}")]
+        //public VTAModVentaTHistorialEstadoDTORPT ObtenerHistorialEstadoPorOportunidad(int idOportunidad)
+        //{
+        //    var respuesta = new VTAModVentaTHistorialEstadoDTORPT();
+        //    try
+        //    {
+        //        respuesta = _oportunidadService.ObtenerHistorialEstadoPorOportunidad(idOportunidad);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //        respuesta.Codigo = SR._C_ERROR_CRITICO;
+        //        respuesta.Mensaje = ex.Message;
+        //    }
+        //    return respuesta;
+        //}
 
-        /// <summary>
-        /// Obtiene todas las oportunidades con detalle (persona nombre/apellidos + último historial con asesor/estado/motivo)
-        /// </summary>
-        [HttpGet("ObtenerTodasConDetalle")]
-        public VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle()
-        {
-            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
-            try
-            {
-                respuesta = _oportunidadService.ObtenerTodasConDetalle();
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
-        }
+        ///// <summary>
+        ///// Obtiene todas las oportunidades con detalle (persona nombre/apellidos + último historial con asesor/estado/motivo)
+        ///// </summary>
+        //[HttpGet("ObtenerTodasConDetalle")]
+        //public VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle()
+        //{
+        //    var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+        //    try
+        //    {
+        //        respuesta = _oportunidadService.ObtenerTodasConDetalle();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //        respuesta.Codigo = SR._C_ERROR_CRITICO;
+        //        respuesta.Mensaje = ex.Message;
+        //    }
+        //    return respuesta;
+        //}
 
-        [HttpGet("Detalle/PorId/{id}")]
-        public VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId(int id)
-        {
-            var dto = new VTAModVentaTOportunidadDetalleDTO();
-            try
-            {
-                dto = _oportunidadService.ObtenerDetallePorId(id);
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-            }
-            return dto;
-        }
-        /// <summary>
-        /// Endpoint que ejecuta la versión con SP
-        /// Query param opcional: tipoInteraccion
-        /// Ejemplo: GET api/VTAModVentaOportunidad/ObtenerTodasConDetalle_SP_Multi?tipoInteraccion=Recordatorio
-        /// </summary>
-        [HttpGet("ObtenerTodasConDetalle_SP_Multi")]
-        public VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle_SP_Multi([FromQuery] string? tipoInteraccion = null)
-        {
-            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
-            try
-            {
-                respuesta = _oportunidadService.ObtenerTodasConDetalle_SP_Multi(tipoInteraccion);
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
-        }
+        //[HttpGet("Detalle/PorId/{id}")]
+        //public VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId(int id)
+        //{
+        //    var dto = new VTAModVentaTOportunidadDetalleDTO();
+        //    try
+        //    {
+        //        dto = _oportunidadService.ObtenerDetallePorId(id);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //    }
+        //    return dto;
+        //}
+        ///// <summary>
+        ///// Endpoint que ejecuta la versión con SP
+        ///// Query param opcional: tipoInteraccion
+        ///// Ejemplo: GET api/VTAModVentaOportunidad/ObtenerTodasConDetalle_SP_Multi?tipoInteraccion=Recordatorio
+        ///// </summary>
+        //[HttpGet("ObtenerTodasConDetalle_SP_Multi")]
+        //public VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle_SP_Multi([FromQuery] string? tipoInteraccion = null)
+        //{
+        //    var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+        //    try
+        //    {
+        //        respuesta = _oportunidadService.ObtenerTodasConDetalle_SP_Multi(tipoInteraccion);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //        respuesta.Codigo = SR._C_ERROR_CRITICO;
+        //        respuesta.Mensaje = ex.Message;
+        //    }
+        //    return respuesta;
+        //}
+        ///// <summary>
+        ///// Endpoint que ejecuta la versión con SP para obtener detalle por Id (multi resultset)
+        ///// Ejemplo: GET api/VTAModVentaOportunidad/Detalle/PorId_SP/123
+        ///// </summary>
+        //[HttpGet("Detalle/PorId_SP/{id}")]
+        //public VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId_SP(int id)
+        //{
+        //    var dto = new VTAModVentaTOportunidadDetalleDTO();
+        //    try
+        //    {
+        //        dto = _oportunidadService.ObtenerDetallePorId_SP(id);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //    }
+        //    return dto;
+        //}
+
     }
 }

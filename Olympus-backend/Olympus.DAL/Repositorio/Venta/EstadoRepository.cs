@@ -41,5 +41,10 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.Estado.AsQueryable();
         }
+
+        public IQueryable<Estado> Query()
+        {
+            return _context.Estado.AsQueryable();
+        }
     }
 }

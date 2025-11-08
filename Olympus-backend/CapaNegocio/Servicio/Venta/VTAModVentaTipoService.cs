@@ -5,41 +5,45 @@ using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
+using System;
+using System.Linq;
 
 namespace CapaNegocio.Servicio.Venta
 {
-    public class VTAModVentaMotivoService : IVTAModVentaMotivoService
+    public class VTAModVentaTipoService : IVTAModVentaTipoService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly IErrorLogService _errorLogService;
 
-        public VTAModVentaMotivoService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
+        public VTAModVentaTipoService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _errorLogService = errorLogService;
         }
 
-        public VTAModVentaTMotivoDTORPT ObtenerTodas()
+        public VTAModVentaTipoDTORPT ObtenerTodas()
         {
-            var respuesta = new VTAModVentaTMotivoDTORPT();
+            var respuesta = new VTAModVentaTipoDTORPT();
             try
             {
-                var lista = _unitOfWork.MotivoRepository.ObtenerTodos()
-                    .Select(m => new VTAModVentaTMotivoDTO
+                var lista = _unitOfWork.TipoRepository.ObtenerTodos()
+                    .Select(t => new VTAModVentaTipoDTO
                     {
-                        Id = m.Id,
-                        Detalle = m.Detalle,
-                        Estado = m.Estado,
-                        UsuarioCreacion = m.UsuarioCreacion,
-                        FechaCreacion = m.FechaCreacion,
-                        UsuarioModificacion = m.UsuarioModificacion,
-                        FechaModificacion = m.FechaModificacion
+                        Id = t.Id,
+                        Nombre = t.Nombre,
+                        Descripcion = t.Descripcion,
+                        Categoria = t.Categoria,
+                        Estado = t.Estado,
+                        UsuarioCreacion = t.UsuarioCreacion,
+                        FechaCreacion = t.FechaCreacion,
+                        UsuarioModificacion = t.UsuarioModificacion,
+                        FechaModificacion = t.FechaModificacion
                     })
                     .ToList();
 
-                respuesta.Motivo = lista;
+                respuesta.Tipos = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -52,16 +56,18 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
-        public VTAModVentaTMotivoDTO ObtenerPorId(int id)
+        public VTAModVentaTipoDTO ObtenerPorId(int id)
         {
-            var dto = new VTAModVentaTMotivoDTO();
+            var dto = new VTAModVentaTipoDTO();
             try
             {
-                var ent = _unitOfWork.MotivoRepository.ObtenerPorId(id);
+                var ent = _unitOfWork.TipoRepository.ObtenerPorId(id);
                 if (ent != null)
                 {
                     dto.Id = ent.Id;
-                    dto.Detalle = ent.Detalle;
+                    dto.Nombre = ent.Nombre;
+                    dto.Descripcion = ent.Descripcion;
+                    dto.Categoria = ent.Categoria;
                     dto.Estado = ent.Estado;
                     dto.UsuarioCreacion = ent.UsuarioCreacion;
                     dto.FechaCreacion = ent.FechaCreacion;
@@ -76,22 +82,24 @@ namespace CapaNegocio.Servicio.Venta
             return dto;
         }
 
-        public CFGRespuestaGenericaDTO Insertar(VTAModVentaTMotivoDTO dto)
+        public CFGRespuestaGenericaDTO Insertar(VTAModVentaTipoDTO dto)
         {
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                var ent = new Motivo
+                var ent = new Tipo
                 {
-                    Detalle = dto.Detalle,
+                    Nombre = dto.Nombre,
+                    Descripcion = dto.Descripcion,
+                    Categoria = dto.Categoria ?? string.Empty,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = "SYSTEM",
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
                     FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = "SYSTEM"
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
                 };
 
-                _unitOfWork.MotivoRepository.Insertar(ent);
+                _unitOfWork.TipoRepository.Insertar(ent);
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
                 respuesta.Codigo = SR._C_SIN_ERROR;
@@ -106,12 +114,12 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
-        public CFGRespuestaGenericaDTO Actualizar(VTAModVentaTMotivoDTO dto)
+        public CFGRespuestaGenericaDTO Actualizar(VTAModVentaTipoDTO dto)
         {
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                var ent = _unitOfWork.MotivoRepository.ObtenerPorId(dto.Id);
+                var ent = _unitOfWork.TipoRepository.ObtenerPorId(dto.Id);
                 if (ent == null)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
@@ -119,12 +127,14 @@ namespace CapaNegocio.Servicio.Venta
                     return respuesta;
                 }
 
-                ent.Detalle = dto.Detalle;
+                ent.Nombre = dto.Nombre;
+                ent.Descripcion = dto.Descripcion;
+                ent.Categoria = dto.Categoria ?? string.Empty;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
-                ent.UsuarioModificacion = "SYSTEM";
+                ent.UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
 
-                _unitOfWork.MotivoRepository.Actualizar(ent);
+                _unitOfWork.TipoRepository.Actualizar(ent);
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
                 respuesta.Codigo = SR._C_SIN_ERROR;
@@ -144,7 +154,7 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                var success = _unitOfWork.MotivoRepository.Eliminar(id);
+                var success = _unitOfWork.TipoRepository.Eliminar(id);
                 if (!success)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;

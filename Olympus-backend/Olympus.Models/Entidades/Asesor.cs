@@ -10,12 +10,12 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public int? IdPais { get; set; }
-        public string Nombres { get; set; } = string.Empty;
-        public string Apellidos { get; set; } = string.Empty;
-        public string Celular { get; set; } = string.Empty;
-        public string PrefijoPaisCelular { get; set; } = string.Empty;
-        public string Correo { get; set; } = string.Empty;
-        public string AreaTrabajo { get; set; } = string.Empty;
+        public string? Nombres { get; set; } = string.Empty;
+        public string? Apellidos { get; set; } = string.Empty;
+        public string? Celular { get; set; } = string.Empty;
+        public string? PrefijoPaisCelular { get; set; } = string.Empty;
+        public string? Correo { get; set; } = string.Empty;
+        public string? AreaTrabajo { get; set; } = string.Empty;
         public bool? Cesado { get; set; }
         public bool Estado { get; set; }
         public int? IdMigracion { get; set; }
@@ -24,7 +24,7 @@ namespace Modelos.Entidades
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
 
-        // Navegación
+        // Navegaciones
         public List<HistorialEstado> HistorialEstado { get; set; } = new List<HistorialEstado>();
         public Pais? Pais { get; set; }
     }

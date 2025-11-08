@@ -11,12 +11,11 @@ namespace Modelos.Entidades
         public int Id { get; set; }
         public int IdOportunidad { get; set; }
         public int? IdAsesor { get; set; }
-        public int? IdMotivo { get; set; }
         public int? IdEstado { get; set; }
-        public string Observaciones { get; set; } = string.Empty;
+        public string? Observaciones { get; set; } = string.Empty;
         public int? CantidadLlamadasContestadas { get; set; }
         public int? CantidadLlamadasNoContestadas { get; set; }
-        public bool Estado { get; set; }
+        public bool Estado { get; set; } = true;
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
@@ -26,7 +25,11 @@ namespace Modelos.Entidades
         // Navegación
         public Oportunidad? Oportunidad { get; set; }
         public Asesor? Asesor { get; set; }
-        public Motivo? Motivo { get; set; }
-        public Estado? EstadoReferencia { get; set; }
+        public Estado? EstadoReferencia { get; set; } // sin conflicto con "Estado"
+        public List<HistorialEstadoTipo> HistorialEstadoTipos { get; set; } = new List<HistorialEstadoTipo>();
+        public List<Cobranza> Cobranzas { get; set; } = new List<Cobranza>();
+        public List<Convertido> Convertidos { get; set; } = new List<Convertido>();
+        public List<VentaCruzada> VentaCruzadas { get; set; } = new List<VentaCruzada>();
+        public List<Corporativo> Corporativos { get; set; } = new List<Corporativo>();
     }
 }

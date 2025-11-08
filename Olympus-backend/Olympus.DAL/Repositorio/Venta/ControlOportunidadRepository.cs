@@ -41,5 +41,10 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.ControlOportunidad.AsQueryable();
         }
+
+        public IQueryable<ControlOportunidad> Query()
+        {
+            return _context.ControlOportunidad.AsQueryable();
+        }
     }
 }

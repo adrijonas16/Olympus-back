@@ -31,8 +31,8 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         Id = h.Id,
                         IdOportunidad = h.IdOportunidad,
+                        IdTipo = h.IdTipo,
                         Detalle = h.Detalle,
-                        Tipo = h.Tipo,
                         Celular = h.Celular,
                         FechaRecordatorio = h.FechaRecordatorio,
                         Estado = h.Estado,
@@ -43,7 +43,7 @@ namespace CapaNegocio.Servicio.Venta
                     })
                     .ToList();
 
-                respuesta.HistorialInteraccion = lista;
+                respuesta.HistorialInteracciones = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -67,7 +67,7 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Id = ent.Id;
                     dto.IdOportunidad = ent.IdOportunidad;
                     dto.Detalle = ent.Detalle;
-                    dto.Tipo = ent.Tipo;
+                    dto.IdTipo = ent.IdTipo;
                     dto.Celular = ent.Celular;
                     dto.FechaRecordatorio = ent.FechaRecordatorio;
                     dto.Estado = ent.Estado;
@@ -93,7 +93,7 @@ namespace CapaNegocio.Servicio.Venta
                 {
                     IdOportunidad = dto.IdOportunidad,
                     Detalle = dto.Detalle,
-                    Tipo = dto.Tipo,
+                    IdTipo = dto.IdTipo,
                     Celular = dto.Celular,
                     FechaRecordatorio = dto.FechaRecordatorio,
                     Estado = dto.Estado,
@@ -133,7 +133,7 @@ namespace CapaNegocio.Servicio.Venta
 
                 ent.IdOportunidad = dto.IdOportunidad;
                 ent.Detalle = dto.Detalle;
-                ent.Tipo = dto.Tipo;
+                ent.IdTipo = dto.IdTipo;
                 ent.Celular = dto.Celular;
                 ent.FechaRecordatorio = dto.FechaRecordatorio;
                 ent.Estado = dto.Estado;

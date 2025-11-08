@@ -26,7 +26,6 @@ namespace Modelos.DTO.Venta
 
         public VTAModVentaTAsesorDTO? Asesor { get; set; }
         public VTAModVentaTEstadoDTO? EstadoReferencia { get; set; }
-        public VTAModVentaTMotivoDTO? Motivo { get; set; }
     }
 
     public class VTAModVentaTOportunidadDetalleDTORPT : CFGRespuestaGenericaDTO

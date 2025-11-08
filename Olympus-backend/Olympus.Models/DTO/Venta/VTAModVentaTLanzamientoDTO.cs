@@ -21,6 +21,6 @@ namespace Modelos.DTO.Venta
 
     public class VTAModVentaTLanzamientoDTORPT : CFGRespuestaGenericaDTO
     {
-        public List<VTAModVentaTLanzamientoDTO> Lanzamiento { get; set; } = new List<VTAModVentaTLanzamientoDTO>();
+        public List<VTAModVentaTLanzamientoDTO> Lanzamientos { get; set; } = new List<VTAModVentaTLanzamientoDTO>();
     }
 }

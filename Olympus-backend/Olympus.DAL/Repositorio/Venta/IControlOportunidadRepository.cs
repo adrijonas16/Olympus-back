@@ -9,5 +9,6 @@ namespace CapaDatos.Repositorio.Venta
         bool Eliminar(int id);
         ControlOportunidad? ObtenerPorId(int id);
         IQueryable<ControlOportunidad> ObtenerTodos();
+        IQueryable<ControlOportunidad> Query();
     }
 }

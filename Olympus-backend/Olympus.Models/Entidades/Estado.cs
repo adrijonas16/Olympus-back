@@ -10,16 +10,18 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
+        public string? Descripcion { get; set; } = string.Empty;
+        public int IdTipo { get; set; }            // FK hacia Tipo
         public int? IdMigracion { get; set; }
-        public bool EstadoControl { get; set; }
+        public bool EstadoControl { get; set; } = true;
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
 
         // Navegación
-        public List<HistorialEstado> HistorialEstado { get; set; } = new List<HistorialEstado>();
-
+        public Tipo? Tipo { get; set; }
+        public List<HistorialEstado> HistorialEstado { get; set; } = new();
+        public List<Ocurrencia> Ocurrencias { get; set; } = new();
     }
 }

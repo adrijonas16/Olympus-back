@@ -21,13 +21,30 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private PersonaRepository _personaRepository;
         private AsesorRepository _asesorRepository;
         private EstadoRepository _estadoRepository;
-        private MotivoRepository _motivoRepository;
         private OportunidadRepository _oportunidadRepository;
         private ControlOportunidadRepository _controlOportunidadRepository;
         private HistorialEstadoRepository _historialEstadoRepository;
         private HistorialInteraccionRepository _historialInteraccionRepository;
         private PaisRepository _paisRepository;
         private LanzamientoRepository _lanzamientoRepository;
+        private BeneficioRepository _beneficioRepository;
+        private CertificadoRepository _certificadoRepository;
+        private CobranzaRepository _cobranzaRepository;
+        private ConvertidoRepository _convertidoRepository;
+        private CorporativoRepository _corporativoRepository;
+        private DocenteRepository _docenteRepository;
+        private HistorialEstadoTipoRepository _historialEstadoTipoRepository;
+        private HorarioRepository _horarioRepository;
+        private InversionDescuentoRepository _inversionDescuentoRepository;
+        private ProductoRepository _productoRepository;
+        private TipoRepository _tipoRepository;
+        private OcurrenciaRepository _ocurrenciaRepository;
+        private InversionRepository _inversionRepository;
+        private MetodoPagoRepository _metodoPagoRepository;
+        private MetodoPagoProductoRepository _metodoPagoProductoRepository;
+        private ProductoDocenteRepository _productoDocenteRepository;
+        private ProductoCertificadoRepository _productoCertificadoRepository;
+        private VentaCruzadaRepository _ventaCruzadaRepository;
 
         public IUsuarioRepository UsuarioRepository
             => _usuarioRepository ??= new UsuarioRepository(_context);
@@ -47,8 +64,6 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _asesorRepository ??= new AsesorRepository(_context);
         public IEstadoRepository EstadoRepository
          => _estadoRepository ??= new EstadoRepository(_context);
-        public IMotivoRepository MotivoRepository
-            => _motivoRepository ??= new MotivoRepository(_context);
         public IOportunidadRepository OportunidadRepository
             => _oportunidadRepository ??= new OportunidadRepository(_context);
         public IControlOportunidadRepository ControlOportunidadRepository
@@ -61,6 +76,42 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _paisRepository ??= new PaisRepository(_context);
         public ILanzamientoRepository LanzamientoRepository
             => _lanzamientoRepository ??= new LanzamientoRepository(_context);
+        public IBeneficioRepository BeneficioRepository
+            => _beneficioRepository ??= new BeneficioRepository(_context);
+        public ICertificadoRepository CertificadoRepository
+            => _certificadoRepository ??= new CertificadoRepository(_context);
+        public ICobranzaRepository CobranzaRepository
+            => _cobranzaRepository ??= new CobranzaRepository(_context);
+        public IConvertidoRepository ConvertidoRepository
+            => _convertidoRepository ??= new ConvertidoRepository(_context);
+        public ICorporativoRepository CorporativoRepository
+            => _corporativoRepository ??= new CorporativoRepository(_context);
+        public IDocenteRepository DocenteRepository
+            => _docenteRepository ??= new DocenteRepository(_context);
+        public IHistorialEstadoTipoRepository HistorialEstadoTipoRepository
+            => _historialEstadoTipoRepository ??= new HistorialEstadoTipoRepository(_context);
+        public IHorarioRepository HorarioRepository
+            => _horarioRepository ??= new HorarioRepository(_context);
+        public IInversionDescuentoRepository InversionDescuentoRepository
+            => _inversionDescuentoRepository ??= new InversionDescuentoRepository(_context);
+        public IProductoRepository ProductoRepository
+            => _productoRepository ??= new ProductoRepository(_context);
+        public ITipoRepository TipoRepository
+            => _tipoRepository ??= new TipoRepository(_context);
+        public IOcurrenciaRepository OcurrenciaRepository
+            => _ocurrenciaRepository ??= new OcurrenciaRepository(_context);
+        public IInversionRepository InversionRepository
+            => _inversionRepository ??= new InversionRepository(_context);
+        public IMetodoPagoRepository MetodoPagoRepository
+            => _metodoPagoRepository ??= new MetodoPagoRepository(_context);
+        public IMetodoPagoProductoRepository MetodoPagoProductoRepository
+            => _metodoPagoProductoRepository ??= new MetodoPagoProductoRepository(_context);
+        public IProductoDocenteRepository ProductoDocenteRepository
+            => _productoDocenteRepository ??= new ProductoDocenteRepository(_context);
+        public IProductoCertificadoRepository ProductoCertificadoRepository
+            => _productoCertificadoRepository ??= new ProductoCertificadoRepository(_context);
+        public IVentaCruzadaRepository VentaCruzadaRepository
+            => _ventaCruzadaRepository ??= new VentaCruzadaRepository(_context);
 
         public UnitOfWork(OlympusContext context)
         {
