@@ -12,7 +12,7 @@ namespace CapaDatos.Repositorio.Venta
         List<Persona> ObtenerPersonasPorOportunidades(IEnumerable<int> idsOportunidad);
         IQueryable<Oportunidad> ObtenerTodosConPersona();
         IQueryable<Oportunidad> ObtenerTodos();
-
         IQueryable<Oportunidad> Query();
+        IQueryable<Oportunidad> QueryAsNoTracking();
     }
 }

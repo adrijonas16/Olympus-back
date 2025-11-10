@@ -102,7 +102,7 @@ namespace CapaNegocio.Servicio.Venta
                 {
                     Nombre = dto.Nombre?.Trim() ?? string.Empty,
                     Descripcion = dto.Descripcion?.Trim() ?? string.Empty,
-                    IdTipo = dto.IdTipo,
+                    IdTipo = dto.IdTipo.HasValue ? dto.IdTipo.Value : 0,
                     EstadoControl = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
                     UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,

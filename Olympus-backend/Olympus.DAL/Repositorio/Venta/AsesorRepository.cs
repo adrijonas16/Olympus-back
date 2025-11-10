@@ -44,5 +44,10 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.Asesor.AsQueryable();
         }
+
+        public IQueryable<Asesor> Query()
+        {
+            return _context.Asesor.AsNoTracking().AsQueryable();
+        }
     }
 }

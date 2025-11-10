@@ -185,5 +185,111 @@ namespace CapaNegocio.Servicio.Venta
             }
             return respuesta;
         }
+
+        public CFGRespuestaGenericaDTO InsertarConTipos(VTAModVentaHistorialEstadoCrearTipoDTO dto)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            HistorialEstado? historial = null;
+
+            try
+            {
+                var oportunidad = _unitOfWork.OportunidadRepository.ObtenerPorId(dto.IdOportunidad);
+                if (oportunidad == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Oportunidad no existe.";
+                    return respuesta;
+                }
+
+                // Verificacion de Tipo
+                if (dto.Tipos == null || !dto.Tipos.Any())
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Se requiere al menos un IdTipo asociado al HistorialEstado.";
+                    return respuesta;
+                }
+
+                var tiposExistentes = _unitOfWork.TipoRepository.ObtenerTodos()
+                                        .Where(t => dto.Tipos.Contains(t.Id))
+                                        .Select(t => t.Id)
+                                        .ToHashSet();
+
+                var faltantes = dto.Tipos.Where(id => !tiposExistentes.Contains(id)).ToList();
+                if (faltantes.Any())
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = $"Los siguientes IdTipo no existen: {string.Join(',', faltantes)}";
+                    return respuesta;
+                }
+
+                // Crear HistorialEstado
+                historial = new HistorialEstado
+                {
+                    IdOportunidad = dto.IdOportunidad,
+                    IdAsesor = dto.IdAsesor,
+                    IdEstado = dto.IdEstado,
+                    Observaciones = string.IsNullOrWhiteSpace(dto.Observaciones) ? null : dto.Observaciones,
+                    CantidadLlamadasContestadas = dto.CantidadLlamadasContestadas,
+                    CantidadLlamadasNoContestadas = dto.CantidadLlamadasNoContestadas,
+                    Estado = dto.Estado,
+                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
+                    FechaModificacion = DateTime.UtcNow,
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
+                };
+
+                _unitOfWork.HistorialEstadoRepository.Insertar(historial);
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                // Insertar filas en HistorialEstadoTipo
+                foreach (var idTipo in dto.Tipos.Distinct())
+                {
+                    var ht = new HistorialEstadoTipo
+                    {
+                        IdHistorialEstado = historial.Id,
+                        IdTipo = idTipo,
+                        FechaCreacion = DateTime.UtcNow,
+                        UsuarioCreacion = historial.UsuarioCreacion,
+                        FechaModificacion = DateTime.UtcNow,
+                        UsuarioModificacion = historial.UsuarioCreacion
+                    };
+
+                    _unitOfWork.HistorialEstadoTipoRepository.Insertar(ht);
+                }
+
+                // guardar los tipos
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+                return respuesta;
+            }
+            catch (Exception ex)
+            {
+                // LIMPIEZA en caso de inserción parcial fallida
+                try
+                {
+                    if (historial != null && historial.Id > 0)
+                    {
+                        var removed = _unitOfWork.HistorialEstadoRepository.Eliminar(historial.Id);
+                        if (removed)
+                        {
+                            _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+                return respuesta;
+            }
+        }
+
+
     }
 }

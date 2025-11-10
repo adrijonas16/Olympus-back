@@ -14,16 +14,20 @@ namespace Modelos.DTO.Venta
         public string PersonaNombre { get; set; } = string.Empty;
         public int? IdProducto { get; set; }
         public string ProductoNombre { get; set; } = string.Empty;
-        public string? CodigoLanzamiento { get; set; } = string.Empty;
+        public string? CodigoLanzamiento { get; set; }
+        public string? Origen { get; set; }
+        public int TotalOportunidadesPersona { get; set; }
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
-
+        
+        public VTAModVentaTHistorialEstadoDetalleDTO? UltimoHistorial { get; set; }
     }
     public class VTAModVentaTOportunidadDTORPT : CFGRespuestaGenericaDTO
     {
         public List<VTAModVentaTOportunidadDTO> Oportunidad { get; set; } = new List<VTAModVentaTOportunidadDTO>();
+        public List<VTAModVentaHistorialEstadoDetalleDTO> HistorialActual { get; set; } = new List<VTAModVentaHistorialEstadoDetalleDTO>();
     }
 }

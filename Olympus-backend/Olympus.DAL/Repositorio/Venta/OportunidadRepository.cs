@@ -80,7 +80,12 @@ namespace CapaDatos.Repositorio.Venta
 
         public IQueryable<Oportunidad> Query()
         {
-            return _context.Oportunidad.AsNoTracking().AsQueryable();
+            return _context.Oportunidad.AsQueryable();
+        }
+
+        public IQueryable<Oportunidad> QueryAsNoTracking()
+        {
+            return _context.Oportunidad.AsNoTracking();
         }
     }
 }

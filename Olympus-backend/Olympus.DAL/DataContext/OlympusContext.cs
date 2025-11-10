@@ -250,6 +250,12 @@ public partial class OlympusContext : DbContext
                   .IsUnicode(false)
                   .IsRequired(false);
 
+            entity.Property(e => e.Origen)
+                  .HasColumnName("Origen")
+                  .HasMaxLength(50)
+                  .IsUnicode(false)
+                  .IsRequired(false);
+
             entity.Property(e => e.Estado)
                   .HasColumnName("Estado")
                   .HasDefaultValue(true);

@@ -12,12 +12,10 @@ namespace Modelos.DTO.Venta
         public int Id { get; set; }
         public int IdOportunidad { get; set; }
         public int? IdAsesor { get; set; }
-        public int? IdMotivo { get; set; }
         public int? IdEstado { get; set; }
         public string Observaciones { get; set; } = string.Empty;
         public int? CantidadLlamadasContestadas { get; set; }
         public int? CantidadLlamadasNoContestadas { get; set; }
-        public int TotalMarcaciones { get; set; }
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
@@ -30,6 +28,7 @@ namespace Modelos.DTO.Venta
 
     public class VTAModVentaTOportunidadDetalleDTORPT : CFGRespuestaGenericaDTO
     {
-        public List<VTAModVentaTOportunidadDetalleDTO> Oportunidad { get; set; } = new List<VTAModVentaTOportunidadDetalleDTO>();
+        public List<VTAModVentaTHistorialEstadoDetalleDTO> HistorialActual { get; set; } = new List<VTAModVentaTHistorialEstadoDetalleDTO>();
+        public List<VTAModVentaTOportunidadDTO> Oportunidad { get; set; } = new List<VTAModVentaTOportunidadDTO>();
     }
 }

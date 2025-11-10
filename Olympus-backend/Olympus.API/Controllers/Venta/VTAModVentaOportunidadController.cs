@@ -102,6 +102,115 @@ namespace Olympus.API.Controllers.Venta
             }
             return respuesta;
         }
+
+        [HttpGet("ObtenerDetallePorId/{id}")]
+        public VTAModVentaTOportunidadDetalleDTORPT ObtenerDetallePorId(int id)
+        {
+            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+            try
+            {
+                respuesta = _oportunidadService.ObtenerDetallePorId(id);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
+        /// GET /api/VTAModVentaOportunidad/ObtenerHistorialInteraccionesOportunidad/1?idTipo=8
+        [HttpGet("ObtenerHistorialInteraccionesOportunidad/{id}")]
+        public IActionResult ObtenerHistorialInteraccionesOportunidad(int id, [FromQuery] int? idTipo = null)
+        {
+            try
+            {
+                var rpt = _oportunidadService.ObtenerHistorialInteraccionesPorOportunidad(id, idTipo);
+
+                if (rpt == null)
+                    return NotFound(new { idOportunidad = id, historialInteraciones = new object[0] });
+
+                var salida = new
+                {
+                    idOportunidad = id,
+                    historialInteraciones = rpt.HistorialInteracciones
+                };
+
+                return Ok(salida);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                return StatusCode(500, new { idOportunidad = id, historialInteraciones = new object[0], error = ex.Message });
+            }
+        }
+
+        /// Obtener todos los HistorialEstado de una Oportunidad (incluye Asesor y Estado->Tipo)
+        /// GET api/VTAModVentaOportunidad/HistorialEstado/PorOportunidad/1
+        /// 
+        [HttpGet("HistorialEstado/PorOportunidad/{id}")]
+        public IActionResult ObtenerHistorialEstadoPorOportunidad(int id)
+        {
+            try
+            {
+                var rpt = _oportunidadService.ObtenerHistorialEstadoPorOportunidad(id);
+
+                if (rpt == null || rpt.HistorialActual == null || !rpt.HistorialActual.Any())
+                    return NotFound(new { idOportunidad = id, historialEstados = new object[0] });
+
+                var salida = new
+                {
+                    idOportunidad = id,
+                    historialEstados = rpt.HistorialActual
+                };
+
+                return Ok(salida);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                return StatusCode(500, new { idOportunidad = id, historialEstados = new object[0], error = ex.Message });
+            }
+        }
+
+        /// Lista todas las oportunidades con NombrePais y HistorialInteraccion de IdTipo = 10
+        /// GET api/VTAModVentaOportunidad/ObtenerTodasConRecordatorio
+        [HttpGet("ObtenerTodasConRecordatorio")]
+        public VTAModVentaOportunidadDetalleDTORPT ObtenerTodasConRecordatorio()
+        {
+            var respuesta = new VTAModVentaOportunidadDetalleDTORPT();
+            try
+            {
+                respuesta = _oportunidadService.ObtenerTodasOportunidadesRecordatorio();
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
+        ///// Obtener una oportunidad por id con NombrePais y recordatorio (tipo 10)
+        ///// GET api/VTAModVentaOportunidad/ObtenerPorIdConRecordatorio/1
+        //[HttpGet("ObtenerPorIdConRecordatorio/{id}")]
+        //public VTAModVentaTOportunidadDetalleDTORPT ObtenerPorIdConRecordatorio(int id)
+        //{
+        //    var dto = new VTAModVentaOportunidadDetalleDTORPT();
+        //    try
+        //    {
+        //        // Supongo que el service expone este método (ajusta nombre si en tu service es otro)
+        //        dto = _oportunidadService.ObtenerTodasOportunidadesRecordatorio(id);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _errorLogService.RegistrarError(ex);
+        //    }
+        //    return dto;
+        //}
+
         ///// <summary>
         ///// Obtiene todas las oportunidades de una persona
         ///// </summary>

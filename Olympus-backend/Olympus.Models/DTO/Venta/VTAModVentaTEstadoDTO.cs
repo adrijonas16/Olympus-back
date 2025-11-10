@@ -12,7 +12,7 @@ namespace Modelos.DTO.Venta
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; } = string.Empty;
-        public int IdTipo { get; set; }
+        public int? IdTipo { get; set; }
         public string TipoNombre { get; set; } = string.Empty; 
         public string? TipoCategoria { get; set; } = string.Empty;
         public bool Estado { get; set; }

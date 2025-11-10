@@ -8,13 +8,15 @@ namespace Modelos.Entidades
         public int Id { get; set; }
         public int IdPersona { get; set; }
         public int? IdProducto { get; set; }
-        public string? CodigoLanzamiento { get; set; } = string.Empty;
+        public string? CodigoLanzamiento { get; set; }
+        public string? Origen { get; set; }
         public bool Estado { get; set; }
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
+        
 
         // Navegaciones
         public Persona? Persona { get; set; }
