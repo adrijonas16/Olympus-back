@@ -45,6 +45,7 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private ProductoDocenteRepository _productoDocenteRepository;
         private ProductoCertificadoRepository _productoCertificadoRepository;
         private VentaCruzadaRepository _ventaCruzadaRepository;
+        private PotencialClienteRepository _potencialClienteRepository;
 
         public IUsuarioRepository UsuarioRepository
             => _usuarioRepository ??= new UsuarioRepository(_context);
@@ -112,6 +113,8 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _productoCertificadoRepository ??= new ProductoCertificadoRepository(_context);
         public IVentaCruzadaRepository VentaCruzadaRepository
             => _ventaCruzadaRepository ??= new VentaCruzadaRepository(_context);
+        public IPotencialClienteRepository PotencialClienteRepository
+            => _potencialClienteRepository ??= new PotencialClienteRepository(_context);
 
         public UnitOfWork(OlympusContext context)
         {

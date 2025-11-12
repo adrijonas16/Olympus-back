@@ -6,7 +6,7 @@ namespace Modelos.Entidades
     public class Oportunidad
     {
         public int Id { get; set; }
-        public int IdPersona { get; set; }
+        public int IdPotencialCliente { get; set; }
         public int? IdProducto { get; set; }
         public string? CodigoLanzamiento { get; set; }
         public string? Origen { get; set; }
@@ -19,7 +19,7 @@ namespace Modelos.Entidades
         
 
         // Navegaciones
-        public Persona? Persona { get; set; }
+        public PotencialCliente? PotencialCliente { get; set; }
         public Producto? Producto { get; set; }
         public List<ControlOportunidad> ControlOportunidades { get; set; } = new List<ControlOportunidad>();
         public List<HistorialEstado> HistorialEstado { get; set; } = new List<HistorialEstado>();

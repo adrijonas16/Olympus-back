@@ -39,7 +39,7 @@ namespace CapaDatos.Repositorio.Venta
             return _context.Oportunidad.FirstOrDefault(o => o.Id == id);
         }
 
-        public IQueryable<Oportunidad> ObtenerTodos()
+        public IQueryable<Oportunidad> ObtenerTodas()
         {
             return _context.Oportunidad.AsQueryable();
         }
@@ -47,16 +47,16 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.Oportunidad
                 .AsNoTracking()
-                .Include(o => o.Persona)
+                .Include(o => o.PotencialCliente)
                 .FirstOrDefault(o => o.Id == id);
         }
 
-        public Persona? ObtenerPersonaPorOportunidad(int idOportunidad)
+        public PotencialCliente? ObtenerPersonaPorOportunidad(int idOportunidad)
         {
             return _context.Oportunidad
                 .AsNoTracking()
                 .Where(o => o.Id == idOportunidad)
-                .Select(o => o.Persona)
+                .Select(o => o.PotencialCliente)
                 .FirstOrDefault();
         }
 
@@ -65,7 +65,7 @@ namespace CapaDatos.Repositorio.Venta
             return _context.Oportunidad
                 .AsNoTracking()
                 .Where(o => idsOportunidad.Contains(o.Id))
-                .Select(o => o.Persona)
+                .Select(o => o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona : null)
                 .Where(p => p != null)
                 .Distinct()
                 .ToList()!;
@@ -75,7 +75,8 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.Oportunidad
                 .AsNoTracking()
-                .Include(o => o.Persona);
+                .Include(o => o.PotencialCliente)
+                    .ThenInclude(pc => pc.Persona!);
         }
 
         public IQueryable<Oportunidad> Query()

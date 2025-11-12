@@ -8,10 +8,10 @@ namespace CapaDatos.Repositorio.Venta
         bool Actualizar(Oportunidad modelo);
         bool Eliminar(int id);
         Oportunidad? ObtenerPorId(int id);
-        Persona? ObtenerPersonaPorOportunidad(int idOportunidad);
+        PotencialCliente? ObtenerPersonaPorOportunidad(int idOportunidad);
         List<Persona> ObtenerPersonasPorOportunidades(IEnumerable<int> idsOportunidad);
         IQueryable<Oportunidad> ObtenerTodosConPersona();
-        IQueryable<Oportunidad> ObtenerTodos();
+        IQueryable<Oportunidad> ObtenerTodas();
         IQueryable<Oportunidad> Query();
         IQueryable<Oportunidad> QueryAsNoTracking();
     }

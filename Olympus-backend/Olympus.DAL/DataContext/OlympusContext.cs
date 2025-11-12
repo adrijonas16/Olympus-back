@@ -41,6 +41,7 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<ProductoDocente> ProductoDocente { get; set; }
     public virtual DbSet<VentaCruzada> VentaCruzada { get; set; }
     public virtual DbSet<ProductoCertificado> ProductoCertificado { get; set; }
+    public virtual DbSet<PotencialCliente> PotencialCliente { get; set; }
     public IDbConnection CreateConnection()
     {
         return new SqlConnection(Database.GetConnectionString());
@@ -237,8 +238,8 @@ public partial class OlympusContext : DbContext
             entity.ToTable("Oportunidad", schema: "adm");
             entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.IdPersona)
-                  .HasColumnName("IdPersona")
+            entity.Property(e => e.IdPotencialCliente)
+                  .HasColumnName("IdPotencialCliente")
                   .IsRequired();
 
             entity.Property(e => e.IdProducto)
@@ -279,9 +280,9 @@ public partial class OlympusContext : DbContext
                   .IsUnicode(false);
 
             // Relaciones
-            entity.HasOne(o => o.Persona)
+            entity.HasOne(o => o.PotencialCliente)
                   .WithMany(p => p.Oportunidades)
-                  .HasForeignKey(o => o.IdPersona)
+                  .HasForeignKey(o => o.IdPotencialCliente)
                   .HasConstraintName("FK_Oportunidad_Persona")
                   .OnDelete(DeleteBehavior.Restrict);
 
@@ -292,7 +293,7 @@ public partial class OlympusContext : DbContext
                   .OnDelete(DeleteBehavior.Restrict);
 
             // Índices
-            entity.HasIndex(o => o.IdPersona).HasDatabaseName("IX_Oportunidad_IdPersona");
+            entity.HasIndex(o => o.IdPotencialCliente).HasDatabaseName("IX_Oportunidad_IdPersona");
             entity.HasIndex(o => o.IdProducto).HasDatabaseName("IX_Oportunidad_IdProducto");
         });
 
@@ -875,14 +876,14 @@ public partial class OlympusContext : DbContext
                   .HasColumnName("IdPersona")
                   .IsRequired();
 
-            // 🔹 Relación 1:1 con Persona (FK IdPersona)
+            // Relación 1:1 con Persona (FK IdPersona)
             entity.HasOne(d => d.Persona)
                   .WithOne(p => p.Docente)
                   .HasForeignKey<Docente>(d => d.IdPersona)
                   .HasConstraintName("FK_Docente_Persona")
                   .OnDelete(DeleteBehavior.Restrict);
 
-            // Índice único para asegurar 1:1
+            // Indice para asegurar 1:1
             entity.HasIndex(d => d.IdPersona)
                   .IsUnique()
                   .HasDatabaseName("UX_Docente_IdPersona");
@@ -1696,6 +1697,50 @@ public partial class OlympusContext : DbContext
             entity.HasIndex(e => e.Nombre).HasDatabaseName("IX_Tipo_Nombre");
         });
 
+        // Configuración PotencialCliente
+        modelBuilder.Entity<PotencialCliente>(entity =>
+        {
+            entity.ToTable("PotencialCliente", schema: "adm");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.IdPersona)
+                  .HasColumnName("IdPersona")
+                  .IsRequired();
+
+            entity.Property(e => e.Desuscrito)
+                  .HasColumnName("Desuscrito")
+                  .IsRequired();
+
+            entity.Property(e => e.Estado)
+                  .HasColumnName("Estado")
+                  .HasDefaultValue(true);
+
+            entity.Property(e => e.IdMigracion);
+
+            entity.Property(e => e.FechaCreacion)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.FechaModificacion)
+                  .HasColumnType("datetime")
+                  .HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.UsuarioCreacion)
+                  .HasMaxLength(50)
+                  .IsUnicode(false);
+            entity.Property(e => e.UsuarioModificacion)
+                  .HasMaxLength(50)
+                  .IsUnicode(false);
+
+            // Relación 1:1 con Persona (FK IdPersona)
+            entity.HasOne(d => d.Persona)
+                  .WithOne(p => p.PotencialCliente)
+                  .HasForeignKey<PotencialCliente>(d => d.IdPersona)
+                  .HasConstraintName("FK_PotencialCliente_Persona");
+
+            // Indice para asegurar 1:1
+            entity.HasIndex(d => d.IdPersona)
+                  .IsUnique()
+                  .HasDatabaseName("UX_PotencialCliente_IdPersona");
+        });
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

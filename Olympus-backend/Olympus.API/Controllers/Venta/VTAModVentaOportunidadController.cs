@@ -104,9 +104,9 @@ namespace Olympus.API.Controllers.Venta
         }
 
         [HttpGet("ObtenerDetallePorId/{id}")]
-        public VTAModVentaTOportunidadDetalleDTORPT ObtenerDetallePorId(int id)
+        public VTAModVentaOportunidadDetalleDTORPT ObtenerDetallePorId(int id)
         {
-            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+            var respuesta = new VTAModVentaOportunidadDetalleDTORPT();
             try
             {
                 respuesta = _oportunidadService.ObtenerDetallePorId(id);

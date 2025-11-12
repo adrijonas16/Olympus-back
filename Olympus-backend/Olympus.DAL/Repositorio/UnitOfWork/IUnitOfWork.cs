@@ -41,6 +41,7 @@ namespace CapaDatos.Repositorio.UnitOfWork
         IProductoDocenteRepository ProductoDocenteRepository { get; }
         IProductoCertificadoRepository ProductoCertificadoRepository { get; }
         IVentaCruzadaRepository VentaCruzadaRepository { get; }
+        IPotencialClienteRepository PotencialClienteRepository { get; }
 
         // Guardar cambios
         Task<int> SaveChangesAsync();

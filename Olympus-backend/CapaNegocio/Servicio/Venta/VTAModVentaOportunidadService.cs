@@ -32,13 +32,15 @@ namespace CapaNegocio.Servicio.Venta
                 var lista = _unitOfWork.OportunidadRepository
                     .Query()
                     .AsNoTracking()
-                    .Include(o => o.Persona)
+                    .Include(o => o.PotencialCliente)
+                        .ThenInclude(pc => pc.Persona)
                     .Include(o => o.Producto)
                     .Select(o => new VTAModVentaTOportunidadDTO
                     {
                         Id = o.Id,
-                        IdPersona = o.IdPersona,
-                        PersonaNombre = o.Persona != null ? ((o.Persona.Nombres ?? string.Empty) + " " + (o.Persona.Apellidos ?? string.Empty)).Trim() : string.Empty,
+                        IdPotencialCliente = o.IdPotencialCliente,
+                        PersonaNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null 
+                            ? ((o.PotencialCliente.Persona.Nombres ?? string.Empty) + " " + (o.PotencialCliente.Persona.Apellidos ?? string.Empty)).Trim() : string.Empty,
                         IdProducto = o.IdProducto,
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : string.Empty,
                         CodigoLanzamiento = o.CodigoLanzamiento,
@@ -73,14 +75,16 @@ namespace CapaNegocio.Servicio.Venta
                 var ent = _unitOfWork.OportunidadRepository
                     .Query()
                     .AsNoTracking()
-                    .Include(o => o.Persona)
+                    .Include(o => o.PotencialCliente)
+                        .ThenInclude(pc => pc.Persona)
                     .Include(o => o.Producto)
                     .Where(o => o.Id == id)
                     .Select(o => new VTAModVentaTOportunidadDTO
                     {
                         Id = o.Id,
-                        IdPersona = o.IdPersona,
-                        PersonaNombre = o.Persona != null ? ((o.Persona.Nombres ?? string.Empty) + " " + (o.Persona.Apellidos ?? string.Empty)).Trim() : string.Empty,
+                        IdPotencialCliente = o.IdPotencialCliente,
+                        PersonaNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null
+                            ? ((o.PotencialCliente.Persona.Nombres ?? string.Empty) + " " + (o.PotencialCliente.Persona.Apellidos ?? string.Empty)).Trim() : string.Empty,
                         IdProducto = o.IdProducto,
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : string.Empty,
                         CodigoLanzamiento = o.CodigoLanzamiento,
@@ -108,7 +112,7 @@ namespace CapaNegocio.Servicio.Venta
             try
             {
                 // Validar Persona (obligatoria)
-                var persona = _unitOfWork.PersonaRepository.ObtenerPorId(dto.IdPersona);
+                var persona = _unitOfWork.PotencialClienteRepository.ObtenerPorId(dto.IdPotencialCliente);
                 if (persona == null)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
@@ -130,7 +134,7 @@ namespace CapaNegocio.Servicio.Venta
 
                 var ent = new Oportunidad
                 {
-                    IdPersona = dto.IdPersona,
+                    IdPotencialCliente = dto.IdPotencialCliente,
                     IdProducto = dto.IdProducto,
                     CodigoLanzamiento = dto.CodigoLanzamiento,
                     Origen = dto.Origen,
@@ -171,7 +175,7 @@ namespace CapaNegocio.Servicio.Venta
                 }
 
                 // Validar Persona (obligatoria)
-                var persona = _unitOfWork.PersonaRepository.ObtenerPorId(dto.IdPersona);
+                var persona = _unitOfWork.PotencialClienteRepository.ObtenerPorId(dto.IdPotencialCliente);
                 if (persona == null)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
@@ -191,7 +195,7 @@ namespace CapaNegocio.Servicio.Venta
                     }
                 }
 
-                ent.IdPersona = dto.IdPersona;
+                ent.IdPotencialCliente = dto.IdPotencialCliente;
                 ent.IdProducto = dto.IdProducto;
                 ent.CodigoLanzamiento = dto.CodigoLanzamiento;
                 ent.Origen = dto.Origen;
@@ -243,30 +247,34 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
-        public VTAModVentaTOportunidadDetalleDTORPT ObtenerDetallePorId(int id)
+        public VTAModVentaOportunidadDetalleDTORPT ObtenerDetallePorId(int id)
         {
-            var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
+            var respuesta = new VTAModVentaOportunidadDetalleDTORPT();
 
             try
             {
-                // Obtener la oportunidad con persona y producto
+                // Obtener la oportunidad con potencial cliente (que incluye persona) y producto
                 var oportunidadQuery = _unitOfWork.OportunidadRepository
                     .Query()
                     .AsNoTracking()
-                    .Include(o => o.Persona)
+                    .Include(o => o.PotencialCliente)
+                        .ThenInclude(pc => pc.Persona)
                     .Include(o => o.Producto)
                     .Where(o => o.Id == id);
 
                 var oportunidad = oportunidadQuery
-                    .Select(o => new VTAModVentaTOportunidadDTO
+                    .Select(o => new VTAModVentaOportunidadDetalleDTO
                     {
                         Id = o.Id,
-                        IdPersona = o.IdPersona,
-                        PersonaNombre = o.Persona != null ? ((o.Persona.Nombres ?? string.Empty) + " " + (o.Persona.Apellidos ?? string.Empty)).Trim() : string.Empty,
+                        IdPotencialCliente = o.IdPotencialCliente,
+                        PersonaNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null
+                        ? ((o.PotencialCliente.Persona.Nombres ?? string.Empty) + " " + (o.PotencialCliente.Persona.Apellidos ?? string.Empty)).Trim()
+                        : string.Empty,
                         IdProducto = o.IdProducto,
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : string.Empty,
                         CodigoLanzamiento = o.CodigoLanzamiento,
                         Origen = o.Origen,
+                        Desuscrito = o.PotencialCliente != null ? (o.PotencialCliente.Desuscrito ? 1 : 0) : 0,
                         Estado = o.Estado,
                         FechaCreacion = o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
@@ -377,7 +385,6 @@ namespace CapaNegocio.Servicio.Venta
                                 TipoCategoria = tipoCategoria
                             };
                         }
-
                     }
 
                     // DTO final
@@ -403,14 +410,14 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.HistorialActual.Add(historialDto);
                 }
 
-                // Calcular total de historialEstados del mismo IdPersona donde IdAsesor es NULL
+                // Calcular total de historialEstados del mismo IdPotencialCliente donde IdAsesor es NULL
                 var totalHistorialesSinAsesor = _unitOfWork.HistorialEstadoRepository
                     .Query()
                     .AsNoTracking()
                     .Where(h => h.IdAsesor == null
                                 && _unitOfWork.OportunidadRepository
                                       .Query()
-                                      .Any(o => o.Id == h.IdOportunidad && o.IdPersona == oportunidad.IdPersona))
+                                      .Any(o => o.Id == h.IdOportunidad && o.IdPotencialCliente == oportunidad.IdPotencialCliente))
                     .Count();
 
                 // Rellenar TotalOportunidadesPersona y UltimoHistorial 
@@ -621,25 +628,34 @@ namespace CapaNegocio.Servicio.Venta
             {
                 var now = DateTime.UtcNow;
 
-                var q = _unitOfWork.OportunidadRepository.ObtenerTodos()
+                var q = _unitOfWork.OportunidadRepository.ObtenerTodas()
                     .Select(o => new
                     {
                         o.Id,
-                        o.IdPersona,
-                        PersonaNombres = o.Persona != null ? o.Persona.Nombres : null,
-                        PersonaApellidos = o.Persona != null ? o.Persona.Apellidos : null,
-                        IdPais = o.Persona != null ? o.Persona.IdPais : null,
-                        PaisNombre = o.Persona != null && o.Persona.Pais != null ? o.Persona.Pais.Nombre : null,
+                        o.IdPotencialCliente,
+                        PotencialCliente = o.PotencialCliente,
+                        PersonaNombres = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Nombres : null,
+                        PersonaApellidos = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Apellidos : null,
+                        IdPais = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.IdPais : null,
+                        PaisNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null && o.PotencialCliente.Persona.Pais != null ? o.PotencialCliente.Persona.Pais.Nombre : null,
                         o.IdProducto,
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : null,
                         o.CodigoLanzamiento,
                         o.Estado,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioCreacion = o.UsuarioCreacion,
+                        FechaModificacion = o.FechaModificacion,
+                        UsuarioModificacion = o.UsuarioModificacion,
 
                         // Último historialEstado
                         UltimoHistorial = o.HistorialEstado
                             .OrderByDescending(h => h.FechaCreacion)
                             .ThenByDescending(h => h.Id)
-                            .Select(h => new { h.Id, h.IdEstado, NombreEstado = h.EstadoReferencia != null ? h.EstadoReferencia.Nombre : null })
+                            .Select(h => new {
+                                h.Id,
+                                h.IdEstado,
+                                NombreEstado = h.EstadoReferencia != null ? h.EstadoReferencia.Nombre : null
+                            })
                             .FirstOrDefault(),
 
                         // HistorialInteraccion tipo 10
@@ -648,7 +664,12 @@ namespace CapaNegocio.Servicio.Venta
                             .OrderBy(hi => hi.FechaRecordatorio == null ? DateTime.MaxValue : hi.FechaRecordatorio)
                             .ThenByDescending(hi => hi.FechaCreacion)
                             .Select(hi => new { hi.Id, hi.FechaRecordatorio })
-                            .FirstOrDefault()
+                            .FirstOrDefault(),
+
+                        // Calcular TotalOportunidadesPersona (mismo IdPotencialCliente)
+                        TotalOportunidadesPersona = _unitOfWork.OportunidadRepository
+                            .Query()
+                            .Count(otherO => otherO.IdPotencialCliente == o.IdPotencialCliente)
                     })
                     .ToList();
 
@@ -657,14 +678,20 @@ namespace CapaNegocio.Servicio.Venta
                     var dto = new VTAModVentaOportunidadDetalleDTO
                     {
                         Id = x.Id,
-                        IdPersona = x.IdPersona,
-                        NombrePersona = $"{(x.PersonaNombres ?? "")} {(x.PersonaApellidos ?? "")}".Trim(),
+                        IdPotencialCliente = x.IdPotencialCliente,
+                        PersonaNombre = $"{(x.PersonaNombres ?? "")} {(x.PersonaApellidos ?? "")}".Trim(),
                         IdPais = x.IdPais,
                         NombrePais = x.PaisNombre ?? string.Empty,
                         IdProducto = x.IdProducto,
-                        NombreProducto = x.ProductoNombre ?? string.Empty,
+                        ProductoNombre = x.ProductoNombre ?? string.Empty,
                         CodigoLanzamiento = x.CodigoLanzamiento,
-                        Estado = x.Estado
+                        Desuscrito = x.PotencialCliente != null ? (x.PotencialCliente.Desuscrito ? 1 : 0) : 0,
+                        Estado = x.Estado,
+                        TotalOportunidadesPersona = x.TotalOportunidadesPersona,
+                        FechaCreacion = x.FechaCreacion,
+                        UsuarioCreacion = x.UsuarioCreacion ?? string.Empty,
+                        FechaModificacion = x.FechaModificacion,
+                        UsuarioModificacion = x.UsuarioModificacion ?? string.Empty
                     };
 
                     if (x.UltimoHistorial != null)
@@ -705,33 +732,49 @@ namespace CapaNegocio.Servicio.Venta
             {
                 var now = DateTime.UtcNow;
 
-                var x = _unitOfWork.OportunidadRepository.ObtenerTodos()
+                var x = _unitOfWork.OportunidadRepository.ObtenerTodas()
                     .Where(o => o.Id == id)
                     .Select(o => new
                     {
                         o.Id,
-                        o.IdPersona,
-                        PersonaNombres = o.Persona != null ? o.Persona.Nombres : null,
-                        PersonaApellidos = o.Persona != null ? o.Persona.Apellidos : null,
-                        IdPais = o.Persona != null ? o.Persona.IdPais : null,
-                        PaisNombre = o.Persona != null && o.Persona.Pais != null ? o.Persona.Pais.Nombre : null,
+                        o.IdPotencialCliente,
+                        PotencialCliente = o.PotencialCliente,
+                        PersonaNombres = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Nombres : null,
+                        PersonaApellidos = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Apellidos : null,
+                        IdPais = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.IdPais : null,
+                        PaisNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null && o.PotencialCliente.Persona.Pais != null ? o.PotencialCliente.Persona.Pais.Nombre : null,
                         o.IdProducto,
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : null,
                         o.CodigoLanzamiento,
                         o.Estado,
+                        FechaCreacion = o.FechaCreacion,
+                        UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
+                        FechaModificacion = o.FechaModificacion,
+                        UsuarioModificacion = o.UsuarioModificacion,
 
+                        // Último historialEstado
                         UltimoHistorial = o.HistorialEstado
                             .OrderByDescending(h => h.FechaCreacion)
                             .ThenByDescending(h => h.Id)
-                            .Select(h => new { h.Id, h.IdEstado, NombreEstado = h.EstadoReferencia != null ? h.EstadoReferencia.Nombre : null })
+                            .Select(h => new {
+                                h.Id,
+                                h.IdEstado,
+                                NombreEstado = h.EstadoReferencia != null ? h.EstadoReferencia.Nombre : null
+                            })
                             .FirstOrDefault(),
 
+                        // HistorialInteraccion tipo 10
                         HistorialInteraccionTipo10 = o.HistorialInteracciones
                             .Where(hi => hi.IdTipo == 10)
                             .OrderBy(hi => hi.FechaRecordatorio == null ? DateTime.MaxValue : hi.FechaRecordatorio)
                             .ThenByDescending(hi => hi.FechaCreacion)
                             .Select(hi => new { hi.Id, hi.FechaRecordatorio })
-                            .FirstOrDefault()
+                            .FirstOrDefault(),
+
+                        // Calcular TotalOportunidadesPersona (mismo IdPotencialCliente)
+                        TotalOportunidadesPersona = _unitOfWork.OportunidadRepository
+                            .Query()
+                            .Count(otherO => otherO.IdPotencialCliente == o.IdPotencialCliente)
                     })
                     .FirstOrDefault();
 
@@ -740,14 +783,16 @@ namespace CapaNegocio.Servicio.Venta
                 var dto = new VTAModVentaOportunidadDetalleDTO
                 {
                     Id = x.Id,
-                    IdPersona = x.IdPersona,
-                    NombrePersona = $"{(x.PersonaNombres ?? "")} {(x.PersonaApellidos ?? "")}".Trim(),
+                    IdPotencialCliente = x.IdPotencialCliente, // Cambiado de IdPersona
+                    PersonaNombre = $"{(x.PersonaNombres ?? "")} {(x.PersonaApellidos ?? "")}".Trim(),
                     IdPais = x.IdPais,
                     NombrePais = x.PaisNombre ?? string.Empty,
                     IdProducto = x.IdProducto,
-                    NombreProducto = x.ProductoNombre ?? string.Empty,
+                    ProductoNombre = x.ProductoNombre ?? string.Empty,
                     CodigoLanzamiento = x.CodigoLanzamiento,
-                    Estado = x.Estado
+                    Desuscrito = x.PotencialCliente != null ? (x.PotencialCliente.Desuscrito ? 1 : 0) : 0,
+                    Estado = x.Estado,
+                    TotalOportunidadesPersona = x.TotalOportunidadesPersona
                 };
 
                 if (x.UltimoHistorial != null)
@@ -772,6 +817,5 @@ namespace CapaNegocio.Servicio.Venta
                 return new VTAModVentaOportunidadDetalleDTO();
             }
         }
-
     }
 }

@@ -25,9 +25,9 @@ namespace Modelos.Entidades
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
 
-        // Navegaciones inversas
-        public List<Oportunidad> Oportunidades { get; set; } = new List<Oportunidad>();
+        // Navegaciones
         public Docente? Docente { get; set; }
+        public PotencialCliente? PotencialCliente { get; set; }
         public Pais? Pais { get; set; }
     }
 }
