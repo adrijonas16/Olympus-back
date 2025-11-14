@@ -13,6 +13,7 @@ namespace Modelos.DTO.Venta
         public int IdOportunidad { get; set; }
         public int? IdAsesor { get; set; }
         public int? IdEstado { get; set; }
+        public int? IdOcurrencia { get; set; }
         public string Observaciones { get; set; } = string.Empty;
         public int? CantidadLlamadasContestadas { get; set; }
         public int? CantidadLlamadasNoContestadas { get; set; }
@@ -31,5 +32,6 @@ namespace Modelos.DTO.Venta
         public List<VTAModVentaConvertidoDTO> Convertidos { get; set; } = new List<VTAModVentaConvertidoDTO>();
         public List<VTAModVentaVentaCruzadaDTO> VentaCruzadas { get; set; } = new List<VTAModVentaVentaCruzadaDTO>();
         public List<VTAModVentaCorporativoDTO> Corporativos { get; set; } = new List<VTAModVentaCorporativoDTO>();
+        public List<VTAModVentaOcurrenciaDTO> Ocurrencias { get; set; } = new List<VTAModVentaOcurrenciaDTO>();
     }
 }

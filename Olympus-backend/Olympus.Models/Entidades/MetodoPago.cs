@@ -11,6 +11,7 @@ namespace Modelos.Entidades
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public bool Activo { get; set; } = true;
+        public bool Estado { get; set; } = true;
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;

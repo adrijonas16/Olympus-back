@@ -46,7 +46,7 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private ProductoCertificadoRepository _productoCertificadoRepository;
         private VentaCruzadaRepository _ventaCruzadaRepository;
         private PotencialClienteRepository _potencialClienteRepository;
-
+        private EstadoTransicionRepository _estadoTransicionRepository;
         public IUsuarioRepository UsuarioRepository
             => _usuarioRepository ??= new UsuarioRepository(_context);
         public IErrorLogRepository ErrorLogRepository
@@ -115,6 +115,8 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _ventaCruzadaRepository ??= new VentaCruzadaRepository(_context);
         public IPotencialClienteRepository PotencialClienteRepository
             => _potencialClienteRepository ??= new PotencialClienteRepository(_context);
+        public IEstadoTransicionRepository EstadoTransicionRepository
+            => _estadoTransicionRepository ??= new EstadoTransicionRepository(_context);
 
         public UnitOfWork(OlympusContext context)
         {

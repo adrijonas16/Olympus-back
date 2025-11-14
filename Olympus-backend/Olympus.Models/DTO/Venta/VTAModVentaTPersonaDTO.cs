@@ -19,7 +19,6 @@ namespace Modelos.DTO.Venta
         public string Correo { get; set; } = string.Empty;
         public string AreaTrabajo { get; set; } = string.Empty;
         public string Industria { get; set; } = string.Empty;
-        public bool Desuscrito { get; set; }
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;

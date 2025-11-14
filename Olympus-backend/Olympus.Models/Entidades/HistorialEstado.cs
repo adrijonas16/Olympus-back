@@ -12,6 +12,7 @@ namespace Modelos.Entidades
         public int IdOportunidad { get; set; }
         public int? IdAsesor { get; set; }
         public int? IdEstado { get; set; }
+        public int? IdOcurrencia { get; set; }
         public string? Observaciones { get; set; } = string.Empty;
         public int? CantidadLlamadasContestadas { get; set; }
         public int? CantidadLlamadasNoContestadas { get; set; }
@@ -25,7 +26,8 @@ namespace Modelos.Entidades
         // Navegación
         public Oportunidad? Oportunidad { get; set; }
         public Asesor? Asesor { get; set; }
-        public Estado? EstadoReferencia { get; set; } // sin conflicto con "Estado"
+        public Estado? EstadoReferencia { get; set; }
+        public Ocurrencia? Ocurrencia { get; set; }
         public List<HistorialEstadoTipo> HistorialEstadoTipos { get; set; } = new List<HistorialEstadoTipo>();
         public List<Cobranza> Cobranzas { get; set; } = new List<Cobranza>();
         public List<Convertido> Convertidos { get; set; } = new List<Convertido>();

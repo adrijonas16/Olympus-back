@@ -17,6 +17,8 @@ namespace Modelos.DTO.Venta
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
+        public VTAModVentaTPersonaDTO? Persona { get; set; }
+
     }
 
     public class PotencialClienteDTORPT : CFGRespuestaGenericaDTO

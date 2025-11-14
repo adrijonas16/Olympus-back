@@ -4,6 +4,7 @@ using CapaNegocio.Servicio.Venta;
 using Microsoft.AspNetCore.Mvc;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
+using Modelos.Entidades;
 
 namespace Olympus.API.Controllers.Venta
 {
@@ -192,6 +193,28 @@ namespace Olympus.API.Controllers.Venta
             }
             return respuesta;
         }
+
+        /// GET api/VTAModVentaOportunidad/ObtenerPotencialPorOportunidad/5
+        [HttpGet("ObtenerPotencialPorOportunidad/{IdOportunidad}")]
+        public IActionResult ObtenerPotencialPorOportunidad(int IdOportunidad)
+        {
+            try
+            {
+                var dto = _oportunidadService.ObtenerPotencialPorOportunidadId(IdOportunidad);
+
+                // Si el servicio devuelve null o un DTO sin Id (Id == 0) devolvemos NotFound
+                if (dto == null || dto.Id == 0)
+                    return NotFound(new { idOportunidad = IdOportunidad, potencial = new object[0] });
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                return StatusCode(500, new { idOportunidad = IdOportunidad, potencial = new object[0], error = ex.Message });
+            }
+        }
+
 
         ///// Obtener una oportunidad por id con NombrePais y recordatorio (tipo 10)
         ///// GET api/VTAModVentaOportunidad/ObtenerPorIdConRecordatorio/1

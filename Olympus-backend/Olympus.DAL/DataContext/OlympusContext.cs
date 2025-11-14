@@ -42,6 +42,7 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<VentaCruzada> VentaCruzada { get; set; }
     public virtual DbSet<ProductoCertificado> ProductoCertificado { get; set; }
     public virtual DbSet<PotencialCliente> PotencialCliente { get; set; }
+    public virtual DbSet<EstadoTransicion> EstadoTransicion { get; set; }
     public IDbConnection CreateConnection()
     {
         return new SqlConnection(Database.GetConnectionString());
@@ -124,6 +125,10 @@ public partial class OlympusContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
 
+            entity.Property(e => e.Estado)
+                .HasColumnName("Estado")
+                .HasDefaultValue(true);
+
             entity.Property(e => e.FechaCreacion)
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("(getdate())");
@@ -133,7 +138,8 @@ public partial class OlympusContext : DbContext
                 .HasDefaultValueSql("(getdate())");
 
             entity.Property(e => e.IdPais)
-            .HasColumnName("IdPais");
+                .HasColumnName("IdPais")
+                .IsRequired(false);
 
             entity.HasOne(p => p.Pais)
                 .WithMany(pa => pa.Personas)
@@ -175,6 +181,10 @@ public partial class OlympusContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
 
+            entity.Property(e => e.Estado)
+                .HasColumnName("Estado")
+                .HasDefaultValue(true);
+
             entity.Property(e => e.FechaCreacion)
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("(getdate())");
@@ -215,7 +225,8 @@ public partial class OlympusContext : DbContext
                 .IsUnicode(false);
 
             entity.Property(e => e.EstadoControl)
-                .HasColumnName("Estado");
+                .HasColumnName("Estado")
+                .HasDefaultValue(true);
 
             entity.Property(e => e.FechaCreacion)
                 .HasColumnType("datetime")
@@ -365,7 +376,8 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.CantidadLlamadasNoContestadas);
 
             entity.Property(e => e.Estado)
-                .HasColumnName("Estado");
+                .HasColumnName("Estado")
+                .HasDefaultValue(true);
 
             entity.Property(e => e.FechaCreacion)
                 .HasColumnType("datetime")
@@ -386,6 +398,8 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.IdOportunidad).HasColumnName("IdOportunidad").IsRequired();
             entity.Property(e => e.IdAsesor).HasColumnName("IdAsesor").IsRequired(false);
             entity.Property(e => e.IdEstado).HasColumnName("IdEstado").IsRequired(false);
+            entity.Property(e => e.IdOcurrencia).HasColumnName("IdOcurrencia").IsRequired(false);
+
 
             // Relaciones: usar lambdas para forzar uso de propiedades FK
             entity.HasOne(h => h.Oportunidad)
@@ -406,10 +420,18 @@ public partial class OlympusContext : DbContext
                   .HasConstraintName("FK_HistorialEstado_Estado")
                   .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(h => h.Ocurrencia)
+                  .WithMany()
+                  .HasForeignKey(h => h.IdOcurrencia)
+                  .HasConstraintName("FK_HistorialEstado_Ocurrencia")
+                  .OnDelete(DeleteBehavior.Restrict);
+
             // índices
             entity.HasIndex(h => h.IdOportunidad).HasDatabaseName("IX_HistorialEstado_IdOportunidad");
             entity.HasIndex(h => h.IdAsesor).HasDatabaseName("IX_HistorialEstado_IdAsesor");
             entity.HasIndex(h => h.IdEstado).HasDatabaseName("IX_HistorialEstado_IdEstado");
+            entity.HasIndex(h => h.IdOcurrencia).HasDatabaseName("IX_HistorialEstado_IdOcurrencia");
+
         });
 
         // Configuración HistorialInteraccion
@@ -497,7 +519,8 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.DigitoMinimo);
 
             entity.Property(e => e.Estado)
-                  .HasColumnName("Estado");
+                  .HasColumnName("Estado")
+                  .HasDefaultValue(true);
 
             entity.Property(e => e.UsuarioCreacion)
                   .HasMaxLength(50)
@@ -525,6 +548,12 @@ public partial class OlympusContext : DbContext
                   .IsConcurrencyToken()
                   .HasColumnType("rowversion")
                   .HasColumnName("RowVersion");
+
+            entity.HasMany(p => p.Personas)
+                    .WithOne(per => per.Pais)
+                    .HasForeignKey(per => per.IdPais)
+                    .HasConstraintName("FK_Pais_Persona")
+                    .OnDelete(DeleteBehavior.Restrict);
 
             // índice opcional si quieres buscar por Nombre
             entity.HasIndex(e => e.Nombre).HasDatabaseName("IX_Pais_Nombre");
@@ -572,7 +601,8 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.Orden);
 
             entity.Property(e => e.Estado)
-                .HasColumnName("Estado");
+                .HasColumnName("Estado")
+                .HasDefaultValue(true);
 
             entity.Property(e => e.FechaCreacion)
                 .HasColumnType("datetime")
@@ -1741,6 +1771,82 @@ public partial class OlympusContext : DbContext
                   .IsUnique()
                   .HasDatabaseName("UX_PotencialCliente_IdPersona");
         });
+        // Configuración EstadoTransicion
+        modelBuilder.Entity<EstadoTransicion>(entity =>
+        {
+            entity.ToTable("EstadoTransicion", schema: "adm");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.IdEstadoOrigen)
+                .HasColumnName("IdEstadoOrigen");
+
+            entity.Property(e => e.IdEstadoDestino)
+                .HasColumnName("IdEstadoDestino");
+
+            entity.Property(e => e.IdOcurrenciaOrigen)
+                .HasColumnName("IdOcurrenciaOrigen");
+
+            entity.Property(e => e.IdOcurrenciaDestino)
+                .HasColumnName("IdOcurrenciaDestino");
+
+            entity.Property(e => e.Permitido)
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.Comentario)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+
+            entity.Property(e => e.Estado)
+                .HasColumnName("Estado")
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.IdMigracion);
+
+            entity.Property(e => e.FechaCreacion)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.UsuarioCreacion)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.Property(e => e.FechaModificacion)
+                .HasColumnType("datetime")
+                .IsRequired(false)
+                .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.UsuarioModificacion)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasOne(e => e.EstadoOrigen)
+                .WithMany()
+                .HasForeignKey(e => e.IdEstadoOrigen)
+                .HasConstraintName("FK_EstadoTransicion_EstadoOrigen")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.EstadoDestino)
+                .WithMany()
+                .HasForeignKey(e => e.IdEstadoDestino)
+                .HasConstraintName("FK_EstadoTransicion_EstadoDestino")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.OcurrenciaOrigen)
+                .WithMany()
+                .HasForeignKey(e => e.IdOcurrenciaOrigen)
+                .HasConstraintName("FK_EstadoTransicion_OcurrenciaOrigen")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.OcurrenciaDestino)
+                .WithMany()
+                .HasForeignKey(e => e.IdOcurrenciaDestino)
+                .HasConstraintName("FK_EstadoTransicion_OcurrenciaDestino")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.IdEstadoOrigen, e.IdEstadoDestino })
+                .HasDatabaseName("IX_EstadoTransicion_OrigenDestino_Prioridad");
+        });
+
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

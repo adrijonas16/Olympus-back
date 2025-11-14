@@ -39,7 +39,6 @@ namespace CapaNegocio.Servicio.Venta
                         Correo = p.Correo ?? string.Empty,
                         AreaTrabajo = p.AreaTrabajo ?? string.Empty,
                         Industria = p.Industria ?? string.Empty,
-                        Desuscrito = p.Desuscrito,
                         Estado = p.Estado,
                         UsuarioCreacion = p.UsuarioCreacion,
                         FechaCreacion = p.FechaCreacion,
@@ -79,7 +78,6 @@ namespace CapaNegocio.Servicio.Venta
                     dto.Correo = ent.Correo ?? string.Empty;
                     dto.AreaTrabajo = ent.AreaTrabajo ?? string.Empty;
                     dto.Industria = ent.Industria ?? string.Empty;
-                    dto.Desuscrito = ent.Desuscrito;
                     dto.Estado = ent.Estado;
                     dto.UsuarioCreacion = ent.UsuarioCreacion;
                     dto.FechaCreacion = ent.FechaCreacion;
@@ -109,7 +107,6 @@ namespace CapaNegocio.Servicio.Venta
                     Correo = dto.Correo,
                     AreaTrabajo = dto.AreaTrabajo,
                     Industria = dto.Industria,
-                    Desuscrito = dto.Desuscrito,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
                     UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
@@ -164,7 +161,6 @@ namespace CapaNegocio.Servicio.Venta
                 ent.Correo = dto.Correo;
                 ent.AreaTrabajo = dto.AreaTrabajo;
                 ent.Industria = dto.Industria;
-                ent.Desuscrito = dto.Desuscrito;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
                 ent.UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;

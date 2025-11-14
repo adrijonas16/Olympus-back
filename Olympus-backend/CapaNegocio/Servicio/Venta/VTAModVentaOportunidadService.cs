@@ -274,14 +274,12 @@ namespace CapaNegocio.Servicio.Venta
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : string.Empty,
                         CodigoLanzamiento = o.CodigoLanzamiento,
                         Origen = o.Origen,
-                        Desuscrito = o.PotencialCliente != null ? (o.PotencialCliente.Desuscrito ? 1 : 0) : 0,
                         Estado = o.Estado,
                         FechaCreacion = o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
                         FechaModificacion = o.FechaModificacion,
                         UsuarioModificacion = o.UsuarioModificacion ?? string.Empty,
                         TotalOportunidadesPersona = 0,
-                        UltimoHistorial = null
                     })
                     .FirstOrDefault();
 
@@ -422,7 +420,6 @@ namespace CapaNegocio.Servicio.Venta
 
                 // Rellenar TotalOportunidadesPersona y UltimoHistorial 
                 oportunidad.TotalOportunidadesPersona = totalHistorialesSinAsesor;
-                oportunidad.UltimoHistorial = historialDto;
 
                 // Agregar a la respuesta
                 respuesta.Oportunidad.Add(oportunidad);
@@ -636,25 +633,31 @@ namespace CapaNegocio.Servicio.Venta
                         PotencialCliente = o.PotencialCliente,
                         PersonaNombres = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Nombres : null,
                         PersonaApellidos = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Apellidos : null,
-                        IdPais = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.IdPais : null,
-                        PaisNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null && o.PotencialCliente.Persona.Pais != null ? o.PotencialCliente.Persona.Pais.Nombre : null,
+                        PersonaCorreo = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Correo : null,
                         o.IdProducto,
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : null,
                         o.CodigoLanzamiento,
+                        o.Origen,
                         o.Estado,
                         FechaCreacion = o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion,
                         FechaModificacion = o.FechaModificacion,
                         UsuarioModificacion = o.UsuarioModificacion,
 
-                        // Último historialEstado
+                        // Último historialEstado (más campos)
                         UltimoHistorial = o.HistorialEstado
                             .OrderByDescending(h => h.FechaCreacion)
                             .ThenByDescending(h => h.Id)
                             .Select(h => new {
                                 h.Id,
                                 h.IdEstado,
-                                NombreEstado = h.EstadoReferencia != null ? h.EstadoReferencia.Nombre : null
+                                h.IdAsesor,
+                                h.Observaciones,
+                                h.CantidadLlamadasContestadas,
+                                h.CantidadLlamadasNoContestadas,
+                                h.FechaCreacion,
+                                h.UsuarioCreacion,
+                                h.IdOcurrencia
                             })
                             .FirstOrDefault(),
 
@@ -673,19 +676,21 @@ namespace CapaNegocio.Servicio.Venta
                     })
                     .ToList();
 
-                var lista = q.Select(x =>
+                var lista = new List<VTAModVentaOportunidadDetalleDTO>();
+                var historiales = new List<VTAModVentaTHistorialEstadoDetalleDTO>();
+
+                foreach (var x in q)
                 {
                     var dto = new VTAModVentaOportunidadDetalleDTO
                     {
                         Id = x.Id,
                         IdPotencialCliente = x.IdPotencialCliente,
                         PersonaNombre = $"{(x.PersonaNombres ?? "")} {(x.PersonaApellidos ?? "")}".Trim(),
-                        IdPais = x.IdPais,
-                        NombrePais = x.PaisNombre ?? string.Empty,
+                        PersonaCorreo = x.PersonaCorreo ?? string.Empty,
                         IdProducto = x.IdProducto,
                         ProductoNombre = x.ProductoNombre ?? string.Empty,
                         CodigoLanzamiento = x.CodigoLanzamiento,
-                        Desuscrito = x.PotencialCliente != null ? (x.PotencialCliente.Desuscrito ? 1 : 0) : 0,
+                        Origen = x.Origen,
                         Estado = x.Estado,
                         TotalOportunidadesPersona = x.TotalOportunidadesPersona,
                         FechaCreacion = x.FechaCreacion,
@@ -698,7 +703,28 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         dto.IdHistorialEstado = x.UltimoHistorial.Id;
                         dto.IdEstado = x.UltimoHistorial.IdEstado;
-                        dto.NombreEstado = x.UltimoHistorial.NombreEstado ?? string.Empty;
+                        dto.NombreEstado = x.UltimoHistorial.IdEstado.HasValue
+                            ? (_unitOfWork.EstadoRepository.ObtenerPorId(x.UltimoHistorial.IdEstado.Value)?.Nombre ?? string.Empty)
+                            : string.Empty;
+
+                        // Construir el DTO de HistorialActual para devolver en la colección
+                        var histDto = new VTAModVentaTHistorialEstadoDetalleDTO
+                        {
+                            Id = x.UltimoHistorial.Id,
+                            IdOportunidad = x.Id,
+                            IdAsesor = x.UltimoHistorial.IdAsesor,
+                            IdEstado = x.UltimoHistorial.IdEstado,
+                            Observaciones = x.UltimoHistorial.Observaciones ?? string.Empty,
+                            CantidadLlamadasContestadas = x.UltimoHistorial.CantidadLlamadasContestadas,
+                            CantidadLlamadasNoContestadas = x.UltimoHistorial.CantidadLlamadasNoContestadas,
+                            Estado = true,
+                            FechaCreacion = x.UltimoHistorial.FechaCreacion,
+                            UsuarioCreacion = x.UltimoHistorial.UsuarioCreacion ?? string.Empty,
+                            FechaModificacion = x.UltimoHistorial.FechaCreacion,
+                            UsuarioModificacion = x.UltimoHistorial.UsuarioCreacion ?? string.Empty,
+                        };
+
+                        historiales.Add(histDto);
                     }
 
                     if (x.HistorialInteraccionTipo10 != null)
@@ -710,10 +736,11 @@ namespace CapaNegocio.Servicio.Venta
                         dto.FechaRecordatorio = (fr.HasValue && fr.Value.ToUniversalTime() >= now) ? fr.Value : (DateTime?)null;
                     }
 
-                    return dto;
-                }).ToList();
+                    lista.Add(dto);
+                }
 
                 respuesta.Oportunidad = lista;
+                respuesta.HistorialActual = historiales;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -743,6 +770,7 @@ namespace CapaNegocio.Servicio.Venta
                         PersonaApellidos = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Apellidos : null,
                         IdPais = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.IdPais : null,
                         PaisNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null && o.PotencialCliente.Persona.Pais != null ? o.PotencialCliente.Persona.Pais.Nombre : null,
+                        CorreoPersona = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Correo : null,
                         o.IdProducto,
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : null,
                         o.CodigoLanzamiento,
@@ -785,12 +813,10 @@ namespace CapaNegocio.Servicio.Venta
                     Id = x.Id,
                     IdPotencialCliente = x.IdPotencialCliente, // Cambiado de IdPersona
                     PersonaNombre = $"{(x.PersonaNombres ?? "")} {(x.PersonaApellidos ?? "")}".Trim(),
-                    IdPais = x.IdPais,
-                    NombrePais = x.PaisNombre ?? string.Empty,
                     IdProducto = x.IdProducto,
                     ProductoNombre = x.ProductoNombre ?? string.Empty,
+                    PersonaCorreo = x.CorreoPersona ?? string.Empty,
                     CodigoLanzamiento = x.CodigoLanzamiento,
-                    Desuscrito = x.PotencialCliente != null ? (x.PotencialCliente.Desuscrito ? 1 : 0) : 0,
                     Estado = x.Estado,
                     TotalOportunidadesPersona = x.TotalOportunidadesPersona
                 };
@@ -817,5 +843,61 @@ namespace CapaNegocio.Servicio.Venta
                 return new VTAModVentaOportunidadDetalleDTO();
             }
         }
+
+        public VTAModVentaPotencialClienteDTO ObtenerPotencialPorOportunidadId(int idOportunidad)
+        {
+            var dto = new VTAModVentaPotencialClienteDTO();
+
+            try
+            {
+                var resultado = _unitOfWork.OportunidadRepository
+                    .Query()
+                    .AsNoTracking()
+                    .Where(o => o.Id == idOportunidad)
+                    .Select(o => o.PotencialCliente)
+                    .Where(pc => pc != null)
+                    .Select(pc => new VTAModVentaPotencialClienteDTO
+                    {
+                        Id = pc.Id,
+                        IdPersona = pc.IdPersona,
+                        Desuscrito = pc.Desuscrito,
+                        Estado = pc.Estado,
+                        FechaCreacion = pc.FechaCreacion,
+                        UsuarioCreacion = pc.UsuarioCreacion ?? string.Empty,
+                        FechaModificacion = pc.FechaModificacion,
+                        UsuarioModificacion = pc.UsuarioModificacion ?? string.Empty,
+
+                        Persona = pc.Persona == null ? null : new VTAModVentaTPersonaDTO
+                        {
+                            Id = pc.Persona.Id,
+                            IdPais = pc.Persona.IdPais,
+                            Pais = pc.Persona.Pais != null ? pc.Persona.Pais.Nombre : string.Empty,
+                            Nombres = pc.Persona.Nombres ?? string.Empty,
+                            Apellidos = pc.Persona.Apellidos ?? string.Empty,
+                            Celular = pc.Persona.Celular ?? string.Empty,
+                            PrefijoPaisCelular = pc.Persona.PrefijoPaisCelular ?? string.Empty,
+                            Correo = pc.Persona.Correo ?? string.Empty,
+                            AreaTrabajo = pc.Persona.AreaTrabajo ?? string.Empty,
+                            Industria = pc.Persona.Industria ?? string.Empty,
+                            Estado = pc.Persona.Estado,
+                            FechaCreacion = pc.Persona.FechaCreacion,
+                            UsuarioCreacion = pc.Persona.UsuarioCreacion ?? string.Empty,
+                            FechaModificacion = (DateTime?)pc.Persona.FechaModificacion,
+                            UsuarioModificacion = pc.Persona.UsuarioModificacion ?? string.Empty
+                        }
+                    })
+                    .FirstOrDefault();
+
+                if (resultado != null)
+                    dto = resultado;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+            }
+
+            return dto;
+        }
+
     }
 }
