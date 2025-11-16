@@ -218,11 +218,13 @@ public partial class OlympusContext : DbContext
 
             entity.Property(e => e.Nombre)
                 .HasMaxLength(255)
-                .IsUnicode(false);
+                .IsUnicode(false)
+                .IsRequired(false);
 
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(255)
-                .IsUnicode(false);
+                .IsUnicode(false)
+                .IsRequired(false);
 
             entity.Property(e => e.EstadoControl)
                 .HasColumnName("Estado")
@@ -1117,7 +1119,7 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.Nombre)
                   .HasMaxLength(255)
                   .IsUnicode(false)
-                  .IsRequired();
+                  .IsRequired(false);
 
             entity.Property(e => e.Descripcion)
                   .HasMaxLength(255)

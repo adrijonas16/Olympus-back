@@ -37,9 +37,20 @@ namespace CapaDatos.Repositorio.Venta
         public Ocurrencia? ObtenerPorId(int id)
         {
             return _context.Ocurrencia
-                .Include(o => o.EstadoReferencia)
-                .FirstOrDefault(o => o.Id == id);
+                .Where(o => o.Id == id)
+                .Select(o => new Ocurrencia
+                {
+                    Id = o.Id,
+                    Nombre = o.Nombre,
+                    Descripcion = o.Descripcion,
+                    IdEstado = o.IdEstado,
+                    FechaCreacion = o.FechaCreacion,
+                    UsuarioCreacion = o.UsuarioCreacion,
+
+                })
+                .FirstOrDefault();
         }
+
 
         public IQueryable<Ocurrencia> ObtenerTodos()
         {

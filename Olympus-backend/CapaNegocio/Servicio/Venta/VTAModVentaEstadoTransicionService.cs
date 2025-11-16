@@ -1,6 +1,7 @@
 ﻿using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.Entidades;
@@ -151,7 +152,6 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                // 1) obtener ultimo historial
                 var ultimo = _unitOfWork.HistorialEstadoRepository.ObtenerTodos()
                     .Where(h => h.IdOportunidad == oportunidadId)
                     .OrderByDescending(h => h.FechaCreacion)
@@ -159,8 +159,16 @@ namespace CapaNegocio.Servicio.Venta
 
                 int? fromEstado = ultimo?.IdEstado;
 
-                // 2) obtener ocurrencia y su estado destino
-                var ocurrencia = _unitOfWork.OcurrenciaRepository.ObtenerPorId(ocurrenciaId);
+                var ocurrencia = _unitOfWork.OcurrenciaRepository
+                .Query() // IQueryable<Ocurrencia>
+                .AsNoTracking()
+                .Where(o => o.Id == ocurrenciaId)
+                .Select(o => new {
+                    o.Id,
+                    o.Nombre,
+                    o.IdEstado
+                })
+                .FirstOrDefault();
                 if (ocurrencia == null)
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
@@ -170,7 +178,6 @@ namespace CapaNegocio.Servicio.Venta
 
                 int? toEstado = ocurrencia.IdEstado;
 
-                // 3) validar contra reglas
                 int? ocurrenciaOrigenId = ultimo?.IdOcurrencia;
                 bool allowed = IsTransitionAllowed(fromEstado, toEstado, ocurrenciaOrigenId, ocurrenciaId);
                 if (!allowed)
@@ -180,7 +187,6 @@ namespace CapaNegocio.Servicio.Venta
                     return respuesta;
                 }
 
-                // 4) crear historial nuevo
                 var nuevo = new HistorialEstado
                 {
                     IdOportunidad = oportunidadId,
@@ -210,7 +216,6 @@ namespace CapaNegocio.Servicio.Venta
 
         /// <summary>
         /// Evalúa si la transición fromEstado -> toEstado está permitida según las reglas en adm.EstadoTransicion.
-        /// Prioridad de búsqueda: exacta (origen+destino) -> origen-only -> destino-only -> global.
         /// Si no hay regla explícita, se permite por defecto salvo que from==to.
         /// </summary>
         private bool IsTransitionAllowed(int? fromEstado, int? toEstado, int? ocurrenciaOrigenId = null, int? ocurrenciaDestinoId = null)
@@ -248,14 +253,13 @@ namespace CapaNegocio.Servicio.Venta
                 if (regla != null)
                     return regla.Permitido;
 
-                // default: permitir salvo si from==to
                 if (fromEstado != null && toEstado != null && fromEstado == toEstado) return false;
                 return true;
             }
             catch (Exception ex)
             {
                 _errorLogService.RegistrarError(ex);
-                // En caso de error conservador: bloquear la transición
+                // En caso de error  bloquear la transición
                 return false;
             }
         }

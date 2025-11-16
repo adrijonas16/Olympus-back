@@ -147,7 +147,7 @@ namespace Olympus.API.Controllers.Venta
             }
         }
 
-        /// Obtener todos los HistorialEstado de una Oportunidad (incluye Asesor y Estado->Tipo)
+        /// Obtener todos los HistorialEstado de una Oportunidad
         /// GET api/VTAModVentaOportunidad/HistorialEstado/PorOportunidad/1
         /// 
         [HttpGet("HistorialEstado/PorOportunidad/{id}")]
@@ -202,7 +202,6 @@ namespace Olympus.API.Controllers.Venta
             {
                 var dto = _oportunidadService.ObtenerPotencialPorOportunidadId(IdOportunidad);
 
-                // Si el servicio devuelve null o un DTO sin Id (Id == 0) devolvemos NotFound
                 if (dto == null || dto.Id == 0)
                     return NotFound(new { idOportunidad = IdOportunidad, potencial = new object[0] });
 
@@ -213,6 +212,23 @@ namespace Olympus.API.Controllers.Venta
                 _errorLogService.RegistrarError(ex);
                 return StatusCode(500, new { idOportunidad = IdOportunidad, potencial = new object[0], error = ex.Message });
             }
+        }
+
+        [HttpPost("InsertarOportunidadHistorialRegistrado")]
+        public CFGRespuestaGenericaDTO InsertarOportunidadHistorialRegistrado([FromBody] VTAModVentaTOportunidadDTO request)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                respuesta = _oportunidadService.InsertarOportunidadHistorialRegistrado(request);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
         }
 
 

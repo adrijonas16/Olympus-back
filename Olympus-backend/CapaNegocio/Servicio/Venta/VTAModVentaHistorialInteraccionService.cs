@@ -89,18 +89,38 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
+
+                // Validar existencia de la oportunidad
+                var oportunidad = _unitOfWork.OportunidadRepository.ObtenerPorId(dto.IdOportunidad);
+                if (oportunidad == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Oportunidad no encontrada.";
+                    return respuesta;
+                }
+
+                // Validar existencia del tipo
+                var tipo = _unitOfWork.TipoRepository.ObtenerPorId(dto.IdTipo);
+                if (tipo == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Tipo no encontrado.";
+                    return respuesta;
+                }
+
+                // Construir entidad
                 var ent = new HistorialInteraccion
                 {
                     IdOportunidad = dto.IdOportunidad,
-                    Detalle = dto.Detalle,
+                    Detalle = string.IsNullOrWhiteSpace(dto.Detalle) ? string.Empty : dto.Detalle,
                     IdTipo = dto.IdTipo,
-                    Celular = dto.Celular,
+                    Celular = string.IsNullOrWhiteSpace(dto.Celular) ? string.Empty : dto.Celular,
                     FechaRecordatorio = dto.FechaRecordatorio,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = "SYSTEM",
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
                     FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = "SYSTEM"
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
                 };
 
                 _unitOfWork.HistorialInteraccionRepository.Insertar(ent);
@@ -117,6 +137,7 @@ namespace CapaNegocio.Servicio.Venta
             }
             return respuesta;
         }
+
 
         public CFGRespuestaGenericaDTO Actualizar(VTAModVentaTHistorialInteraccionDTO dto)
         {

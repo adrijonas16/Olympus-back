@@ -16,6 +16,7 @@ namespace CapaNegocio.Servicio.Venta
         VTAModVentaOportunidadDetalleDTORPT ObtenerTodasOportunidadesRecordatorio();
         VTAModVentaOportunidadDetalleDTO ObtenerOportunidadPorIdConRecordatorio(int id);
         VTAModVentaPotencialClienteDTO ObtenerPotencialPorOportunidadId(int idOportunidad);
+        CFGRespuestaGenericaDTO InsertarOportunidadHistorialRegistrado(VTAModVentaTOportunidadDTO dto);
 
 
         //VTAModVentaTOportunidadDTORPT ObtenerPorPersona(int idPersona);

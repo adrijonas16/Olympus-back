@@ -9,8 +9,8 @@ namespace Modelos.Entidades
     public class Ocurrencia
     {
         public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string? Descripcion { get; set; } = string.Empty;
+        public string? Nombre { get; set; }
+        public string? Descripcion { get; set; }
         public int? IdEstado { get; set; }
         public bool Estado { get; set; } = true;
         public int? IdMigracion { get; set; }

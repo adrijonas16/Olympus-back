@@ -8,6 +8,7 @@ using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace CapaNegocio.Servicio.Venta
 {
@@ -111,7 +112,7 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                // Validar Persona (obligatoria)
+                // Validar Persona
                 var persona = _unitOfWork.PotencialClienteRepository.ObtenerPorId(dto.IdPotencialCliente);
                 if (persona == null)
                 {
@@ -174,7 +175,7 @@ namespace CapaNegocio.Servicio.Venta
                     return respuesta;
                 }
 
-                // Validar Persona (obligatoria)
+                // Validar Persona
                 var persona = _unitOfWork.PotencialClienteRepository.ObtenerPorId(dto.IdPotencialCliente);
                 if (persona == null)
                 {
@@ -253,7 +254,6 @@ namespace CapaNegocio.Servicio.Venta
 
             try
             {
-                // Obtener la oportunidad con potencial cliente (que incluye persona) y producto
                 var oportunidadQuery = _unitOfWork.OportunidadRepository
                     .Query()
                     .AsNoTracking()
@@ -501,6 +501,7 @@ namespace CapaNegocio.Servicio.Venta
                         h.IdOportunidad,
                         h.IdAsesor,
                         h.IdEstado,
+                        h.IdOcurrencia,
                         h.Observaciones,
                         h.CantidadLlamadasContestadas,
                         h.CantidadLlamadasNoContestadas,
@@ -521,6 +522,7 @@ namespace CapaNegocio.Servicio.Venta
                         IdOportunidad = h.IdOportunidad,
                         IdAsesor = h.IdAsesor,
                         IdEstado = h.IdEstado,
+                        IdOcurrencia = h.IdOcurrencia,
                         Observaciones = h.Observaciones ?? string.Empty,
                         CantidadLlamadasContestadas = h.CantidadLlamadasContestadas,
                         CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas,
@@ -644,7 +646,7 @@ namespace CapaNegocio.Servicio.Venta
                         FechaModificacion = o.FechaModificacion,
                         UsuarioModificacion = o.UsuarioModificacion,
 
-                        // Último historialEstado (más campos)
+                        // Último historialEstado
                         UltimoHistorial = o.HistorialEstado
                             .OrderByDescending(h => h.FechaCreacion)
                             .ThenByDescending(h => h.Id)
@@ -669,7 +671,7 @@ namespace CapaNegocio.Servicio.Venta
                             .Select(hi => new { hi.Id, hi.FechaRecordatorio })
                             .FirstOrDefault(),
 
-                        // Calcular TotalOportunidadesPersona (mismo IdPotencialCliente)
+                        // Calcular TotalOportunidadesPersona
                         TotalOportunidadesPersona = _unitOfWork.OportunidadRepository
                             .Query()
                             .Count(otherO => otherO.IdPotencialCliente == o.IdPotencialCliente)
@@ -707,7 +709,6 @@ namespace CapaNegocio.Servicio.Venta
                             ? (_unitOfWork.EstadoRepository.ObtenerPorId(x.UltimoHistorial.IdEstado.Value)?.Nombre ?? string.Empty)
                             : string.Empty;
 
-                        // Construir el DTO de HistorialActual para devolver en la colección
                         var histDto = new VTAModVentaTHistorialEstadoDetalleDTO
                         {
                             Id = x.UltimoHistorial.Id,
@@ -799,7 +800,7 @@ namespace CapaNegocio.Servicio.Venta
                             .Select(hi => new { hi.Id, hi.FechaRecordatorio })
                             .FirstOrDefault(),
 
-                        // Calcular TotalOportunidadesPersona (mismo IdPotencialCliente)
+                        // Calcular TotalOportunidadesPersona
                         TotalOportunidadesPersona = _unitOfWork.OportunidadRepository
                             .Query()
                             .Count(otherO => otherO.IdPotencialCliente == o.IdPotencialCliente)
@@ -898,6 +899,137 @@ namespace CapaNegocio.Servicio.Venta
 
             return dto;
         }
+
+        public CFGRespuestaGenericaDTO InsertarOportunidadHistorialRegistrado(VTAModVentaTOportunidadDTO dto)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                var persona = _unitOfWork.PotencialClienteRepository.ObtenerPorId(dto.IdPotencialCliente);
+                if (persona == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Persona no encontrada.";
+                    return respuesta;
+                }
+
+                if (dto.IdProducto.HasValue)
+                {
+                    var producto = _unitOfWork.ProductoRepository.ObtenerPorId(dto.IdProducto.Value);
+                    if (producto == null)
+                    {
+                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                        respuesta.Mensaje = "Producto no encontrado.";
+                        return respuesta;
+                    }
+                }
+
+                var ent = new Oportunidad
+                {
+                    IdPotencialCliente = dto.IdPotencialCliente,
+                    IdProducto = dto.IdProducto,
+                    CodigoLanzamiento = dto.CodigoLanzamiento,
+                    Origen = dto.Origen,
+                    Estado = dto.Estado,
+                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
+                    FechaModificacion = DateTime.UtcNow,
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
+                };
+
+                DbContext? dbContext = null;
+                var uwType = _unitOfWork.GetType();
+                var propCandidates = new[] { "Context", "_context", "DbContext", "Contexto", "ContextoDb" };
+                foreach (var pName in propCandidates)
+                {
+                    var prop = uwType.GetProperty(pName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (prop != null)
+                    {
+                        dbContext = prop.GetValue(_unitOfWork) as DbContext;
+                        if (dbContext != null) break;
+                    }
+                }
+
+                if (dbContext != null)
+                {
+                    using (var tx = dbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            _unitOfWork.OportunidadRepository.Insertar(ent);
+                            _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                            var historial = new HistorialEstado
+                            {
+                                IdOportunidad = ent.Id,
+                                IdAsesor = 1,
+                                IdEstado = 1,
+                                IdOcurrencia = 1,
+                                Observaciones = "Estado Inicial",
+                                CantidadLlamadasContestadas = 0,
+                                CantidadLlamadasNoContestadas = 0,
+                                Estado = true,
+                                FechaCreacion = DateTime.UtcNow,
+                                UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
+                                FechaModificacion = DateTime.UtcNow,
+                                UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
+                            };
+
+                            _unitOfWork.HistorialEstadoRepository.Insertar(historial);
+                            _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                            tx.Commit();
+
+                            respuesta.Codigo = SR._C_SIN_ERROR;
+                            respuesta.Mensaje = string.Empty;
+                        }
+                        catch
+                        {
+                            try { tx.Rollback(); } 
+                            catch { 
+                            }
+                            throw;
+                        }
+                    }
+                }
+                else
+                {
+                    _unitOfWork.OportunidadRepository.Insertar(ent);
+                    _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                    var historial = new HistorialEstado
+                    {
+                        IdOportunidad = ent.Id,
+                        IdAsesor = 1,
+                        IdEstado = 1,
+                        IdOcurrencia = 1,
+                        Observaciones = "Estado Inicial",
+                        CantidadLlamadasContestadas = 0,
+                        CantidadLlamadasNoContestadas = 0,
+                        Estado = true,
+                        FechaCreacion = DateTime.UtcNow,
+                        UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
+                        FechaModificacion = DateTime.UtcNow,
+                        UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
+                    };
+
+                    _unitOfWork.HistorialEstadoRepository.Insertar(historial);
+                    _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                    respuesta.Codigo = SR._C_SIN_ERROR;
+                    respuesta.Mensaje = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+
+            return respuesta;
+        }
+
 
     }
 }
