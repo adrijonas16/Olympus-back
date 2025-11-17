@@ -626,6 +626,7 @@ namespace CapaNegocio.Servicio.Venta
             try
             {
                 var now = DateTime.UtcNow;
+                var sqlDateSentinel = new DateTime(9999, 12, 31, 23, 59, 59, 997);
 
                 var q = _unitOfWork.OportunidadRepository.ObtenerTodas()
                     .Select(o => new
@@ -666,7 +667,7 @@ namespace CapaNegocio.Servicio.Venta
                         // HistorialInteraccion tipo 10
                         HistorialInteraccionTipo10 = o.HistorialInteracciones
                             .Where(hi => hi.IdTipo == 10)
-                            .OrderBy(hi => hi.FechaRecordatorio == null ? DateTime.MaxValue : hi.FechaRecordatorio)
+                            .OrderBy(hi => (hi.FechaRecordatorio == null) ? sqlDateSentinel : hi.FechaRecordatorio)
                             .ThenByDescending(hi => hi.FechaCreacion)
                             .Select(hi => new { hi.Id, hi.FechaRecordatorio })
                             .FirstOrDefault(),
@@ -697,8 +698,6 @@ namespace CapaNegocio.Servicio.Venta
                         TotalOportunidadesPersona = x.TotalOportunidadesPersona,
                         FechaCreacion = x.FechaCreacion,
                         UsuarioCreacion = x.UsuarioCreacion ?? string.Empty,
-                        FechaModificacion = x.FechaModificacion,
-                        UsuarioModificacion = x.UsuarioModificacion ?? string.Empty
                     };
 
                     if (x.UltimoHistorial != null)
@@ -721,8 +720,6 @@ namespace CapaNegocio.Servicio.Venta
                             Estado = true,
                             FechaCreacion = x.UltimoHistorial.FechaCreacion,
                             UsuarioCreacion = x.UltimoHistorial.UsuarioCreacion ?? string.Empty,
-                            FechaModificacion = x.UltimoHistorial.FechaCreacion,
-                            UsuarioModificacion = x.UltimoHistorial.UsuarioCreacion ?? string.Empty,
                         };
 
                         historiales.Add(histDto);
