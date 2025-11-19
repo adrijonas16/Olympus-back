@@ -42,7 +42,11 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<VentaCruzada> VentaCruzada { get; set; }
     public virtual DbSet<ProductoCertificado> ProductoCertificado { get; set; }
     public virtual DbSet<PotencialCliente> PotencialCliente { get; set; }
-    public virtual DbSet<EstadoTransicion> EstadoTransicion { get; set; }
+    public virtual DbSet<EstadoTransicion> EstadoTransicion { get; set; }   
+    public virtual DbSet<CobranzaCuota> CobranzaCuota { get; set; }
+    public virtual DbSet<CobranzaPago> CobranzaPago { get; set; }
+    public virtual DbSet<CobranzaPagoAplicacion> CobranzaPagoAplicacion { get; set; }
+    public virtual DbSet<CobranzaPlan> CobranzaPlan { get; set; }
     public IDbConnection CreateConnection()
     {
         return new SqlConnection(Database.GetConnectionString());
@@ -1847,6 +1851,48 @@ public partial class OlympusContext : DbContext
 
             entity.HasIndex(e => new { e.IdEstadoOrigen, e.IdEstadoDestino })
                 .HasDatabaseName("IX_EstadoTransicion_OrigenDestino_Prioridad");
+        });
+
+        modelBuilder.Entity<CobranzaPlan>(entity =>
+        {
+            entity.ToTable("CobranzaPlan", "adm");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Total).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.FechaInicio).HasColumnType("datetime");
+            entity.Property(e => e.FechaCreacion).HasColumnType("datetime").HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.UsuarioCreacion).HasMaxLength(50).IsUnicode(false);
+            entity.HasIndex(e => e.IdOportunidad).HasDatabaseName("IX_CobranzaPlan_IdOportunidad");
+            entity.HasMany(e => e.Cuotas).WithOne(c => c.Plan).HasForeignKey(c => c.IdCobranzaPlan);
+            entity.HasMany(e => e.Pagos).WithOne(p => p.Plan).HasForeignKey(p => p.IdCobranzaPlan);
+        });
+
+        modelBuilder.Entity<CobranzaCuota>(entity =>
+        {
+            entity.ToTable("CobranzaCuota", "adm");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FechaVencimiento).HasColumnType("datetime");
+            entity.Property(e => e.MontoProgramado).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.MontoPagado).HasColumnType("decimal(18,2)").HasDefaultValue(0);
+            entity.HasIndex(e => new { e.IdCobranzaPlan, e.Numero }).IsUnique().HasDatabaseName("UX_CobranzaCuota_Plan_Numero");
+        });
+
+        modelBuilder.Entity<CobranzaPago>(entity =>
+        {
+            entity.ToTable("CobranzaPago", "adm");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.FechaPago).HasColumnType("datetime");
+            entity.Property(e => e.Monto).HasColumnType("decimal(18,2)");
+            entity.HasIndex(e => e.IdCobranzaPlan).HasDatabaseName("IX_CobranzaPago_Plan");
+        });
+
+        modelBuilder.Entity<CobranzaPagoAplicacion>(entity =>
+        {
+            entity.ToTable("CobranzaPagoAplicacion", "adm");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MontoAplicado).HasColumnType("decimal(18,2)");
+            entity.HasOne(a => a.Pago).WithMany(p => p.Aplicaciones).HasForeignKey(a => a.IdPago);
+            entity.HasOne(a => a.Cuota).WithMany(c => c.Aplicaciones).HasForeignKey(a => a.IdCuota);
+            entity.HasIndex(e => e.IdCuota).HasDatabaseName("IX_CobranzaPagoAplicacion_Cuota");
         });
 
     }

@@ -10,10 +10,9 @@ namespace CapaNegocio.Servicio.Venta
 {
     public interface IVTAModVentaCobranzaService
     {
-        VTAModVentaCobranzaDTORPT ObtenerTodas();
-        VTAModVentaCobranzaDTO ObtenerPorId(int id);
-        CFGRespuestaGenericaDTO Insertar(VTAModVentaCobranzaDTO dto);
-        CFGRespuestaGenericaDTO Actualizar(VTAModVentaCobranzaDTO dto);
-        CFGRespuestaGenericaDTO Eliminar(int id);
+        int CrearPlanCobranza(VTAModVentaCobranzaCrearPlanDTO dto);
+        int RegistrarPago(VTAModVentaCobranzaPagoRegistroDTO dto, bool usarAcumulada = false);
+        IEnumerable<VTAModVentaCobranzaCuotaDTO> ObtenerCuotasPorPlan(int idPlan);
+        VTAModVentaCobranzaPlanDTO? ObtenerPlanPorOportunidad(int idOportunidad);
     }
 }

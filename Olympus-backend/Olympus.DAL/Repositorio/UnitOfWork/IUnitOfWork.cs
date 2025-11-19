@@ -43,6 +43,10 @@ namespace CapaDatos.Repositorio.UnitOfWork
         IVentaCruzadaRepository VentaCruzadaRepository { get; }
         IPotencialClienteRepository PotencialClienteRepository { get; }
         IEstadoTransicionRepository EstadoTransicionRepository { get; }
+        ICobranzaCuotaRepository CobranzaCuotaRepository { get; }
+        ICobranzaPagoAplicacionRepository CobranzaPagoAplicacionRepository { get; }
+        ICobranzaPagoRepository CobranzaPagoRepository { get; }
+        ICobranzaPlanRepository CobranzaPlanRepository { get; }
 
         // Guardar cambios
         Task<int> SaveChangesAsync();

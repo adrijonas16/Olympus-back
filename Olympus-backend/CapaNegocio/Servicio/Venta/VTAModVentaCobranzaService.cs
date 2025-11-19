@@ -1,12 +1,15 @@
-﻿using CapaDatos.Repositorio.UnitOfWork;
+﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
+using System.Data;
 using System.Linq;
 
 namespace CapaNegocio.Servicio.Venta
@@ -14,269 +17,121 @@ namespace CapaNegocio.Servicio.Venta
     public class VTAModVentaCobranzaService : IVTAModVentaCobranzaService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _config;
-        private readonly IErrorLogService _errorLogService;
+        private readonly OlympusContext _context;
+        private readonly IErrorLogService _errorLog;
 
-        public VTAModVentaCobranzaService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
+        public VTAModVentaCobranzaService(IUnitOfWork unitOfWork, OlympusContext context, IErrorLogService errorLog)
         {
             _unitOfWork = unitOfWork;
-            _config = config;
-            _errorLogService = errorLogService;
+            _context = context;
+            _errorLog = errorLog;
         }
 
-        public VTAModVentaCobranzaDTORPT ObtenerTodas()
+        public int CrearPlanCobranza(VTAModVentaCobranzaCrearPlanDTO dto)
         {
-            var respuesta = new VTAModVentaCobranzaDTORPT();
             try
             {
-                var lista = _unitOfWork.CobranzaRepository
-                    .Query()
-                    .AsNoTracking()
-                    .Include(c => c.HistorialEstado)
-                    .Include(c => c.Inversion)
-                    .Include(c => c.Producto)
-                    .Select(c => new VTAModVentaCobranzaDTO
-                    {
-                        Id = c.Id,
-                        IdHistorialEstado = c.IdHistorialEstado,
-                        IdInversion = c.IdInversion,
-                        IdProducto = c.IdProducto,
-                        MontoTotal = c.MontoTotal,
-                        NumeroCuotas = c.NumeroCuotas,
-                        MontoPorCuota = c.MontoPorCuota,
-                        MontoPagado = c.MontoPagado,
-                        MontoRestante = c.MontoRestante,
-                        Estado = c.Estado,
-                        FechaCreacion = c.FechaCreacion,
-                        UsuarioCreacion = c.UsuarioCreacion,
-                        FechaModificacion = c.FechaModificacion,
-                        UsuarioModificacion = c.UsuarioModificacion
-                    })
-                    .ToList();
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "adm.SPCrearPlanCobranza";
+                cmd.CommandType = CommandType.StoredProcedure;
 
-                respuesta.Cobranzas = lista;
-                respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = string.Empty;
+                var p_IdOport = new SqlParameter("@IdOportunidad", SqlDbType.Int) { Value = dto.IdOportunidad };
+                var p_Total = new SqlParameter("@Total", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = dto.Total };
+                var p_Num = new SqlParameter("@NumCuotas", SqlDbType.Int) { Value = dto.NumCuotas };
+                var p_FechaInicio = new SqlParameter("@FechaInicio", SqlDbType.DateTime) { Value = dto.FechaInicio };
+                var p_Frec = new SqlParameter("@FrecuenciaDias", SqlDbType.Int) { Value = dto.FrecuenciaDias };
+                var p_Usuario = new SqlParameter("@Usuario", SqlDbType.VarChar, 50) { Value = dto.Usuario };
+                var p_NewPlanId = new SqlParameter("@NewPlanId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+                cmd.Parameters.Add(p_IdOport);
+                cmd.Parameters.Add(p_Total);
+                cmd.Parameters.Add(p_Num);
+                cmd.Parameters.Add(p_FechaInicio);
+                cmd.Parameters.Add(p_Frec);
+                cmd.Parameters.Add(p_Usuario);
+                cmd.Parameters.Add(p_NewPlanId);
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+                cmd.ExecuteNonQuery();
+
+                var newId = (int)(p_NewPlanId.Value ?? 0);
+                return newId;
             }
             catch (Exception ex)
             {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
+                _errorLog.RegistrarError(ex);
+                throw;
             }
-            return respuesta;
         }
 
-        public VTAModVentaCobranzaDTO ObtenerPorId(int id)
+        public int RegistrarPago(VTAModVentaCobranzaPagoRegistroDTO dto, bool usarAcumulada = false)
         {
-            var dto = new VTAModVentaCobranzaDTO();
             try
             {
-                var ent = _unitOfWork.CobranzaRepository
-                    .Query()
-                    .AsNoTracking()
-                    .Include(c => c.HistorialEstado)
-                    .Include(c => c.Inversion)
-                    .Include(c => c.Producto)
-                    .Where(c => c.Id == id)
-                    .Select(c => new VTAModVentaCobranzaDTO
-                    {
-                        Id = c.Id,
-                        IdHistorialEstado = c.IdHistorialEstado,
-                        IdInversion = c.IdInversion,
-                        IdProducto = c.IdProducto,
-                        MontoTotal = c.MontoTotal,
-                        NumeroCuotas = c.NumeroCuotas,
-                        MontoPorCuota = c.MontoPorCuota,
-                        MontoPagado = c.MontoPagado,
-                        MontoRestante = c.MontoRestante,
-                        Estado = c.Estado,
-                        FechaCreacion = c.FechaCreacion,
-                        UsuarioCreacion = c.UsuarioCreacion,
-                        FechaModificacion = c.FechaModificacion,
-                        UsuarioModificacion = c.UsuarioModificacion
-                    })
-                    .FirstOrDefault();
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
 
-                if (ent != null) dto = ent;
+                if (usarAcumulada)
+                    cmd.CommandText = "adm.SPRegistroPagoCobranzaCuotaAcumulada";
+                else
+                    cmd.CommandText = "adm.SPRegistroPagoCobranza";
+
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@IdCobranzaPlan", SqlDbType.Int) { Value = dto.IdCobranzaPlan });
+                cmd.Parameters.Add(new SqlParameter("@IdCuotaInicial", SqlDbType.Int) { Value = (object?)dto.IdCuotaInicial ?? DBNull.Value });
+                var pMonto = new SqlParameter("@MontoPago", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = dto.MontoPago };
+                cmd.Parameters.Add(pMonto);
+                cmd.Parameters.Add(new SqlParameter("@IdMetodoPago", SqlDbType.Int) { Value = (object?)dto.IdMetodoPago ?? DBNull.Value });
+                cmd.Parameters.Add(new SqlParameter("@FechaPago", SqlDbType.DateTime) { Value = (object?)dto.FechaPago ?? DBNull.Value });
+                cmd.Parameters.Add(new SqlParameter("@Usuario", SqlDbType.VarChar, 50) { Value = dto.Usuario });
+
+                var pNewPago = new SqlParameter("@NewPagoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                cmd.Parameters.Add(pNewPago);
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+                cmd.ExecuteNonQuery();
+
+                var newPagoId = (int)(pNewPago.Value ?? 0);
+                return newPagoId;
             }
             catch (Exception ex)
             {
-                _errorLogService.RegistrarError(ex);
+                _errorLog.RegistrarError(ex);
+                throw;
             }
-            return dto;
         }
 
-        public CFGRespuestaGenericaDTO Insertar(VTAModVentaCobranzaDTO dto)
+        public IEnumerable<VTAModVentaCobranzaCuotaDTO> ObtenerCuotasPorPlan(int idPlan)
         {
-            var respuesta = new CFGRespuestaGenericaDTO();
-            try
-            {
-                // Validaciones de Ids relacionados
-                if (dto.IdHistorialEstado.HasValue)
-                {
-                    var he = _unitOfWork.HistorialEstadoRepository.ObtenerPorId(dto.IdHistorialEstado.Value);
-                    if (he == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "HistorialEstado no encontrado.";
-                        return respuesta;
-                    }
-                }
-
-                if (dto.IdInversion.HasValue)
-                {
-                    var inv = _unitOfWork.InversionRepository.ObtenerPorId(dto.IdInversion.Value);
-                    if (inv == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "Inversión no encontrada.";
-                        return respuesta;
-                    }
-                }
-
-                if (dto.IdProducto.HasValue)
-                {
-                    var prod = _unitOfWork.ProductoRepository.ObtenerPorId(dto.IdProducto.Value);
-                    if (prod == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "Producto no encontrado.";
-                        return respuesta;
-                    }
-                }
-
-                var ent = new Cobranza
-                {
-                    IdHistorialEstado = dto.IdHistorialEstado,
-                    IdInversion = dto.IdInversion,
-                    IdProducto = dto.IdProducto,
-                    MontoTotal = dto.MontoTotal,
-                    NumeroCuotas = dto.NumeroCuotas,
-                    MontoPorCuota = dto.MontoPorCuota,
-                    MontoPagado = dto.MontoPagado,
-                    MontoRestante = dto.MontoRestante,
-                    Estado = dto.Estado,
-                    FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
-                    FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
-                };
-
-                _unitOfWork.CobranzaRepository.Insertar(ent);
-                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
-
-                respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
+            return _unitOfWork.CobranzaCuotaRepository.Query()
+                     .Where(c => c.IdCobranzaPlan == idPlan)
+                     .OrderBy(c => c.Numero)
+                     .Select(c => new VTAModVentaCobranzaCuotaDTO
+                     {
+                         Id = c.Id,
+                         IdCobranzaPlan = c.IdCobranzaPlan,
+                         Numero = c.Numero,
+                         FechaVencimiento = c.FechaVencimiento,
+                         MontoProgramado = c.MontoProgramado,
+                         MontoPagado = c.MontoPagado
+                     }).ToList();
         }
 
-        public CFGRespuestaGenericaDTO Actualizar(VTAModVentaCobranzaDTO dto)
+        public VTAModVentaCobranzaPlanDTO? ObtenerPlanPorOportunidad(int idOportunidad)
         {
-            var respuesta = new CFGRespuestaGenericaDTO();
-            try
+            var plan = _unitOfWork.CobranzaPlanRepository.Query().FirstOrDefault(p => p.IdOportunidad == idOportunidad);
+            if (plan == null) return null;
+            return new VTAModVentaCobranzaPlanDTO
             {
-                var ent = _unitOfWork.CobranzaRepository.ObtenerPorId(dto.Id);
-                if (ent == null)
-                {
-                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
-                    return respuesta;
-                }
-
-                // Validaciones opcionales si se envían Ids
-                if (dto.IdHistorialEstado.HasValue)
-                {
-                    var he = _unitOfWork.HistorialEstadoRepository.ObtenerPorId(dto.IdHistorialEstado.Value);
-                    if (he == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "HistorialEstado no encontrado.";
-                        return respuesta;
-                    }
-                }
-
-                if (dto.IdInversion.HasValue)
-                {
-                    var inv = _unitOfWork.InversionRepository.ObtenerPorId(dto.IdInversion.Value);
-                    if (inv == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "Inversión no encontrada.";
-                        return respuesta;
-                    }
-                }
-
-                if (dto.IdProducto.HasValue)
-                {
-                    var prod = _unitOfWork.ProductoRepository.ObtenerPorId(dto.IdProducto.Value);
-                    if (prod == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "Producto no encontrado.";
-                        return respuesta;
-                    }
-                }
-
-                ent.IdHistorialEstado = dto.IdHistorialEstado;
-                ent.IdInversion = dto.IdInversion;
-                ent.IdProducto = dto.IdProducto;
-                ent.MontoTotal = dto.MontoTotal;
-                ent.NumeroCuotas = dto.NumeroCuotas;
-                ent.MontoPorCuota = dto.MontoPorCuota;
-                ent.MontoPagado = dto.MontoPagado;
-                ent.MontoRestante = dto.MontoRestante;
-                ent.Estado = dto.Estado;
-                ent.FechaModificacion = DateTime.UtcNow;
-                ent.UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
-
-                _unitOfWork.CobranzaRepository.Actualizar(ent);
-                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
-
-                respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
-        }
-
-        public CFGRespuestaGenericaDTO Eliminar(int id)
-        {
-            var respuesta = new CFGRespuestaGenericaDTO();
-            try
-            {
-                var success = _unitOfWork.CobranzaRepository.Eliminar(id);
-                if (!success)
-                {
-                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
-                    return respuesta;
-                }
-
-                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
-
-                respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-            }
-            return respuesta;
+                Id = plan.Id,
+                IdOportunidad = plan.IdOportunidad,
+                Total = plan.Total,
+                NumCuotas = plan.NumCuotas,
+                FechaInicio = plan.FechaInicio,
+                FrecuenciaDias = plan.FrecuenciaDias
+            };
         }
     }
 }

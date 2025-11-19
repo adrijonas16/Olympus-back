@@ -47,6 +47,11 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private VentaCruzadaRepository _ventaCruzadaRepository;
         private PotencialClienteRepository _potencialClienteRepository;
         private EstadoTransicionRepository _estadoTransicionRepository;
+        private CobranzaCuotaRepository _cobranzaCuotaRepository;
+        private CobranzaPagoAplicacionRepository _cobranzaPagoAplicacionRepository;
+        private CobranzaPagoRepository _cobranzaPagoRepository;
+        private CobranzaPlanRepository _cobranzaPlanRepository;
+
         public IUsuarioRepository UsuarioRepository
             => _usuarioRepository ??= new UsuarioRepository(_context);
         public IErrorLogRepository ErrorLogRepository
@@ -117,6 +122,15 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _potencialClienteRepository ??= new PotencialClienteRepository(_context);
         public IEstadoTransicionRepository EstadoTransicionRepository
             => _estadoTransicionRepository ??= new EstadoTransicionRepository(_context);
+        public ICobranzaCuotaRepository CobranzaCuotaRepository
+            => _cobranzaCuotaRepository ??= new CobranzaCuotaRepository(_context);
+        public ICobranzaPagoAplicacionRepository CobranzaPagoAplicacionRepository
+            => _cobranzaPagoAplicacionRepository ??= new CobranzaPagoAplicacionRepository(_context);
+        public ICobranzaPagoRepository CobranzaPagoRepository
+            => _cobranzaPagoRepository ??= new CobranzaPagoRepository(_context);
+        public ICobranzaPlanRepository CobranzaPlanRepository
+            => _cobranzaPlanRepository ??= new CobranzaPlanRepository(_context);
+
 
         public UnitOfWork(OlympusContext context)
         {
