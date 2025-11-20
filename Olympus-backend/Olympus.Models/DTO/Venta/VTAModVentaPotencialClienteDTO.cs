@@ -21,7 +21,7 @@ namespace Modelos.DTO.Venta
 
     }
 
-    public class PotencialClienteDTORPT : CFGRespuestaGenericaDTO
+    public class VTAModVentaPotencialClienteDTORPT : CFGRespuestaGenericaDTO
     {
         public List<VTAModVentaPotencialClienteDTO> PotencialClientes { get; set; } = new List<VTAModVentaPotencialClienteDTO>();
     }

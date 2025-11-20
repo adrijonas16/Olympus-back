@@ -20,12 +20,16 @@ namespace CapaDatos.Repositorio.Venta
 
         public IQueryable<PotencialCliente> ObtenerTodos()
         {
-            return _context.PotencialCliente.AsNoTracking().AsQueryable();
+            return _context.PotencialCliente
+                .Include(p => p.Persona)
+                .AsNoTracking()
+                .AsQueryable();
         }
 
         public PotencialCliente? ObtenerPorId(int id)
         {
             return _context.PotencialCliente
+                           .Include(p => p.Persona)
                            .AsNoTracking()
                            .FirstOrDefault(p => p.Id == id);
         }

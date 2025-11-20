@@ -1,6 +1,7 @@
 ﻿using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
@@ -8,6 +9,7 @@ using Modelos.Entidades;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,12 +28,15 @@ namespace CapaNegocio.Servicio.Venta
             _errorLogService = errorLogService;
         }
 
-        public PotencialClienteDTORPT ObtenerTodas()
+        public VTAModVentaPotencialClienteDTORPT ObtenerTodas()
         {
-            var respuesta = new PotencialClienteDTORPT();
+            var respuesta = new VTAModVentaPotencialClienteDTORPT();
             try
             {
-                var lista = _unitOfWork.PotencialClienteRepository.ObtenerTodos()
+                var lista = _unitOfWork.PotencialClienteRepository
+                    .ObtenerTodos() // IQueryable<PotencialCliente>
+                    .Include(p => p.Persona)
+                    .AsNoTracking()
                     .Select(p => new VTAModVentaPotencialClienteDTO
                     {
                         Id = p.Id,
@@ -41,7 +46,25 @@ namespace CapaNegocio.Servicio.Venta
                         FechaCreacion = p.FechaCreacion,
                         UsuarioCreacion = p.UsuarioCreacion,
                         FechaModificacion = p.FechaModificacion,
-                        UsuarioModificacion = p.UsuarioModificacion
+                        UsuarioModificacion = p.UsuarioModificacion,
+                        Persona = p.Persona == null ? null : new VTAModVentaTPersonaDTO
+                        {
+                            Id = p.Persona.Id,
+                            IdPais = p.Persona.IdPais,
+                            Pais = p.Persona.Pais != null ? p.Persona.Pais.Nombre : string.Empty,
+                            Nombres = p.Persona.Nombres ?? string.Empty,
+                            Apellidos = p.Persona.Apellidos ?? string.Empty,
+                            Celular = p.Persona.Celular ?? string.Empty,
+                            PrefijoPaisCelular = p.Persona.PrefijoPaisCelular ?? string.Empty,
+                            Correo = p.Persona.Correo ?? string.Empty,
+                            AreaTrabajo = p.Persona.AreaTrabajo ?? string.Empty,
+                            Industria = p.Persona.Industria ?? string.Empty,
+                            Estado = p.Persona.Estado,
+                            FechaCreacion = p.Persona.FechaCreacion,
+                            UsuarioCreacion = p.Persona.UsuarioCreacion ?? string.Empty,
+                            FechaModificacion = p.Persona.FechaModificacion,
+                            UsuarioModificacion = p.Persona.UsuarioModificacion
+                        }
                     })
                     .ToList();
 
@@ -74,6 +97,28 @@ namespace CapaNegocio.Servicio.Venta
                     dto.UsuarioCreacion = ent.UsuarioCreacion;
                     dto.FechaModificacion = ent.FechaModificacion;
                     dto.UsuarioModificacion = ent.UsuarioModificacion;
+
+                    if (ent.Persona != null)
+                    {
+                        dto.Persona = new VTAModVentaTPersonaDTO
+                        {
+                            Id = ent.Persona.Id,
+                            IdPais = ent.Persona.IdPais,
+                            Pais = ent.Persona.Pais != null ? ent.Persona.Pais.Nombre : string.Empty,
+                            Nombres = ent.Persona.Nombres ?? string.Empty,
+                            Apellidos = ent.Persona.Apellidos ?? string.Empty,
+                            Celular = ent.Persona.Celular ?? string.Empty,
+                            PrefijoPaisCelular = ent.Persona.PrefijoPaisCelular ?? string.Empty,
+                            Correo = ent.Persona.Correo ?? string.Empty,
+                            AreaTrabajo = ent.Persona.AreaTrabajo ?? string.Empty,
+                            Industria = ent.Persona.Industria ?? string.Empty,
+                            Estado = ent.Persona.Estado,
+                            FechaCreacion = ent.Persona.FechaCreacion,
+                            UsuarioCreacion = ent.Persona.UsuarioCreacion ?? string.Empty,
+                            FechaModificacion = ent.Persona.FechaModificacion,
+                            UsuarioModificacion = ent.Persona.UsuarioModificacion
+                        };
+                    }
                 }
             }
             catch (Exception ex)
@@ -83,35 +128,164 @@ namespace CapaNegocio.Servicio.Venta
             return dto;
         }
 
+
         public CFGRespuestaGenericaDTO Insertar(VTAModVentaPotencialClienteDTO dto)
         {
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                var ent = new PotencialCliente
+                if (dto == null)
                 {
-                    IdPersona = dto.IdPersona,
-                    Desuscrito = dto.Desuscrito,
-                    Estado = dto.Estado,
-                    FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = "SYSTEM",
-                    FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = "SYSTEM"
-                };
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "DTO inválido.";
+                    return respuesta;
+                }
 
-                _unitOfWork.PotencialClienteRepository.Insertar(ent);
-                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                string usuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion;
+                string usuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
+                DateTime nowUtc() => DateTime.UtcNow;
 
-                respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = string.Empty;
+                int idPersonaFinal = 0;
+
+                if (dto.Persona != null)
+                {
+                    var pDto = dto.Persona;
+                    var personaEnt = new Persona
+                    {
+                        IdPais = pDto.IdPais,
+                        Nombres = pDto.Nombres ?? string.Empty,
+                        Apellidos = pDto.Apellidos ?? string.Empty,
+                        Celular = pDto.Celular ?? string.Empty,
+                        PrefijoPaisCelular = pDto.PrefijoPaisCelular ?? string.Empty,
+                        Correo = pDto.Correo ?? string.Empty,
+                        AreaTrabajo = pDto.AreaTrabajo ?? string.Empty,
+                        Industria = pDto.Industria ?? string.Empty,
+                        Estado = pDto.Estado,
+                        FechaCreacion = nowUtc(),
+                        UsuarioCreacion = string.IsNullOrWhiteSpace(pDto.UsuarioCreacion) ? usuarioCreacion : pDto.UsuarioCreacion,
+                        FechaModificacion = pDto.FechaModificacion ?? nowUtc(),
+                        UsuarioModificacion = string.IsNullOrWhiteSpace(pDto.UsuarioModificacion) ? usuarioModificacion : pDto.UsuarioModificacion
+                    };
+
+                    DbContext? dbContext = null;
+                    var uwType = _unitOfWork.GetType();
+                    var propCandidates = new[] { "Context", "_context", "DbContext", "Contexto", "ContextoDb" };
+                    foreach (var pName in propCandidates)
+                    {
+                        var prop = uwType.GetProperty(pName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (prop != null)
+                        {
+                            dbContext = prop.GetValue(_unitOfWork) as DbContext;
+                            if (dbContext != null) break;
+                        }
+                    }
+
+                    if (dbContext != null)
+                    {
+                        using (var tx = dbContext.Database.BeginTransaction())
+                        {
+                            try
+                            {
+                                _unitOfWork.PersonaRepository.Insertar(personaEnt);
+                                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                                idPersonaFinal = personaEnt.Id;
+
+                                var potencial = new PotencialCliente
+                                {
+                                    IdPersona = idPersonaFinal,
+                                    Desuscrito = dto.Desuscrito,
+                                    Estado = dto.Estado,
+                                    FechaCreacion = nowUtc(),
+                                    UsuarioCreacion = usuarioCreacion,
+                                    FechaModificacion = nowUtc(),
+                                    UsuarioModificacion = usuarioModificacion
+                                };
+
+                                _unitOfWork.PotencialClienteRepository.Insertar(potencial);
+                                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                                tx.Commit();
+
+                                respuesta.Codigo = SR._C_SIN_ERROR;
+                                respuesta.Mensaje = $"Persona creada Id={idPersonaFinal}; PotencialCliente Id={potencial.Id}";
+                                return respuesta;
+                            }
+                            catch (Exception)
+                            {
+                                try { tx.Rollback(); } catch { }
+                                throw;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _unitOfWork.PersonaRepository.Insertar(personaEnt);
+                        _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                        idPersonaFinal = personaEnt.Id;
+
+                        var potencial = new PotencialCliente
+                        {
+                            IdPersona = idPersonaFinal,
+                            Desuscrito = dto.Desuscrito,
+                            Estado = dto.Estado,
+                            FechaCreacion = nowUtc(),
+                            UsuarioCreacion = usuarioCreacion,
+                            FechaModificacion = nowUtc(),
+                            UsuarioModificacion = usuarioModificacion
+                        };
+
+                        _unitOfWork.PotencialClienteRepository.Insertar(potencial);
+                        _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                        respuesta.Codigo = SR._C_SIN_ERROR;
+                        respuesta.Mensaje = $"Persona creada Id={idPersonaFinal}; PotencialCliente Id={potencial.Id}";
+                        return respuesta;
+                    }
+                }
+                else if (dto.IdPersona > 0)
+                {
+                    var existing = _unitOfWork.PersonaRepository.ObtenerPorId(dto.IdPersona);
+                    if (existing == null)
+                    {
+                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                        respuesta.Mensaje = "IdPersona proporcionado no existe.";
+                        return respuesta;
+                    }
+
+                    idPersonaFinal = dto.IdPersona;
+
+                    var potencial = new PotencialCliente
+                    {
+                        IdPersona = idPersonaFinal,
+                        Desuscrito = dto.Desuscrito,
+                        Estado = dto.Estado,
+                        FechaCreacion = nowUtc(),
+                        UsuarioCreacion = usuarioCreacion,
+                        FechaModificacion = nowUtc(),
+                        UsuarioModificacion = usuarioModificacion
+                    };
+
+                    _unitOfWork.PotencialClienteRepository.Insertar(potencial);
+                    _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                    respuesta.Codigo = SR._C_SIN_ERROR;
+                    respuesta.Mensaje = $"Usado IdPersona existente {idPersonaFinal}; PotencialCliente Id={potencial.Id}";
+                    return respuesta;
+                }
+                else
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Debe enviar dto.Persona para crear la persona o dto.IdPersona para usar una existente.";
+                    return respuesta;
+                }
             }
             catch (Exception ex)
             {
                 _errorLogService.RegistrarError(ex);
                 respuesta.Codigo = SR._C_ERROR_CRITICO;
                 respuesta.Mensaje = ex.Message;
+                return respuesta;
             }
-            return respuesta;
         }
 
         public CFGRespuestaGenericaDTO Actualizar(VTAModVentaPotencialClienteDTO dto)
@@ -119,6 +293,13 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
+                if (dto == null || dto.Id <= 0)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "DTO inválido o Id faltante.";
+                    return respuesta;
+                }
+
                 var ent = _unitOfWork.PotencialClienteRepository.ObtenerPorId(dto.Id);
                 if (ent == null)
                 {
@@ -127,26 +308,151 @@ namespace CapaNegocio.Servicio.Venta
                     return respuesta;
                 }
 
-                ent.IdPersona = dto.IdPersona;
-                ent.Desuscrito = dto.Desuscrito;
-                ent.Estado = dto.Estado;
-                ent.FechaModificacion = DateTime.UtcNow;
-                ent.UsuarioModificacion = "SYSTEM";
+                string usuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
+                DateTime nowUtc() => DateTime.UtcNow;
 
-                _unitOfWork.PotencialClienteRepository.Actualizar(ent);
-                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                DbContext? dbContext = null;
+                var uwType = _unitOfWork.GetType();
+                var propCandidates = new[] { "Context", "_context", "DbContext", "Contexto", "ContextoDb" };
+                foreach (var pName in propCandidates)
+                {
+                    var prop = uwType.GetProperty(pName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (prop != null)
+                    {
+                        dbContext = prop.GetValue(_unitOfWork) as DbContext;
+                        if (dbContext != null) break;
+                    }
+                }
 
-                respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = string.Empty;
+                void AplicarCambiosPersona(Persona personaEnt, VTAModVentaTPersonaDTO pDto)
+                {
+                    if (personaEnt == null || pDto == null) return;
+
+                    personaEnt.IdPais = pDto.IdPais;
+                    personaEnt.Nombres = pDto.Nombres ?? string.Empty;
+                    personaEnt.Apellidos = pDto.Apellidos ?? string.Empty;
+                    personaEnt.Celular = pDto.Celular ?? string.Empty;
+                    personaEnt.PrefijoPaisCelular = pDto.PrefijoPaisCelular ?? string.Empty;
+                    personaEnt.Correo = pDto.Correo ?? string.Empty;
+                    personaEnt.AreaTrabajo = pDto.AreaTrabajo ?? string.Empty;
+                    personaEnt.Industria = pDto.Industria ?? string.Empty;
+                    personaEnt.Estado = pDto.Estado;
+                    personaEnt.FechaModificacion = pDto.FechaModificacion ?? nowUtc();
+                    personaEnt.UsuarioModificacion = string.IsNullOrWhiteSpace(pDto.UsuarioModificacion) ? usuarioModificacion : pDto.UsuarioModificacion;
+                }
+
+                if (dbContext != null)
+                {
+                    using (var tx = dbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+
+                            int personaIdDesdePersonaDto = dto.Persona?.Id ?? 0;
+                            int personaIdDesdeDto = dto.IdPersona;
+                            int personaIdAUsar = personaIdDesdePersonaDto > 0 ? personaIdDesdePersonaDto
+                                                  : (personaIdDesdeDto > 0 ? personaIdDesdeDto : ent.IdPersona);
+
+                            if (dto.Persona != null)
+                            {
+                                var personaEnt = _unitOfWork.PersonaRepository.ObtenerPorId(personaIdAUsar);
+                                if (personaEnt == null)
+                                {
+                                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                                    respuesta.Mensaje = "La persona indicada no existe.";
+                                    return respuesta;
+                                }
+
+                                AplicarCambiosPersona(personaEnt, dto.Persona);
+                                _unitOfWork.PersonaRepository.Actualizar(personaEnt);
+                            }
+                            else if (dto.IdPersona > 0 && dto.IdPersona != ent.IdPersona)
+                            {
+                                var nuevaPersona = _unitOfWork.PersonaRepository.ObtenerPorId(dto.IdPersona);
+                                if (nuevaPersona == null)
+                                {
+                                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                                    respuesta.Mensaje = "La persona indicada no existe.";
+                                    return respuesta;
+                                }
+                                ent.IdPersona = dto.IdPersona;
+                            }
+                            ent.Desuscrito = dto.Desuscrito;
+                            ent.Estado = dto.Estado;
+                            ent.FechaModificacion = nowUtc();
+                            ent.UsuarioModificacion = usuarioModificacion;
+
+                            _unitOfWork.PotencialClienteRepository.Actualizar(ent);
+                            _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                            tx.Commit();
+
+                            respuesta.Codigo = SR._C_SIN_ERROR;
+                            respuesta.Mensaje = string.Empty;
+                            return respuesta;
+                        }
+                        catch (Exception)
+                        {
+                            try { tx.Rollback(); } catch { }
+                            throw;
+                        }
+                    }
+                }
+                else
+                {
+                    int personaIdDesdePersonaDto = dto.Persona?.Id ?? 0;
+                    int personaIdDesdeDto = dto.IdPersona;
+                    int personaIdAUsar = personaIdDesdePersonaDto > 0 ? personaIdDesdePersonaDto
+                                              : (personaIdDesdeDto > 0 ? personaIdDesdeDto : ent.IdPersona);
+
+                    if (dto.Persona != null)
+                    {
+                        var personaEnt = _unitOfWork.PersonaRepository.ObtenerPorId(personaIdAUsar);
+                        if (personaEnt == null)
+                        {
+                            respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                            respuesta.Mensaje = "La persona indicada no existe.";
+                            return respuesta;
+                        }
+                        AplicarCambiosPersona(personaEnt, dto.Persona);
+                        _unitOfWork.PersonaRepository.Actualizar(personaEnt);
+                    }
+                    else if (dto.IdPersona > 0 && dto.IdPersona != ent.IdPersona)
+                    {
+                        var nuevaPersona = _unitOfWork.PersonaRepository.ObtenerPorId(dto.IdPersona);
+                        if (nuevaPersona == null)
+                        {
+                            respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                            respuesta.Mensaje = "La persona indicada no existe.";
+                            return respuesta;
+                        }
+                        ent.IdPersona = dto.IdPersona;
+                    }
+
+                    ent.Desuscrito = dto.Desuscrito;
+                    ent.Estado = dto.Estado;
+                    ent.FechaModificacion = nowUtc();
+                    ent.UsuarioModificacion = usuarioModificacion;
+
+                    _unitOfWork.PotencialClienteRepository.Actualizar(ent);
+                    _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                    respuesta.Codigo = SR._C_SIN_ERROR;
+                    respuesta.Mensaje = string.Empty;
+                    return respuesta;
+                }
             }
             catch (Exception ex)
             {
                 _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
+                return new CFGRespuestaGenericaDTO
+                {
+                    Codigo = SR._C_ERROR_CRITICO,
+                    Mensaje = ex.Message
+                };
             }
-            return respuesta;
         }
+
 
         public CFGRespuestaGenericaDTO Eliminar(int id)
         {

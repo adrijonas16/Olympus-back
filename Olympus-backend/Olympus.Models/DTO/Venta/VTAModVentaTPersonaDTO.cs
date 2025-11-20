@@ -30,3 +30,4 @@ namespace Modelos.DTO.Venta
         public List<VTAModVentaTPersonaDTO> Personas { get; set; } = new List<VTAModVentaTPersonaDTO>();
     }
 }
+    
