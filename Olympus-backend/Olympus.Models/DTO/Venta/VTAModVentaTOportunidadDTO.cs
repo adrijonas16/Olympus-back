@@ -17,6 +17,8 @@ namespace Modelos.DTO.Venta
         public string? CodigoLanzamiento { get; set; }
         public string? Origen { get; set; }
         public bool Estado { get; set; }
+        public DateTime FechaRecordatorio { get; set; }
+        public string HoraRecordatorio { get; set; } = string.Empty;
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }

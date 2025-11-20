@@ -7,6 +7,7 @@ using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -921,6 +922,53 @@ namespace CapaNegocio.Servicio.Venta
                     }
                 }
 
+                if (dto.FechaRecordatorio == default(DateTime) || string.IsNullOrWhiteSpace(dto.HoraRecordatorio))
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "FechaRecordatorio y HoraRecordatorio no pueden ser nulos.";
+                    return respuesta;
+                }
+
+                string usuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion;
+                string usuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
+                DateTime nowUtc() => DateTime.UtcNow;
+
+                DateTime BuildFechaRecordatorio()
+                {
+                    var fecha = dto.FechaRecordatorio; // ya validado no-default
+                    var horaStr = dto.HoraRecordatorio ?? string.Empty;
+
+                    if (TimeSpan.TryParse(horaStr, out var ts))
+                    {
+                        return fecha.Date.Add(ts);
+                    }
+
+                    var formatos = new[] { "HH:mm", "H:mm", "HH:mm:ss" };
+                    if (DateTime.TryParseExact(horaStr, formatos, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dtHoraExact))
+                    {
+                        return fecha.Date.Add(dtHoraExact.TimeOfDay);
+                    }
+
+                    if (DateTime.TryParse(horaStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dtAny))
+                    {
+                        return fecha.Date.Add(dtAny.TimeOfDay);
+                    }
+
+                    throw new ArgumentException("HoraRecordatorio no tiene un formato válido. Use 'HH:mm' o 'HH:mm:ss'.");
+                }
+
+                DateTime fechaRecordatorio;
+                try
+                {
+                    fechaRecordatorio = BuildFechaRecordatorio();
+                }
+                catch (ArgumentException aex)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = aex.Message;
+                    return respuesta;
+                }
+
                 var ent = new Oportunidad
                 {
                     IdPotencialCliente = dto.IdPotencialCliente,
@@ -928,10 +976,38 @@ namespace CapaNegocio.Servicio.Venta
                     CodigoLanzamiento = dto.CodigoLanzamiento,
                     Origen = dto.Origen,
                     Estado = dto.Estado,
-                    FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
-                    FechaModificacion = DateTime.UtcNow,
-                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
+                    FechaCreacion = nowUtc(),
+                    UsuarioCreacion = usuarioCreacion,
+                    FechaModificacion = nowUtc(),
+                    UsuarioModificacion = usuarioModificacion
+                };
+
+                var historialEstado = new HistorialEstado
+                {
+                    IdAsesor = 1,
+                    IdEstado = 1,
+                    IdOcurrencia = 1,
+                    Observaciones = "Estado Inicial",
+                    CantidadLlamadasContestadas = 0,
+                    CantidadLlamadasNoContestadas = 0,
+                    Estado = true,
+                    FechaCreacion = nowUtc(),
+                    UsuarioCreacion = usuarioCreacion,
+                    FechaModificacion = nowUtc(),
+                    UsuarioModificacion = usuarioModificacion
+                };
+
+                var historialInteraccion = new HistorialInteraccion
+                {
+                    IdTipo = 10,
+                    Detalle = "Recordatorio inicial de creación de la oportunidad, generado automaticamente",
+                    Celular = null,
+                    FechaRecordatorio = fechaRecordatorio,
+                    Estado = true,
+                    FechaCreacion = nowUtc(),
+                    UsuarioCreacion = usuarioCreacion,
+                    FechaModificacion = nowUtc(),
+                    UsuarioModificacion = usuarioModificacion
                 };
 
                 DbContext? dbContext = null;
@@ -956,23 +1032,11 @@ namespace CapaNegocio.Servicio.Venta
                             _unitOfWork.OportunidadRepository.Insertar(ent);
                             _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
-                            var historial = new HistorialEstado
-                            {
-                                IdOportunidad = ent.Id,
-                                IdAsesor = 1,
-                                IdEstado = 1,
-                                IdOcurrencia = 1,
-                                Observaciones = "Estado Inicial",
-                                CantidadLlamadasContestadas = 0,
-                                CantidadLlamadasNoContestadas = 0,
-                                Estado = true,
-                                FechaCreacion = DateTime.UtcNow,
-                                UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
-                                FechaModificacion = DateTime.UtcNow,
-                                UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
-                            };
+                            historialEstado.IdOportunidad = ent.Id;
+                            historialInteraccion.IdOportunidad = ent.Id;
 
-                            _unitOfWork.HistorialEstadoRepository.Insertar(historial);
+                            _unitOfWork.HistorialEstadoRepository.Insertar(historialEstado);
+                            _unitOfWork.HistorialInteraccionRepository.Insertar(historialInteraccion);
                             _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
                             tx.Commit();
@@ -980,37 +1044,24 @@ namespace CapaNegocio.Servicio.Venta
                             respuesta.Codigo = SR._C_SIN_ERROR;
                             respuesta.Mensaje = string.Empty;
                         }
-                        catch
+                        catch (Exception exInner)
                         {
-                            try { tx.Rollback(); } 
-                            catch { 
-                            }
+                            try { tx.Rollback(); } catch { }
                             throw;
                         }
                     }
                 }
                 else
                 {
+                    // sin DbContext accesible en el UoW: persistir de forma secuencial
                     _unitOfWork.OportunidadRepository.Insertar(ent);
                     _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
-                    var historial = new HistorialEstado
-                    {
-                        IdOportunidad = ent.Id,
-                        IdAsesor = 1,
-                        IdEstado = 1,
-                        IdOcurrencia = 1,
-                        Observaciones = "Estado Inicial",
-                        CantidadLlamadasContestadas = 0,
-                        CantidadLlamadasNoContestadas = 0,
-                        Estado = true,
-                        FechaCreacion = DateTime.UtcNow,
-                        UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
-                        FechaModificacion = DateTime.UtcNow,
-                        UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
-                    };
+                    historialEstado.IdOportunidad = ent.Id;
+                    historialInteraccion.IdOportunidad = ent.Id;
 
-                    _unitOfWork.HistorialEstadoRepository.Insertar(historial);
+                    _unitOfWork.HistorialEstadoRepository.Insertar(historialEstado);
+                    _unitOfWork.HistorialInteraccionRepository.Insertar(historialInteraccion);
                     _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
                     respuesta.Codigo = SR._C_SIN_ERROR;
@@ -1026,7 +1077,6 @@ namespace CapaNegocio.Servicio.Venta
 
             return respuesta;
         }
-
 
     }
 }
