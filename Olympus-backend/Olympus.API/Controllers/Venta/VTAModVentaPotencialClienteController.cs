@@ -105,5 +105,22 @@ namespace Olympus.API.Controllers.Venta
             }
             return respuesta;
         }
+
+        [HttpPost("ImportarProcesadoLinkedin")]
+        public CFGRespuestaGenericaDTO ImportarProcesadoLinkedin([FromBody] VTAModVentaImportarProcesadoLinkedinRequestDTO request)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                respuesta = _potencialService.ImportarProcesadoLinkedin(request?.FechaInicio, request?.FechaFin);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
@@ -8,6 +9,8 @@ using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -127,7 +130,6 @@ namespace CapaNegocio.Servicio.Venta
             }
             return dto;
         }
-
 
         public CFGRespuestaGenericaDTO Insertar(VTAModVentaPotencialClienteDTO dto)
         {
@@ -453,7 +455,6 @@ namespace CapaNegocio.Servicio.Venta
             }
         }
 
-
         public CFGRespuestaGenericaDTO Eliminar(int id)
         {
             var respuesta = new CFGRespuestaGenericaDTO();
@@ -480,5 +481,100 @@ namespace CapaNegocio.Servicio.Venta
             }
             return respuesta;
         }
+        public CFGRespuestaGenericaDTO ImportarProcesadoLinkedin(DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                var dbContext = _unitOfWork.Context;
+
+                DbConnection maybeConn = dbContext.Database.GetDbConnection();
+                SqlConnection? sqlConn = maybeConn as SqlConnection;
+
+                if (sqlConn == null)
+                {
+                    sqlConn = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+                }
+
+                if (sqlConn.State != ConnectionState.Open)
+                    sqlConn.Open();
+
+                try
+                {
+                    using var cmd = sqlConn.CreateCommand();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "adm.SPImportarProcesadoLinkedin";
+
+                    var p1 = new SqlParameter("@FechaInicio", SqlDbType.DateTime)
+                    {
+                        Value = fechaInicio.HasValue ? (object)fechaInicio.Value : DBNull.Value
+                    };
+                    var p2 = new SqlParameter("@FechaFin", SqlDbType.DateTime)
+                    {
+                        Value = fechaFin.HasValue ? (object)fechaFin.Value : DBNull.Value
+                    };
+                    cmd.Parameters.Add(p1);
+                    cmd.Parameters.Add(p2);
+
+                    using var reader = cmd.ExecuteReader();
+
+                    int filas = 0;
+                    string mensajeSP = string.Empty;
+
+                    if (reader.Read())
+                    {
+                        string col0Name = reader.FieldCount > 0 ? reader.GetName(0).ToLowerInvariant() : string.Empty;
+
+                        if (col0Name.Contains("filas") || col0Name.Contains("filasprocesadas") || col0Name.Contains("filasenrango"))
+                        {
+                            filas = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0));
+                        }
+                        else
+                        {
+                            var v0 = reader.GetValue(0);
+                            if (v0 != null && int.TryParse(v0.ToString(), out var tmp)) filas = tmp;
+                            else mensajeSP = v0?.ToString() ?? string.Empty;
+                        }
+
+                        if (reader.FieldCount > 1)
+                        {
+                            try { mensajeSP = reader.IsDBNull(1) ? mensajeSP : (reader.GetValue(1)?.ToString() ?? mensajeSP); }
+                            catch { /* ignorar */ }
+                        }
+                    }
+                    else
+                    {
+                        filas = 0;
+                        mensajeSP = "El procedimiento no devolvió filas.";
+                    }
+
+                    respuesta.Codigo = SR._C_SIN_ERROR;
+                    respuesta.Mensaje = string.IsNullOrWhiteSpace(mensajeSP)
+                        ? $"Filas procesadas: {filas}"
+                        : $"Filas: {filas}. Mensaje: {mensajeSP}";
+                }
+                finally
+                {
+                    if (sqlConn != null && sqlConn.State == ConnectionState.Open)
+                    {
+                        try { sqlConn.Close(); } catch { /* ignorar */ }
+                    }
+                }
+
+                return respuesta;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                return new CFGRespuestaGenericaDTO
+                {
+                    Codigo = SR._C_ERROR_CRITICO,
+                    Mensaje = ex.Message
+                };
+            }
+        }
+
+
+
     }
 }

@@ -1,6 +1,8 @@
-﻿using CapaDatos.Repositorio.Configuracion;
+﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.Seguridad;
 using CapaDatos.Repositorio.Venta;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CapaDatos.Repositorio.UnitOfWork
@@ -47,6 +49,8 @@ namespace CapaDatos.Repositorio.UnitOfWork
         ICobranzaPagoAplicacionRepository CobranzaPagoAplicacionRepository { get; }
         ICobranzaPagoRepository CobranzaPagoRepository { get; }
         ICobranzaPlanRepository CobranzaPlanRepository { get; }
+        OlympusContext Context { get; }
+        DbContext DbContext { get; }
 
         // Guardar cambios
         Task<int> SaveChangesAsync();

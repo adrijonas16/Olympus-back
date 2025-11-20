@@ -2,6 +2,7 @@
 using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.Seguridad;
 using CapaDatos.Repositorio.Venta;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CapaDatos.Repositorio.UnitOfWork
@@ -131,7 +132,8 @@ namespace CapaDatos.Repositorio.UnitOfWork
         public ICobranzaPlanRepository CobranzaPlanRepository
             => _cobranzaPlanRepository ??= new CobranzaPlanRepository(_context);
 
-
+        public OlympusContext Context => _context;
+        public DbContext DbContext => _context;
         public UnitOfWork(OlympusContext context)
         {
             _context = context;

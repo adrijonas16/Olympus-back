@@ -15,6 +15,6 @@ namespace CapaNegocio.Servicio.Venta
         CFGRespuestaGenericaDTO Insertar(VTAModVentaPotencialClienteDTO dto);
         CFGRespuestaGenericaDTO Actualizar(VTAModVentaPotencialClienteDTO dto);
         CFGRespuestaGenericaDTO Eliminar(int id);
-
+        CFGRespuestaGenericaDTO ImportarProcesadoLinkedin(DateTime? fechaInicio, DateTime? fechaFin);
     }
 }
