@@ -12,7 +12,7 @@ namespace CapaNegocio.Servicio.Venta
     {
         VTAModVentaPotencialClienteDTORPT ObtenerTodas();
         VTAModVentaPotencialClienteDTO ObtenerPorId(int id);
-        CFGRespuestaGenericaDTO Insertar(VTAModVentaPotencialClienteDTO dto);
+        VTAModVentaPotencialClienteInsertRPT Insertar(VTAModVentaPotencialClienteDTO dto);
         CFGRespuestaGenericaDTO Actualizar(VTAModVentaPotencialClienteDTO dto);
         CFGRespuestaGenericaDTO Eliminar(int id);
         CFGRespuestaGenericaDTO ImportarProcesadoLinkedin(DateTime? fechaInicio, DateTime? fechaFin);

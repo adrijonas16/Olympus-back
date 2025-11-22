@@ -43,7 +43,6 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private InversionRepository _inversionRepository;
         private MetodoPagoRepository _metodoPagoRepository;
         private MetodoPagoProductoRepository _metodoPagoProductoRepository;
-        private ProductoDocenteRepository _productoDocenteRepository;
         private ProductoCertificadoRepository _productoCertificadoRepository;
         private VentaCruzadaRepository _ventaCruzadaRepository;
         private PotencialClienteRepository _potencialClienteRepository;
@@ -113,8 +112,6 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _metodoPagoRepository ??= new MetodoPagoRepository(_context);
         public IMetodoPagoProductoRepository MetodoPagoProductoRepository
             => _metodoPagoProductoRepository ??= new MetodoPagoProductoRepository(_context);
-        public IProductoDocenteRepository ProductoDocenteRepository
-            => _productoDocenteRepository ??= new ProductoDocenteRepository(_context);
         public IProductoCertificadoRepository ProductoCertificadoRepository
             => _productoCertificadoRepository ??= new ProductoCertificadoRepository(_context);
         public IVentaCruzadaRepository VentaCruzadaRepository

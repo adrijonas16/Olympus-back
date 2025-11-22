@@ -37,6 +37,7 @@ namespace Olympus.API.Extensions
             services.AddScoped<IVTAModVentaEstadoTransicionService,VTAModVentaEstadoTransicionService>();
             services.AddScoped<IVTAModVentaCobranzaService, VTAModVentaCobranzaService>();
             services.AddScoped<IVTAModVentaPotencialClienteService, VTAModVentaPotencialClienteService>();
+            services.AddScoped<IVTAModVentaProductoService, VTAModVentaProductoService>();
             return services;
         }
     }

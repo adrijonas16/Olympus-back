@@ -1,12 +1,15 @@
 ﻿using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -197,6 +200,255 @@ namespace CapaNegocio.Servicio.Venta
                 respuesta.Mensaje = ex.Message;
             }
             return respuesta;
+        }
+
+        public VTAModVentaProductoDetalleRPT ObtenerDetallePorOportunidad(int idOportunidad)
+        {
+            var respuesta = new VTAModVentaProductoDetalleRPT();
+            try
+            {
+                var dbContext = _unitOfWork.Context;
+                var conn = dbContext.Database.GetDbConnection();
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SPProductoDetallePorOportunidad";
+
+                var param = cmd.CreateParameter();
+                param.ParameterName = "@IdOportunidad";
+                param.DbType = DbType.Int32;
+                param.Value = idOportunidad;
+                cmd.Parameters.Add(param);
+
+                using var reader = cmd.ExecuteReader();
+
+                object GetVal(DbDataReader r, string col)
+                {
+                    try
+                    {
+                        var idx = r.GetOrdinal(col);
+                        if (r.IsDBNull(idx)) return null!;
+                        return r.GetValue(idx);
+                    }
+                    catch
+                    {
+                        return null!;
+                    }
+                }
+
+                if (reader.HasRows && reader.Read())
+                {
+                    respuesta.Producto = new VTAModVentaProductoDTO
+                    {
+                        Id = GetVal(reader, "IdProducto") as int? ?? 0,
+                        Nombre = GetVal(reader, "Nombre")?.ToString() ?? string.Empty,
+                        CodigoLanzamiento = GetVal(reader, "CodigoLanzamiento")?.ToString() ?? string.Empty,
+                        FechaInicio = GetVal(reader, "FechaInicio") as DateTime?,
+                        FechaPresentacion = GetVal(reader, "FechaPresentacion") as DateTime?,
+                        DatosImportantes = GetVal(reader, "DatosImportantes")?.ToString() ?? string.Empty,
+                    };
+                }
+
+                // 2) Horarios
+                if (reader.NextResult())
+                {
+                    var horarios = new List<VTAModVentaHorarioDTO>();
+                    while (reader.Read())
+                    {
+                        TimeSpan? horaInicio = null;
+                        TimeSpan? horaFin = null;
+                        var rawHoraInicio = GetVal(reader, "HoraInicio");
+                        var rawHoraFin = GetVal(reader, "HoraFin");
+
+                        if (rawHoraInicio != null)
+                        {
+                            if (rawHoraInicio is TimeSpan ts1) horaInicio = ts1;
+                            else if (TimeSpan.TryParse(rawHoraInicio.ToString(), out var t1)) horaInicio = t1;
+                            else if (DateTime.TryParse(rawHoraInicio.ToString(), out var dt1)) horaInicio = dt1.TimeOfDay;
+                        }
+
+                        if (rawHoraFin != null)
+                        {
+                            if (rawHoraFin is TimeSpan ts2) horaFin = ts2;
+                            else if (TimeSpan.TryParse(rawHoraFin.ToString(), out var t2)) horaFin = t2;
+                            else if (DateTime.TryParse(rawHoraFin.ToString(), out var dt2)) horaFin = dt2.TimeOfDay;
+                        }
+
+                        horarios.Add(new VTAModVentaHorarioDTO
+                        {
+                            Id = GetVal(reader, "IdHorario") as int? ?? 0,
+                            IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
+                            Dia = GetVal(reader, "Dia")?.ToString() ?? string.Empty,
+                            HoraInicio = horaInicio,
+                            HoraFin = horaFin,
+                            Detalle = GetVal(reader, "Detalle")?.ToString() ?? string.Empty,
+                            Orden = GetVal(reader, "Orden") as int?,
+                            FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
+                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
+                        });
+                    }
+                    respuesta.Horarios = horarios;
+                }
+
+                if (reader.NextResult())
+                {
+                    var inv = new List<VTAModVentaInversionDTO>();
+                    while (reader.Read())
+                    {
+                        inv.Add(new VTAModVentaInversionDTO
+                        {
+                            Id = GetVal(reader, "IdInversion") as int? ?? 0,
+                            IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
+                            IdOportunidad = GetVal(reader, "IdOportunidad") as int? ?? 0,
+                            CostoTotal = GetVal(reader, "CostoTotal") as decimal? ?? 0m,
+                            Moneda = GetVal(reader, "Moneda")?.ToString() ?? string.Empty,
+                            DescuentoPorcentaje = GetVal(reader, "DescuentoPorcentaje") as decimal? ?? 0m,
+                            DescuentoMonto = GetVal(reader, "DescuentoMonto") as decimal? ?? 0m,
+                            CostoOfrecido = GetVal(reader, "CostoOfrecido") as decimal? ?? 0m,
+                            Estado = GetVal(reader, "Estado") as bool? ?? true,
+                            FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
+                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
+                        });
+                    }
+                    respuesta.Inversiones = inv;
+                }
+
+                if (reader.NextResult())
+                {
+                    var ecs = new List<VTAModVentaEstructuraCurricularDTO>();
+                    while (reader.Read())
+                    {
+                        ecs.Add(new VTAModVentaEstructuraCurricularDTO
+                        {
+                            Id = GetVal(reader, "IdEstructuraCurricular") as int? ?? 0,
+                            IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
+                            Nombre = GetVal(reader, "NombreEstructura")?.ToString() ?? string.Empty,
+                            Descripcion = GetVal(reader, "DescripcionEstructura")?.ToString(),
+                            FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
+                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
+                        });
+                    }
+                    respuesta.Estructuras = ecs;
+                }
+
+                if (reader.NextResult())
+                {
+                    var mods = new List<VTAModVentaEstructuraCurricularModuloDTO>();
+                    while (reader.Read())
+                    {
+                        var dto = new VTAModVentaEstructuraCurricularModuloDTO
+                        {
+                            Id = GetVal(reader, "IdEstructuraCurricularModulo") as int? ?? 0,
+                            IdEstructuraCurricular = GetVal(reader, "IdEstructuraCurricular") as int? ?? 0,
+                            IdModulo = GetVal(reader, "IdModulo") as int? ?? 0,
+                            Orden = GetVal(reader, "Orden") as int?,
+                            Sesiones = GetVal(reader, "Sesiones") as int?,
+                            DuracionHoras = GetVal(reader, "DuracionHorasEnEstructura") as int? ?? (GetVal(reader, "DuracionHorasModulo") as int?),
+                            Observaciones = GetVal(reader, "Observaciones")?.ToString()
+                        };
+
+                        dto.Modulo = new VTAModVentaModuloDTO
+                        {
+                            Id = GetVal(reader, "IdModulo") as int? ?? 0,
+                            Nombre = GetVal(reader, "NombreModulo")?.ToString() ?? string.Empty,
+                            Codigo = GetVal(reader, "CodigoModulo")?.ToString(),
+                            Descripcion = GetVal(reader, "DescripcionModulo")?.ToString(),
+                            DuracionHoras = GetVal(reader, "DuracionHorasModulo") as int?
+                        };
+
+                        mods.Add(dto);
+                    }
+                    respuesta.EstructuraModulos = mods;
+                }
+
+                if (reader.NextResult())
+                {
+                    var docs = new List<VTAModVentaEstructuraCurricularModuloDTO>();
+                    while (reader.Read())
+                    {
+                        var dto = new VTAModVentaEstructuraCurricularModuloDTO
+                        {
+                            IdEstructuraCurricular = GetVal(reader, "IdEstructuraCurricularModulo") as int? ?? 0,
+                            IdModulo = GetVal(reader, "IdModulo") as int? ?? 0,
+                            IdDocente = GetVal(reader, "IdDocente") as int?,
+                            IdPersonaDocente = GetVal(reader, "IdPersona") as int?,
+                            DocenteNombre = (GetVal(reader, "Nombres")?.ToString() ?? string.Empty) + " " + (GetVal(reader, "Apellidos")?.ToString() ?? string.Empty)
+                        };
+                        docs.Add(dto);
+                    }
+                    respuesta.DocentesPorModulo = docs;
+                }
+
+                if (reader.NextResult())
+                {
+                    var pcs = new List<VTAModVentaProductoCertificadoDTO>();
+                    while (reader.Read())
+                    {
+                        pcs.Add(new VTAModVentaProductoCertificadoDTO
+                        {
+                            Id = GetVal(reader, "IdProductoCertificado") as int? ?? 0,
+                            IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
+                            IdCertificado = GetVal(reader, "IdCertificado") as int? ?? 0,
+                            FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
+                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty,
+                        });
+                    }
+                    respuesta.ProductoCertificados = pcs;
+                }
+
+                if (reader.NextResult())
+                {
+                    var mpps = new List<VTAModVentaMetodoPagoProductoDTO>();
+                    while (reader.Read())
+                    {
+                        mpps.Add(new VTAModVentaMetodoPagoProductoDTO
+                        {
+                            Id = GetVal(reader, "IdMetodoPagoProducto") as int? ?? 0,
+                            IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
+                            IdMetodoPago = GetVal(reader, "IdMetodoPago") as int? ?? 0,
+                            Activo = GetVal(reader, "Activo") as bool? ?? true,
+                            FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
+                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
+                        });
+                    }
+                    respuesta.MetodosPago = mpps;
+                }
+
+                if (reader.NextResult())
+                {
+                    var ben = new List<VTAModVentaBeneficioDTO>();
+                    while (reader.Read())
+                    {
+                        ben.Add(new VTAModVentaBeneficioDTO
+                        {
+                            Id = GetVal(reader, "IdBeneficio") as int? ?? 0,
+                            IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
+                            Descripcion = GetVal(reader, "Descripcion")?.ToString() ?? string.Empty,
+                            Orden = GetVal(reader, "Orden") as int?,
+                            FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
+                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
+                        });
+                    }
+                    respuesta.Beneficios = ben;
+                }
+
+                reader.Close();
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+                return respuesta;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                return new VTAModVentaProductoDetalleRPT
+                {
+                    Codigo = SR._C_ERROR_CRITICO,
+                    Mensaje = ex.Message
+                };
+            }
         }
     }
 }

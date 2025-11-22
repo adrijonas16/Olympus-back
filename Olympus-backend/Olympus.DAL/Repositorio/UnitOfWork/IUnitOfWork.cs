@@ -40,7 +40,6 @@ namespace CapaDatos.Repositorio.UnitOfWork
         IInversionRepository InversionRepository { get; }
         IMetodoPagoRepository MetodoPagoRepository { get; }
         IMetodoPagoProductoRepository MetodoPagoProductoRepository { get; }
-        IProductoDocenteRepository ProductoDocenteRepository { get; }
         IProductoCertificadoRepository ProductoCertificadoRepository { get; }
         IVentaCruzadaRepository VentaCruzadaRepository { get; }
         IPotencialClienteRepository PotencialClienteRepository { get; }

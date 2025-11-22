@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace Modelos.Entidades
 {
-    public class Docente
+    public class EstructuraCurricular
     {
         public int Id { get; set; }
-        public int IdPersona { get; set; }
-        public string? TituloProfesional { get; set; } = string.Empty;
-        public string? Especialidad { get; set; } = string.Empty;
-        public string? Logros { get; set; } = string.Empty;
+        public int IdProducto { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
         public bool Estado { get; set; } = true;
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -21,7 +20,7 @@ namespace Modelos.Entidades
         public string UsuarioModificacion { get; set; } = string.Empty;
 
         // Navegaciones
-        public Persona? Persona { get; set; }   // 1:1
+        public Producto? Producto { get; set; }
         public ICollection<EstructuraCurricularModulo> EstructuraCurricularModulos { get; set; } = new List<EstructuraCurricularModulo>();
     }
 }

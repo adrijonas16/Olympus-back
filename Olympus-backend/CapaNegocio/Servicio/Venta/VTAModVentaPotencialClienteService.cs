@@ -131,9 +131,9 @@ namespace CapaNegocio.Servicio.Venta
             return dto;
         }
 
-        public CFGRespuestaGenericaDTO Insertar(VTAModVentaPotencialClienteDTO dto)
+        public VTAModVentaPotencialClienteInsertRPT Insertar(VTAModVentaPotencialClienteDTO dto)
         {
-            var respuesta = new CFGRespuestaGenericaDTO();
+            var respuesta = new VTAModVentaPotencialClienteInsertRPT();
             try
             {
                 if (dto == null)
@@ -148,6 +148,9 @@ namespace CapaNegocio.Servicio.Venta
                 DateTime nowUtc() => DateTime.UtcNow;
 
                 int idPersonaFinal = 0;
+                int idPotencialFinal = 0;
+
+                var dbContext = _unitOfWork.Context as DbContext;
 
                 if (dto.Persona != null)
                 {
@@ -168,19 +171,6 @@ namespace CapaNegocio.Servicio.Venta
                         FechaModificacion = pDto.FechaModificacion ?? nowUtc(),
                         UsuarioModificacion = string.IsNullOrWhiteSpace(pDto.UsuarioModificacion) ? usuarioModificacion : pDto.UsuarioModificacion
                     };
-
-                    DbContext? dbContext = null;
-                    var uwType = _unitOfWork.GetType();
-                    var propCandidates = new[] { "Context", "_context", "DbContext", "Contexto", "ContextoDb" };
-                    foreach (var pName in propCandidates)
-                    {
-                        var prop = uwType.GetProperty(pName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                        if (prop != null)
-                        {
-                            dbContext = prop.GetValue(_unitOfWork) as DbContext;
-                            if (dbContext != null) break;
-                        }
-                    }
 
                     if (dbContext != null)
                     {
@@ -205,11 +195,14 @@ namespace CapaNegocio.Servicio.Venta
 
                                 _unitOfWork.PotencialClienteRepository.Insertar(potencial);
                                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                                idPotencialFinal = potencial.Id;
 
                                 tx.Commit();
 
+                                respuesta.IdPersona = idPersonaFinal;
+                                respuesta.IdPotencialCliente = idPotencialFinal;
                                 respuesta.Codigo = SR._C_SIN_ERROR;
-                                respuesta.Mensaje = $"Persona creada Id={idPersonaFinal}; PotencialCliente Id={potencial.Id}";
+                                respuesta.Mensaje = string.Empty;
                                 return respuesta;
                             }
                             catch (Exception)
@@ -221,6 +214,7 @@ namespace CapaNegocio.Servicio.Venta
                     }
                     else
                     {
+                        // Sin DbContext transaccional (caída al comportamiento anterior)
                         _unitOfWork.PersonaRepository.Insertar(personaEnt);
                         _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
                         idPersonaFinal = personaEnt.Id;
@@ -238,9 +232,12 @@ namespace CapaNegocio.Servicio.Venta
 
                         _unitOfWork.PotencialClienteRepository.Insertar(potencial);
                         _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                        idPotencialFinal = potencial.Id;
 
+                        respuesta.IdPersona = idPersonaFinal;
+                        respuesta.IdPotencialCliente = idPotencialFinal;
                         respuesta.Codigo = SR._C_SIN_ERROR;
-                        respuesta.Mensaje = $"Persona creada Id={idPersonaFinal}; PotencialCliente Id={potencial.Id}";
+                        respuesta.Mensaje = string.Empty;
                         return respuesta;
                     }
                 }
@@ -269,9 +266,12 @@ namespace CapaNegocio.Servicio.Venta
 
                     _unitOfWork.PotencialClienteRepository.Insertar(potencial);
                     _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                    idPotencialFinal = potencial.Id;
 
+                    respuesta.IdPersona = idPersonaFinal;
+                    respuesta.IdPotencialCliente = idPotencialFinal;
                     respuesta.Codigo = SR._C_SIN_ERROR;
-                    respuesta.Mensaje = $"Usado IdPersona existente {idPersonaFinal}; PotencialCliente Id={potencial.Id}";
+                    respuesta.Mensaje = string.Empty;
                     return respuesta;
                 }
                 else
@@ -284,9 +284,13 @@ namespace CapaNegocio.Servicio.Venta
             catch (Exception ex)
             {
                 _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
-                return respuesta;
+                return new VTAModVentaPotencialClienteInsertRPT
+                {
+                    Codigo = SR._C_ERROR_CRITICO,
+                    Mensaje = ex.Message,
+                    IdPersona = 0,
+                    IdPotencialCliente = 0
+                };
             }
         }
 

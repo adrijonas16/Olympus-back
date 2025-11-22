@@ -28,7 +28,6 @@ namespace Modelos.Entidades
         public List<Horario> Horarios { get; set; } = new List<Horario>();
         public List<Inversion> Inversiones { get; set; } = new List<Inversion>();
         public List<MetodoPagoProducto> MetodoPagoProductos { get; set; } = new List<MetodoPagoProducto>();
-        public List<ProductoDocente> ProductoDocentes { get; set; } = new List<ProductoDocente>();
         public List<ProductoCertificado> ProductoCertificados { get; set; } = new List<ProductoCertificado>();
         public List<Beneficio> Beneficios { get; set; } = new List<Beneficio>();
         public List<Cobranza> Cobranzas { get; set; } = new List<Cobranza>();

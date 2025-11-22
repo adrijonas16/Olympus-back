@@ -38,7 +38,6 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<Inversion> Inversion { get; set; }
     public virtual DbSet<MetodoPago> MetodoPago { get; set; }
     public virtual DbSet<MetodoPagoProducto> MetodoPagoProducto { get; set; }
-    public virtual DbSet<ProductoDocente> ProductoDocente { get; set; }
     public virtual DbSet<VentaCruzada> VentaCruzada { get; set; }
     public virtual DbSet<ProductoCertificado> ProductoCertificado { get; set; }
     public virtual DbSet<PotencialCliente> PotencialCliente { get; set; }
@@ -1337,62 +1336,6 @@ public partial class OlympusContext : DbContext
             entity.HasIndex(e => e.IdMetodoPago).HasDatabaseName("IX_MetodoPagoProducto_IdMetodoPago");
         });
 
-        // Configuración ProductoDocente
-        modelBuilder.Entity<ProductoDocente>(entity =>
-        {
-            entity.ToTable("ProductoDocente", schema: "adm");
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.IdProducto)
-                  .HasColumnName("IdProducto")
-                  .IsRequired();
-
-            entity.Property(e => e.IdDocente)
-                  .HasColumnName("IdDocente")
-                  .IsRequired();
-
-            entity.Property(e => e.Orden)
-                  .IsRequired(false);
-
-            entity.Property(e => e.Estado)
-                  .HasColumnName("Estado")
-                  .HasDefaultValue(true);
-
-            entity.Property(e => e.FechaCreacion)
-                  .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
-
-            entity.Property(e => e.FechaModificacion)
-                  .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
-
-            entity.Property(e => e.UsuarioCreacion)
-                  .HasMaxLength(50)
-                  .IsUnicode(false);
-
-            entity.Property(e => e.UsuarioModificacion)
-                  .HasMaxLength(50)
-                  .IsUnicode(false)
-                  .HasDefaultValue("SYSTEM");
-
-            // Relaciones
-            entity.HasOne(pd => pd.Producto)
-                  .WithMany(p => p.ProductoDocentes)
-                  .HasForeignKey(pd => pd.IdProducto)
-                  .HasConstraintName("FK_ProductoDocente_Producto")
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(pd => pd.Docente)
-                  .WithMany(d => d.ProductoDocentes)
-                  .HasForeignKey(pd => pd.IdDocente)
-                  .HasConstraintName("FK_ProductoDocente_Docente")
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            // Índices
-            entity.HasIndex(e => e.IdProducto).HasDatabaseName("IX_ProductoDocente_IdProducto");
-            entity.HasIndex(e => e.IdDocente).HasDatabaseName("IX_ProductoDocente_IdDocente");
-        });
-
         // Configuración ProductoCertificado
         modelBuilder.Entity<ProductoCertificado>(entity =>
         {
@@ -1599,13 +1542,6 @@ public partial class OlympusContext : DbContext
                   .WithOne(mpp => mpp.Producto)
                   .HasForeignKey(mpp => mpp.IdProducto)
                   .HasConstraintName("FK_MPP_Producto")
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            // ProductoDocente
-            entity.HasMany(p => p.ProductoDocentes)
-                  .WithOne(pd => pd.Producto)
-                  .HasForeignKey(pd => pd.IdProducto)
-                  .HasConstraintName("FK_ProductoDocente_Producto")
                   .OnDelete(DeleteBehavior.Restrict);
 
             // ProductoCertificado

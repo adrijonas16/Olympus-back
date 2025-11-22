@@ -4,22 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modelos.Entidades
+namespace Modelos.DTO.Venta
 {
-    public class ProductoDocente
+    public class VTAModVentaEstructuraCurricularDTO
     {
         public int Id { get; set; }
         public int IdProducto { get; set; }
-        public int IdDocente { get; set; }
-        public int? Orden { get; set; }
-        public bool Estado { get; set; } = true;
+        public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
+        public bool Estado { get; set; }
+        public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
 
-        // Navegación
-        public Producto? Producto { get; set; }
-        public Docente? Docente { get; set; }
     }
 }

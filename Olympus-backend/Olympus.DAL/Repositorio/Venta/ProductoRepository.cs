@@ -34,7 +34,6 @@ namespace CapaDatos.Repositorio.Venta
             return true;
         }
 
-        // Obtiene un Producto por id incluyendo todas sus navegaciones.
         public Producto? ObtenerPorId(int id)
         {
             return _context.Producto
@@ -45,9 +44,6 @@ namespace CapaDatos.Repositorio.Venta
                     .ThenInclude(inv => inv.Descuentos)              // incluye descuentos de cada inversion
                 .Include(p => p.MetodoPagoProductos)
                     .ThenInclude(mpp => mpp.MetodoPago)              // incluye MetodoPago desde MetodoPagoProducto
-                .Include(p => p.ProductoDocentes)
-                    .ThenInclude(pd => pd.Docente)                  // incluye Docente desde ProductoDocente
-                        .ThenInclude(d => d.Persona)                // incluyendo Persona del Docente (si existe y es útil)
                 .Include(p => p.ProductoCertificados)
                     .ThenInclude(pc => pc.Certificado)              // incluye Certificado desde ProductoCertificado
                 .Include(p => p.Beneficios)

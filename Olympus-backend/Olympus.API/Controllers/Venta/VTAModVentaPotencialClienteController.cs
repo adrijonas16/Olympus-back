@@ -56,9 +56,9 @@ namespace Olympus.API.Controllers.Venta
         }
 
         [HttpPost("Insertar")]
-        public CFGRespuestaGenericaDTO Insertar([FromBody] VTAModVentaPotencialClienteDTO request)
+        public VTAModVentaPotencialClienteInsertRPT Insertar([FromBody] VTAModVentaPotencialClienteDTO request)
         {
-            var respuesta = new CFGRespuestaGenericaDTO();
+            var respuesta = new VTAModVentaPotencialClienteInsertRPT();
             try
             {
                 respuesta = _potencialService.Insertar(request);
