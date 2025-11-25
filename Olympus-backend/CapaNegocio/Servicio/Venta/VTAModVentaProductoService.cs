@@ -34,30 +34,24 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new VTAModVentaProductoDTORPT();
             try
             {
-                var productos = _unitOfWork.ProductoRepository.ObtenerTodos().ToList();
-
-                // Evitar N+1: traer lanzamientos en memoria
-                var lanzamientoIds = productos.Where(p => p.IdLanzamiento > 0).Select(p => p.IdLanzamiento).Distinct().ToList();
-                var lanzamientos = _unitOfWork.LanzamientoRepository.ObtenerTodos()
-                    .Where(l => lanzamientoIds.Contains(l.Id))
-                    .ToDictionary(l => l.Id, l => l.CodigoLanzamiento);
-
-                var lista = productos.Select(p => new VTAModVentaProductoDTO
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    IdLanzamiento = p.IdLanzamiento,
-                    LanzamientoCodigo = p.IdLanzamiento > 0 && lanzamientos.ContainsKey(p.IdLanzamiento) ? lanzamientos[p.IdLanzamiento] : string.Empty,
-                    CodigoLanzamiento = p.CodigoLanzamiento,
-                    FechaInicio = p.FechaInicio,
-                    FechaPresentacion = p.FechaPresentacion,
-                    DatosImportantes = p.DatosImportantes,
-                    Estado = p.Estado,
-                    FechaCreacion = p.FechaCreacion,
-                    UsuarioCreacion = p.UsuarioCreacion,
-                    FechaModificacion = p.FechaModificacion,
-                    UsuarioModificacion = p.UsuarioModificacion
-                }).ToList();
+                var lista = _unitOfWork.ProductoRepository
+                    .Query()
+                    .AsNoTracking()
+                    .Select(p => new VTAModVentaProductoDTO
+                    {
+                        Id = p.Id,
+                        Nombre = p.Nombre,
+                        CodigoLanzamiento = p.CodigoLanzamiento,
+                        FechaInicio = p.FechaInicio,
+                        FechaPresentacion = p.FechaPresentacion,
+                        DatosImportantes = p.DatosImportantes,
+                        Estado = p.Estado,
+                        FechaCreacion = p.FechaCreacion,
+                        UsuarioCreacion = p.UsuarioCreacion,
+                        FechaModificacion = p.FechaModificacion,
+                        UsuarioModificacion = p.UsuarioModificacion
+                    })
+                    .ToList();
 
                 respuesta.Productos = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
@@ -77,22 +71,29 @@ namespace CapaNegocio.Servicio.Venta
             var dto = new VTAModVentaProductoDTO();
             try
             {
-                var ent = _unitOfWork.ProductoRepository.ObtenerPorId(id);
+                var ent = _unitOfWork.ProductoRepository
+                    .Query()
+                    .AsNoTracking()
+                    .Where(p => p.Id == id)
+                    .Select(p => new VTAModVentaProductoDTO
+                    {
+                        Id = p.Id,
+                        Nombre = p.Nombre,
+                        CodigoLanzamiento = p.CodigoLanzamiento,
+                        FechaInicio = p.FechaInicio,
+                        FechaPresentacion = p.FechaPresentacion,
+                        DatosImportantes = p.DatosImportantes,
+                        Estado = p.Estado,
+                        FechaCreacion = p.FechaCreacion,
+                        UsuarioCreacion = p.UsuarioCreacion,
+                        FechaModificacion = p.FechaModificacion,
+                        UsuarioModificacion = p.UsuarioModificacion
+                    })
+                    .FirstOrDefault();
+
                 if (ent != null)
                 {
-                    dto.Id = ent.Id;
-                    dto.Nombre = ent.Nombre;
-                    dto.IdLanzamiento = ent.IdLanzamiento;
-                    dto.LanzamientoCodigo = ent.IdLanzamiento > 0 ? (_unitOfWork.LanzamientoRepository.ObtenerPorId(ent.IdLanzamiento)?.CodigoLanzamiento ?? string.Empty) : string.Empty;
-                    dto.CodigoLanzamiento = ent.CodigoLanzamiento;
-                    dto.FechaInicio = ent.FechaInicio;
-                    dto.FechaPresentacion = ent.FechaPresentacion;
-                    dto.DatosImportantes = ent.DatosImportantes;
-                    dto.Estado = ent.Estado;
-                    dto.FechaCreacion = ent.FechaCreacion;
-                    dto.UsuarioCreacion = ent.UsuarioCreacion;
-                    dto.FechaModificacion = ent.FechaModificacion;
-                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto = ent;
                 }
             }
             catch (Exception ex)
@@ -109,8 +110,7 @@ namespace CapaNegocio.Servicio.Venta
             {
                 var ent = new Producto
                 {
-                    Nombre = dto.Nombre?? string.Empty,
-                    IdLanzamiento = dto.IdLanzamiento,
+                    Nombre = dto.Nombre ?? string.Empty,
                     CodigoLanzamiento = dto.CodigoLanzamiento,
                     FechaInicio = dto.FechaInicio,
                     FechaPresentacion = dto.FechaPresentacion,
@@ -151,7 +151,6 @@ namespace CapaNegocio.Servicio.Venta
                 }
 
                 ent.Nombre = dto.Nombre ?? ent.Nombre;
-                ent.IdLanzamiento = dto.IdLanzamiento;
                 ent.CodigoLanzamiento = dto.CodigoLanzamiento;
                 ent.FechaInicio = dto.FechaInicio;
                 ent.FechaPresentacion = dto.FechaPresentacion;
@@ -187,7 +186,6 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.Mensaje = SR._M_NO_ENCONTRADO;
                     return respuesta;
                 }
-
                 _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
                 respuesta.Codigo = SR._C_SIN_ERROR;
@@ -224,11 +222,17 @@ namespace CapaNegocio.Servicio.Venta
 
                 using var reader = cmd.ExecuteReader();
 
+                var ordinals = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
                 object GetVal(DbDataReader r, string col)
                 {
                     try
                     {
-                        var idx = r.GetOrdinal(col);
+                        if (!ordinals.TryGetValue(col, out var idx))
+                        {
+                            idx = r.GetOrdinal(col);
+                            ordinals[col] = idx;
+                        }
                         if (r.IsDBNull(idx)) return null!;
                         return r.GetValue(idx);
                     }
@@ -251,7 +255,6 @@ namespace CapaNegocio.Servicio.Venta
                     };
                 }
 
-                // 2) Horarios
                 if (reader.NextResult())
                 {
                     var horarios = new List<VTAModVentaHorarioDTO>();

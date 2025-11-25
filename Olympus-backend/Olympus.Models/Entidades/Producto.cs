@@ -11,7 +11,6 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
-        public int IdLanzamiento { get; set; }
         public string? CodigoLanzamiento { get; set; } = string.Empty;
         public DateTime? FechaInicio { get; set; }
         public DateTime? FechaPresentacion { get; set; }
@@ -24,7 +23,6 @@ namespace Modelos.Entidades
         public string UsuarioModificacion { get; set; } = string.Empty;
 
         // Navegaciones
-        public Lanzamiento? Lanzamiento { get; set; }
         public List<Horario> Horarios { get; set; } = new List<Horario>();
         public List<Inversion> Inversiones { get; set; } = new List<Inversion>();
         public List<MetodoPagoProducto> MetodoPagoProductos { get; set; } = new List<MetodoPagoProducto>();

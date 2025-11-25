@@ -11,8 +11,6 @@ namespace Modelos.DTO.Venta
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
-        public int IdLanzamiento { get; set; }
-        public string LanzamientoCodigo { get; set; } = string.Empty;
         public string? CodigoLanzamiento { get; set; } = string.Empty;
         public DateTime? FechaInicio { get; set; }
         public DateTime? FechaPresentacion { get; set; }

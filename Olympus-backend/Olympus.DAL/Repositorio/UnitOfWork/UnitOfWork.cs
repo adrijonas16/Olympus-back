@@ -27,7 +27,6 @@ namespace CapaDatos.Repositorio.UnitOfWork
         private HistorialEstadoRepository _historialEstadoRepository;
         private HistorialInteraccionRepository _historialInteraccionRepository;
         private PaisRepository _paisRepository;
-        private LanzamientoRepository _lanzamientoRepository;
         private BeneficioRepository _beneficioRepository;
         private CertificadoRepository _certificadoRepository;
         private CobranzaRepository _cobranzaRepository;
@@ -80,8 +79,6 @@ namespace CapaDatos.Repositorio.UnitOfWork
             => _historialInteraccionRepository ??= new HistorialInteraccionRepository(_context);
         public IPaisRepository PaisRepository
             => _paisRepository ??= new PaisRepository(_context);
-        public ILanzamientoRepository LanzamientoRepository
-            => _lanzamientoRepository ??= new LanzamientoRepository(_context);
         public IBeneficioRepository BeneficioRepository
             => _beneficioRepository ??= new BeneficioRepository(_context);
         public ICertificadoRepository CertificadoRepository

@@ -1044,7 +1044,7 @@ namespace CapaNegocio.Servicio.Venta
                             respuesta.Codigo = SR._C_SIN_ERROR;
                             respuesta.Mensaje = string.Empty;
                         }
-                        catch (Exception exInner)
+                        catch (Exception)
                         {
                             try { tx.Rollback(); } catch { }
                             throw;

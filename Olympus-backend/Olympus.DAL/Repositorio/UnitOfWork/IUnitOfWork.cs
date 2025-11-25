@@ -24,7 +24,6 @@ namespace CapaDatos.Repositorio.UnitOfWork
         IHistorialEstadoRepository HistorialEstadoRepository { get; }
         IHistorialInteraccionRepository HistorialInteraccionRepository { get; }
         IPaisRepository PaisRepository { get; }
-        ILanzamientoRepository LanzamientoRepository { get; }
         IBeneficioRepository BeneficioRepository { get; }
         IProductoRepository ProductoRepository { get; }
         ITipoRepository TipoRepository { get; }

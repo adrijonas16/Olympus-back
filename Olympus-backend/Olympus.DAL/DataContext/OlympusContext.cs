@@ -23,7 +23,6 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<HistorialEstado> HistorialEstado { get; set; }
     public virtual DbSet<HistorialInteraccion> HistorialInteraccion { get; set; }
     public virtual DbSet<Pais> Pais { get; set; }
-    public virtual DbSet<Lanzamiento> Lanzamiento { get; set; }
     public virtual DbSet<Beneficio> Beneficio { get; set; }
     public virtual DbSet<Certificado> Certificado { get; set; }
     public virtual DbSet<Cobranza> Cobranza { get; set; }
@@ -562,34 +561,6 @@ public partial class OlympusContext : DbContext
 
             // índice opcional si quieres buscar por Nombre
             entity.HasIndex(e => e.Nombre).HasDatabaseName("IX_Pais_Nombre");
-        });
-
-        // Configuración Lanzamiento
-        modelBuilder.Entity<Lanzamiento>(entity =>
-        {
-            entity.ToTable("Lanzamiento", schema: "adm");
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.CodigoLanzamiento)
-                  .HasMaxLength(255)
-                  .IsUnicode(false);
-
-            entity.Property(e => e.Estado).HasColumnName("Estado");
-
-            entity.Property(e => e.FechaCreacion)
-                  .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
-
-            entity.Property(e => e.FechaModificacion)
-                  .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
-
-            entity.Property(e => e.UsuarioCreacion)
-                  .HasMaxLength(50)
-                  .IsUnicode(false);
-            entity.Property(e => e.UsuarioModificacion)
-                  .HasMaxLength(50)
-                  .IsUnicode(false);
         });
 
         // Configuración Beneficio
@@ -1470,10 +1441,6 @@ public partial class OlympusContext : DbContext
                   .IsUnicode(false)
                   .IsRequired();
 
-            entity.Property(e => e.IdLanzamiento)
-                  .HasColumnName("IdLanzamiento")
-                  .IsRequired();
-
             entity.Property(e => e.CodigoLanzamiento)
                   .HasMaxLength(255)
                   .IsUnicode(false)
@@ -1515,13 +1482,6 @@ public partial class OlympusContext : DbContext
                   .IsUnicode(false);
 
             // Relaciones
-
-            // Lanzamiento (FK IdLanzamiento)
-            entity.HasOne(p => p.Lanzamiento)
-                  .WithMany(l => l.Productos)
-                  .HasForeignKey(p => p.IdLanzamiento)
-                  .HasConstraintName("FK_Producto_Lanzamiento")
-                  .OnDelete(DeleteBehavior.Restrict);
 
             // Horarios
             entity.HasMany(p => p.Horarios)
@@ -1593,8 +1553,6 @@ public partial class OlympusContext : DbContext
                   .HasConstraintName("FK_Corporativo_Producto")
                   .OnDelete(DeleteBehavior.Restrict);
 
-            // Índices
-            entity.HasIndex(p => p.IdLanzamiento).HasDatabaseName("IX_Producto_IdLanzamiento");
         });
 
         // Configuración Tipo
