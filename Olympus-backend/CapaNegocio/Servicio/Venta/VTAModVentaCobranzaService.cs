@@ -119,19 +119,70 @@ namespace CapaNegocio.Servicio.Venta
                      }).ToList();
         }
 
-        public VTAModVentaCobranzaPlanDTO? ObtenerPlanPorOportunidad(int idOportunidad)
+        public VTAModVentaCobranzaPlanConCuotasDTO? ObtenerPlanPorOportunidad(int idOportunidad)
         {
-            var plan = _unitOfWork.CobranzaPlanRepository.Query().FirstOrDefault(p => p.IdOportunidad == idOportunidad);
-            if (plan == null) return null;
-            return new VTAModVentaCobranzaPlanDTO
+            try
             {
-                Id = plan.Id,
-                IdOportunidad = plan.IdOportunidad,
-                Total = plan.Total,
-                NumCuotas = plan.NumCuotas,
-                FechaInicio = plan.FechaInicio,
-                FrecuenciaDias = plan.FrecuenciaDias
-            };
+                var result = new VTAModVentaCobranzaPlanConCuotasDTO();
+
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+
+                cmd.CommandText = "adm.SP_ObtenerPlanYCuotasPorOportunidad";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                var p_IdOport = new SqlParameter("@IdOportunidad", SqlDbType.Int) { Value = idOportunidad };
+                cmd.Parameters.Add(p_IdOport);
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    var planDto = new VTAModVentaCobranzaPlanDTO
+                    {
+                        Id = reader.IsDBNull(reader.GetOrdinal("Id")) ? 0 : reader.GetInt32(reader.GetOrdinal("Id")),
+                        IdOportunidad = reader.IsDBNull(reader.GetOrdinal("IdOportunidad")) ? 0 : reader.GetInt32(reader.GetOrdinal("IdOportunidad")),
+                        Total = reader.IsDBNull(reader.GetOrdinal("Total")) ? 0m : reader.GetDecimal(reader.GetOrdinal("Total")),
+                        NumCuotas = reader.IsDBNull(reader.GetOrdinal("NumCuotas")) ? 0 : reader.GetInt32(reader.GetOrdinal("NumCuotas")),
+                        FechaInicio = reader.IsDBNull(reader.GetOrdinal("FechaInicio")) ? default(DateTime) : reader.GetDateTime(reader.GetOrdinal("FechaInicio")),
+                        FrecuenciaDias = reader.IsDBNull(reader.GetOrdinal("FrecuenciaDias")) ? 0 : reader.GetInt32(reader.GetOrdinal("FrecuenciaDias"))
+                    };
+
+                    result.Plan = planDto;
+                }
+                else
+                {
+                    result.Plan = null;
+                }
+
+                // Result set 2: Cuotas
+                if (reader.NextResult())
+                {
+                    while (reader.Read())
+                    {
+                        var cuota = new VTAModVentaCobranzaCuotaDTO
+                        {
+                            Id = reader.IsDBNull(reader.GetOrdinal("Id")) ? 0 : reader.GetInt32(reader.GetOrdinal("Id")),
+                            IdCobranzaPlan = reader.IsDBNull(reader.GetOrdinal("IdCobranzaPlan")) ? 0 : reader.GetInt32(reader.GetOrdinal("IdCobranzaPlan")),
+                            Numero = reader.IsDBNull(reader.GetOrdinal("Numero")) ? 0 : reader.GetInt32(reader.GetOrdinal("Numero")),
+                            FechaVencimiento = reader.IsDBNull(reader.GetOrdinal("FechaVencimiento")) ? default(DateTime) : reader.GetDateTime(reader.GetOrdinal("FechaVencimiento")),
+                            MontoProgramado = reader.IsDBNull(reader.GetOrdinal("MontoProgramado")) ? 0m : reader.GetDecimal(reader.GetOrdinal("MontoProgramado")),
+                            MontoPagado = reader.IsDBNull(reader.GetOrdinal("MontoPagado")) ? 0m : reader.GetDecimal(reader.GetOrdinal("MontoPagado"))
+                        };
+
+                        result.Cuotas.Add(cuota);
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _errorLog.RegistrarError(ex);
+                throw;
+            }
         }
     }
 }

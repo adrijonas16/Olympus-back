@@ -43,4 +43,21 @@ public class CobranzaController : ControllerBase
         var cuotas = _cobranzaService.ObtenerCuotasPorPlan(idPlan);
         return Ok(new { Codigo = "OK", Cuotas = cuotas });
     }
+
+    [HttpGet("Plan/PorOportunidad/{idOportunidad}")]
+    public IActionResult ObtenerPlanPorOportunidad(int idOportunidad)
+    {
+        try
+        {
+            var plan = _cobranzaService.ObtenerPlanPorOportunidad(idOportunidad);
+            if (plan == null)
+                return NotFound(new { Codigo = "NOT_FOUND", Mensaje = $"No existe plan para la oportunidad {idOportunidad}" });
+
+            return Ok(new { Codigo = "OK", Plan = plan });
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message, title: "Error al obtener plan por oportunidad", statusCode: 500);
+        }
+    }
 }

@@ -13,6 +13,6 @@ namespace CapaNegocio.Servicio.Venta
         int CrearPlanCobranza(VTAModVentaCobranzaCrearPlanDTO dto);
         int RegistrarPago(VTAModVentaCobranzaPagoRegistroDTO dto, bool usarAcumulada = false);
         IEnumerable<VTAModVentaCobranzaCuotaDTO> ObtenerCuotasPorPlan(int idPlan);
-        VTAModVentaCobranzaPlanDTO? ObtenerPlanPorOportunidad(int idOportunidad);
+        VTAModVentaCobranzaPlanConCuotasDTO? ObtenerPlanPorOportunidad(int idOportunidad);
     }
 }
