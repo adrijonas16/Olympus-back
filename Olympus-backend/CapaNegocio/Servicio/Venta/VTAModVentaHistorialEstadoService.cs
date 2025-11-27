@@ -1,10 +1,14 @@
-﻿using CapaDatos.Repositorio.UnitOfWork;
+﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
+using System.Data;
 
 namespace CapaNegocio.Servicio.Venta
 {
@@ -13,12 +17,14 @@ namespace CapaNegocio.Servicio.Venta
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly IErrorLogService _errorLogService;
+        private readonly OlympusContext _context;
 
-        public VTAModVentaHistorialEstadoService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
+        public VTAModVentaHistorialEstadoService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService, OlympusContext context)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _errorLogService = errorLogService;
+            _context = context;
         }
 
         public VTAModVentaTHistorialEstadoDTORPT ObtenerTodas()
@@ -290,6 +296,62 @@ namespace CapaNegocio.Servicio.Venta
             }
         }
 
+        public CFGRespuestaGenericaDTO IncrementarLlamadas(int idOportunidad, string tipo, string usuario = "SYSTEM")
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                if (idOportunidad <= 0)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "IdOportunidad inválido.";
+                    return respuesta;
+                }
+                if (string.IsNullOrWhiteSpace(tipo) || (tipo != "C" && tipo != "N"))
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "Tipo inválido. Use 'C' o 'N'.";
+                    return respuesta;
+                }
 
+                using var conn = _context.Database.GetDbConnection();
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SP_IncrementarLlamadas";
+
+                var pId = new SqlParameter("@IdOportunidad", SqlDbType.Int) { Value = idOportunidad };
+                var pTipo = new SqlParameter("@Tipo", SqlDbType.Char, 1) { Value = tipo };
+                var pUsuario = new SqlParameter("@Usuario", SqlDbType.VarChar, 50) { Value = (object)usuario ?? "SYSTEM" };
+
+                cmd.Parameters.Add(pId);
+                cmd.Parameters.Add(pTipo);
+                cmd.Parameters.Add(pUsuario);
+
+                using var reader = cmd.ExecuteReader();
+
+                int resultado = 0;
+                int historialId = 0;
+                if (reader.Read())
+                {
+                    resultado = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0));
+                    if (reader.FieldCount > 1 && !reader.IsDBNull(1))
+                        historialId = Convert.ToInt32(reader.GetValue(1));
+                }
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = $"ResultadoSP={resultado}; HistorialId={historialId}";
+                return respuesta;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+                return respuesta;
+            }
+
+        }
     }
 }

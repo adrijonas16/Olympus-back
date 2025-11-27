@@ -1,12 +1,15 @@
-﻿using CapaDatos.Repositorio.UnitOfWork;
+﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -18,12 +21,14 @@ namespace CapaNegocio.Servicio.Venta
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly IErrorLogService _errorLogService;
+        private readonly OlympusContext _context;
 
-        public VTAModVentaOportunidadService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
+        public VTAModVentaOportunidadService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService, OlympusContext context)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _errorLogService = errorLogService;
+            _context = context;
         }
 
         public VTAModVentaTOportunidadDTORPT ObtenerTodas()
@@ -484,130 +489,80 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
-        public VTAModVentaTOportunidadDetalleDTORPT ObtenerHistorialEstadoPorOportunidad(int id)
+        public VTAModVentaTOportunidadDetalleDTORPT ObtenerHistorialEstadoPorOportunidad(int IdOportunidad)
         {
             var respuesta = new VTAModVentaTOportunidadDetalleDTORPT();
-
             try
             {
-                // Todos los Historiales de Estado para la Oportunidad
-                var historiales = _unitOfWork.HistorialEstadoRepository
-                    .Query()
-                    .AsNoTracking()
-                    .Where(h => h.IdOportunidad == id)
-                    .OrderByDescending(h => h.FechaCreacion)
-                    .Select(h => new
-                    {
-                        h.Id,
-                        h.IdOportunidad,
-                        h.IdAsesor,
-                        h.IdEstado,
-                        h.IdOcurrencia,
-                        h.Observaciones,
-                        h.CantidadLlamadasContestadas,
-                        h.CantidadLlamadasNoContestadas,
-                        h.Estado,
-                        h.FechaCreacion,
-                        h.UsuarioCreacion,
-                        h.FechaModificacion,
-                        h.UsuarioModificacion
-                    })
-                    .ToList();
+                var lista = new List<VTAModVentaTHistorialEstadoDetalleDTO>();
 
-                // Historial con Asesor y Estado Referencia
-                foreach (var h in historiales)
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SP_ObtenerHistorialEstadoPorOportunidad";
+                cmd.Parameters.Add(new SqlParameter("@IdOportunidad", SqlDbType.Int) { Value = IdOportunidad });
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    var dto = new VTAModVentaTHistorialEstadoDetalleDTO
+                    var h = new VTAModVentaTHistorialEstadoDetalleDTO
                     {
-                        Id = h.Id,
-                        IdOportunidad = h.IdOportunidad,
-                        IdAsesor = h.IdAsesor,
-                        IdEstado = h.IdEstado,
-                        IdOcurrencia = h.IdOcurrencia,
-                        Observaciones = h.Observaciones ?? string.Empty,
-                        CantidadLlamadasContestadas = h.CantidadLlamadasContestadas,
-                        CantidadLlamadasNoContestadas = h.CantidadLlamadasNoContestadas,
-                        Estado = h.Estado,
-                        FechaCreacion = h.FechaCreacion,
-                        UsuarioCreacion = h.UsuarioCreacion ?? string.Empty,
-                        FechaModificacion = h.FechaModificacion,
-                        UsuarioModificacion = h.UsuarioModificacion
+                        Id = reader.IsDBNull(reader.GetOrdinal("HistorialId")) ? 0 : reader.GetInt32(reader.GetOrdinal("HistorialId")),
+                        IdOportunidad = reader.IsDBNull(reader.GetOrdinal("IdOportunidad")) ? 0 : reader.GetInt32(reader.GetOrdinal("IdOportunidad")),
+                        IdAsesor = reader.IsDBNull(reader.GetOrdinal("IdAsesor")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdAsesor")),
+                        IdEstado = reader.IsDBNull(reader.GetOrdinal("IdEstado")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdEstado")),
+                        IdOcurrencia = reader.IsDBNull(reader.GetOrdinal("IdOcurrencia")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdOcurrencia")),
+                        Observaciones = reader.IsDBNull(reader.GetOrdinal("Observaciones")) ? string.Empty : reader.GetString(reader.GetOrdinal("Observaciones")),
+                        CantidadLlamadasContestadas = reader.IsDBNull(reader.GetOrdinal("CantidadLlamadasContestadas")) ? 0 : reader.GetInt32(reader.GetOrdinal("CantidadLlamadasContestadas")),
+                        CantidadLlamadasNoContestadas = reader.IsDBNull(reader.GetOrdinal("CantidadLlamadasNoContestadas")) ? 0 : reader.GetInt32(reader.GetOrdinal("CantidadLlamadasNoContestadas")),
+                        Estado = reader.IsDBNull(reader.GetOrdinal("Estado")) ? true : reader.GetBoolean(reader.GetOrdinal("Estado")),
+                        FechaCreacion = reader.IsDBNull(reader.GetOrdinal("FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("FechaCreacion")),
+                        UsuarioCreacion = reader.IsDBNull(reader.GetOrdinal("UsuarioCreacion")) ? string.Empty : reader.GetString(reader.GetOrdinal("UsuarioCreacion")),
+                        FechaModificacion = reader.IsDBNull(reader.GetOrdinal("FechaModificacion")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("FechaModificacion")),
+                        UsuarioModificacion = reader.IsDBNull(reader.GetOrdinal("UsuarioModificacion")) ? string.Empty : reader.GetString(reader.GetOrdinal("UsuarioModificacion"))
                     };
 
                     // Asesor
-                    if (h.IdAsesor.HasValue)
+                    if (!reader.IsDBNull(reader.GetOrdinal("Asesor_Id")))
                     {
-                        var asesor = _unitOfWork.AsesorRepository
-                            .Query()
-                            .AsNoTracking()
-                            .Where(a => a.Id == h.IdAsesor.Value)
-                            .Select(a => new { a.Id, a.Nombres, a.Apellidos, a.Correo, a.Celular })
-                            .FirstOrDefault();
-
-                        if (asesor != null)
+                        h.Asesor = new VTAModVentaTAsesorDTO
                         {
-                            dto.Asesor = new VTAModVentaTAsesorDTO
-                            {
-                                Id = asesor.Id,
-                                Nombres = asesor.Nombres ?? string.Empty,
-                                Apellidos = asesor.Apellidos ?? string.Empty,
-                                Correo = asesor.Correo ?? string.Empty,
-                                Celular = asesor.Celular ?? string.Empty
-                            };
-                        }
+                            Id = reader.GetInt32(reader.GetOrdinal("Asesor_Id")),
+                            Nombres = reader.IsDBNull(reader.GetOrdinal("Asesor_Nombres")) ? string.Empty : reader.GetString(reader.GetOrdinal("Asesor_Nombres")),
+                            Apellidos = reader.IsDBNull(reader.GetOrdinal("Asesor_Apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("Asesor_Apellidos")),
+                            Correo = reader.IsDBNull(reader.GetOrdinal("Asesor_Correo")) ? string.Empty : reader.GetString(reader.GetOrdinal("Asesor_Correo")),
+                            Celular = reader.IsDBNull(reader.GetOrdinal("Asesor_Celular")) ? string.Empty : reader.GetString(reader.GetOrdinal("Asesor_Celular"))
+                        };
                     }
 
-                    // Estado Referencia
-                    if (h.IdEstado.HasValue)
+                    // EstadoReferencia
+                    if (!reader.IsDBNull(reader.GetOrdinal("EstadoRef_Id")))
                     {
-                        var estadoRef = _unitOfWork.EstadoRepository
-                            .Query()
-                            .AsNoTracking()
-                            .Where(e => e.Id == h.IdEstado.Value)
-                            .Select(e => new { e.Id, e.Nombre, e.Descripcion, e.IdTipo, e.EstadoControl, e.FechaCreacion, e.UsuarioCreacion, e.FechaModificacion, e.UsuarioModificacion })
-                            .FirstOrDefault();
+                        var tipoNombre = reader.IsDBNull(reader.GetOrdinal("Tipo_Nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("Tipo_Nombre"));
+                        var tipoCategoria = reader.IsDBNull(reader.GetOrdinal("Tipo_Categoria")) ? string.Empty : reader.GetString(reader.GetOrdinal("Tipo_Categoria"));
 
-                        if (estadoRef != null)
+                        h.EstadoReferencia = new VTAModVentaTEstadoDTO
                         {
-                            string tipoNombre = string.Empty;
-                            string tipoCategoria = string.Empty;
-
-                            if (estadoRef.IdTipo > 0)
-                            {
-                                var tipo = _unitOfWork.TipoRepository
-                                    .Query()
-                                    .AsNoTracking()
-                                    .Where(t => t.Id == estadoRef.IdTipo)
-                                    .Select(t => new { t.Id, t.Nombre, t.Categoria })
-                                    .FirstOrDefault();
-
-                                if (tipo != null)
-                                {
-                                    tipoNombre = tipo.Nombre ?? string.Empty;
-                                    tipoCategoria = tipo.Categoria ?? string.Empty;
-                                }
-                            }
-
-                            dto.EstadoReferencia = new VTAModVentaTEstadoDTO
-                            {
-                                Id = estadoRef.Id,
-                                Nombre = estadoRef.Nombre ?? string.Empty,
-                                Descripcion = estadoRef.Descripcion ?? string.Empty,
-                                IdTipo = estadoRef.IdTipo,
-                                TipoNombre = tipoNombre,
-                                TipoCategoria = tipoCategoria,
-                                Estado = estadoRef.EstadoControl,
-                                FechaCreacion = estadoRef.FechaCreacion,
-                                UsuarioCreacion = estadoRef.UsuarioCreacion ?? string.Empty,
-                                FechaModificacion = estadoRef.FechaModificacion,
-                                UsuarioModificacion = estadoRef.UsuarioModificacion ?? string.Empty
-                            };
-                        }
+                            Id = reader.GetInt32(reader.GetOrdinal("EstadoRef_Id")),
+                            Nombre = reader.IsDBNull(reader.GetOrdinal("EstadoRef_Nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("EstadoRef_Nombre")),
+                            Descripcion = reader.IsDBNull(reader.GetOrdinal("EstadoRef_Descripcion")) ? string.Empty : reader.GetString(reader.GetOrdinal("EstadoRef_Descripcion")),
+                            IdTipo = reader.IsDBNull(reader.GetOrdinal("EstadoRef_IdTipo")) ? 0 : reader.GetInt32(reader.GetOrdinal("EstadoRef_IdTipo")),
+                            TipoNombre = tipoNombre,
+                            TipoCategoria = tipoCategoria,
+                            Estado = reader.IsDBNull(reader.GetOrdinal("EstadoRef_EstadoControl")) ? true : reader.GetBoolean(reader.GetOrdinal("EstadoRef_EstadoControl")),
+                            FechaCreacion = reader.IsDBNull(reader.GetOrdinal("EstadoRef_FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("EstadoRef_FechaCreacion")),
+                            UsuarioCreacion = reader.IsDBNull(reader.GetOrdinal("EstadoRef_UsuarioCreacion")) ? string.Empty : reader.GetString(reader.GetOrdinal("EstadoRef_UsuarioCreacion")),
+                            FechaModificacion = reader.IsDBNull(reader.GetOrdinal("EstadoRef_FechaModificacion")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("EstadoRef_FechaModificacion")),
+                            UsuarioModificacion = reader.IsDBNull(reader.GetOrdinal("EstadoRef_UsuarioModificacion")) ? string.Empty : reader.GetString(reader.GetOrdinal("EstadoRef_UsuarioModificacion"))
+                        };
                     }
 
-                    respuesta.HistorialActual.Add(dto);
+                    lista.Add(h);
                 }
 
+                respuesta.HistorialActual = lista;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
             }
@@ -627,118 +582,91 @@ namespace CapaNegocio.Servicio.Venta
             try
             {
                 var now = DateTime.UtcNow;
-                var sqlDateSentinel = new DateTime(9999, 12, 31, 23, 59, 59, 997);
 
-                var q = _unitOfWork.OportunidadRepository.ObtenerTodas()
-                    .Select(o => new
-                    {
-                        o.Id,
-                        o.IdPotencialCliente,
-                        PotencialCliente = o.PotencialCliente,
-                        PersonaNombres = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Nombres : null,
-                        PersonaApellidos = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Apellidos : null,
-                        PersonaCorreo = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Correo : null,
-                        o.IdProducto,
-                        ProductoNombre = o.Producto != null ? o.Producto.Nombre : null,
-                        o.CodigoLanzamiento,
-                        o.Origen,
-                        o.Estado,
-                        FechaCreacion = o.FechaCreacion,
-                        UsuarioCreacion = o.UsuarioCreacion,
-                        FechaModificacion = o.FechaModificacion,
-                        UsuarioModificacion = o.UsuarioModificacion,
-
-                        // Último historialEstado
-                        UltimoHistorial = o.HistorialEstado
-                            .OrderByDescending(h => h.FechaCreacion)
-                            .ThenByDescending(h => h.Id)
-                            .Select(h => new {
-                                h.Id,
-                                h.IdEstado,
-                                h.IdAsesor,
-                                h.Observaciones,
-                                h.CantidadLlamadasContestadas,
-                                h.CantidadLlamadasNoContestadas,
-                                h.FechaCreacion,
-                                h.UsuarioCreacion,
-                                h.IdOcurrencia
-                            })
-                            .FirstOrDefault(),
-
-                        // HistorialInteraccion tipo 10
-                        HistorialInteraccionTipo10 = o.HistorialInteracciones
-                            .Where(hi => hi.IdTipo == 10)
-                            .OrderBy(hi => (hi.FechaRecordatorio == null) ? sqlDateSentinel : hi.FechaRecordatorio)
-                            .ThenByDescending(hi => hi.FechaCreacion)
-                            .Select(hi => new { hi.Id, hi.FechaRecordatorio })
-                            .FirstOrDefault(),
-
-                        // Calcular TotalOportunidadesPersona
-                        TotalOportunidadesPersona = _unitOfWork.OportunidadRepository
-                            .Query()
-                            .Count(otherO => otherO.IdPotencialCliente == o.IdPotencialCliente)
-                    })
-                    .ToList();
-
-                var lista = new List<VTAModVentaOportunidadDetalleDTO>();
+                var oportunidades = new List<VTAModVentaOportunidadDetalleDTO>();
                 var historiales = new List<VTAModVentaTHistorialEstadoDetalleDTO>();
 
-                foreach (var x in q)
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SP_ObtenerTodasOportunidadesRecordatorio";
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+                using var reader = cmd.ExecuteReader();
+
+                while (reader.Read())
                 {
+                    int opId = reader.IsDBNull(reader.GetOrdinal("OportunidadId")) ? 0 : reader.GetInt32(reader.GetOrdinal("OportunidadId"));
+                    int? idPotencial = reader.IsDBNull(reader.GetOrdinal("IdPotencialCliente")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdPotencialCliente"));
+
+                    string personaNombres = reader.IsDBNull(reader.GetOrdinal("Persona_Nombres")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Nombres"));
+                    string personaApellidos = reader.IsDBNull(reader.GetOrdinal("Persona_Apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Apellidos"));
+                    string personaCorreo = reader.IsDBNull(reader.GetOrdinal("Persona_Correo")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Correo"));
+
+                    int idProducto = reader.IsDBNull(reader.GetOrdinal("IdProducto")) ? 0 : reader.GetInt32(reader.GetOrdinal("IdProducto"));
+                    string productoNombre = reader.IsDBNull(reader.GetOrdinal("Producto_Nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("Producto_Nombre"));
+                    string codigoLanzamiento = reader.IsDBNull(reader.GetOrdinal("CodigoLanzamiento")) ? string.Empty : reader.GetString(reader.GetOrdinal("CodigoLanzamiento"));
+                    string origen = reader.IsDBNull(reader.GetOrdinal("Origen")) ? string.Empty : reader.GetString(reader.GetOrdinal("Origen"));
+                    bool estado = reader.IsDBNull(reader.GetOrdinal("Estado")) ? true : reader.GetBoolean(reader.GetOrdinal("Estado"));
+                    DateTime fechaCreacion = reader.IsDBNull(reader.GetOrdinal("Oportunidad_FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("Oportunidad_FechaCreacion"));
+                    string usuarioCreacion = reader.IsDBNull(reader.GetOrdinal("Oportunidad_UsuarioCreacion")) ? string.Empty : reader.GetString(reader.GetOrdinal("Oportunidad_UsuarioCreacion"));
+
+                    int totalOportunidadesPersona = reader.IsDBNull(reader.GetOrdinal("TotalOportunidadesPersona")) ? 0 : reader.GetInt32(reader.GetOrdinal("TotalOportunidadesPersona"));
+
                     var dto = new VTAModVentaOportunidadDetalleDTO
                     {
-                        Id = x.Id,
-                        IdPotencialCliente = x.IdPotencialCliente,
-                        PersonaNombre = $"{(x.PersonaNombres ?? "")} {(x.PersonaApellidos ?? "")}".Trim(),
-                        PersonaCorreo = x.PersonaCorreo ?? string.Empty,
-                        IdProducto = x.IdProducto,
-                        ProductoNombre = x.ProductoNombre ?? string.Empty,
-                        CodigoLanzamiento = x.CodigoLanzamiento,
-                        Origen = x.Origen,
-                        Estado = x.Estado,
-                        TotalOportunidadesPersona = x.TotalOportunidadesPersona,
-                        FechaCreacion = x.FechaCreacion,
-                        UsuarioCreacion = x.UsuarioCreacion ?? string.Empty,
+                        Id = opId,
+                        IdPotencialCliente = idPotencial ?? 0,
+                        PersonaNombre = $"{personaNombres} {personaApellidos}".Trim(),
+                        PersonaCorreo = personaCorreo ?? string.Empty,
+                        IdProducto = idProducto,
+                        ProductoNombre = productoNombre ?? string.Empty,
+                        CodigoLanzamiento = codigoLanzamiento ?? string.Empty,
+                        Origen = origen,
+                        Estado = estado,
+                        TotalOportunidadesPersona = totalOportunidadesPersona,
+                        FechaCreacion = fechaCreacion,
+                        UsuarioCreacion = usuarioCreacion ?? string.Empty
                     };
 
-                    if (x.UltimoHistorial != null)
+                    if (!reader.IsDBNull(reader.GetOrdinal("UltimoHist_Id")))
                     {
-                        dto.IdHistorialEstado = x.UltimoHistorial.Id;
-                        dto.IdEstado = x.UltimoHistorial.IdEstado;
-                        dto.NombreEstado = x.UltimoHistorial.IdEstado.HasValue
-                            ? (_unitOfWork.EstadoRepository.ObtenerPorId(x.UltimoHistorial.IdEstado.Value)?.Nombre ?? string.Empty)
-                            : string.Empty;
+                        var uhId = reader.GetInt32(reader.GetOrdinal("UltimoHist_Id"));
+                        dto.IdHistorialEstado = uhId;
+                        dto.IdEstado = reader.IsDBNull(reader.GetOrdinal("UltimoHist_IdEstado")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("UltimoHist_IdEstado"));
+
+                        dto.NombreEstado = reader.IsDBNull(reader.GetOrdinal("UltimoHist_NombreEstado"))
+                            ? string.Empty
+                            : reader.GetString(reader.GetOrdinal("UltimoHist_NombreEstado"));
 
                         var histDto = new VTAModVentaTHistorialEstadoDetalleDTO
                         {
-                            Id = x.UltimoHistorial.Id,
-                            IdOportunidad = x.Id,
-                            IdAsesor = x.UltimoHistorial.IdAsesor,
-                            IdEstado = x.UltimoHistorial.IdEstado,
-                            Observaciones = x.UltimoHistorial.Observaciones ?? string.Empty,
-                            CantidadLlamadasContestadas = x.UltimoHistorial.CantidadLlamadasContestadas,
-                            CantidadLlamadasNoContestadas = x.UltimoHistorial.CantidadLlamadasNoContestadas,
+                            Id = uhId,
+                            IdOportunidad = opId,
+                            IdAsesor = reader.IsDBNull(reader.GetOrdinal("UltimoHist_IdAsesor")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("UltimoHist_IdAsesor")),
+                            IdEstado = reader.IsDBNull(reader.GetOrdinal("UltimoHist_IdEstado")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("UltimoHist_IdEstado")),
+                            Observaciones = reader.IsDBNull(reader.GetOrdinal("UltimoHist_Observaciones")) ? string.Empty : reader.GetString(reader.GetOrdinal("UltimoHist_Observaciones")),
+                            CantidadLlamadasContestadas = reader.IsDBNull(reader.GetOrdinal("UltimoHist_CantidadLlamadasContestadas")) ? 0 : reader.GetInt32(reader.GetOrdinal("UltimoHist_CantidadLlamadasContestadas")),
+                            CantidadLlamadasNoContestadas = reader.IsDBNull(reader.GetOrdinal("UltimoHist_CantidadLlamadasNoContestadas")) ? 0 : reader.GetInt32(reader.GetOrdinal("UltimoHist_CantidadLlamadasNoContestadas")),
                             Estado = true,
-                            FechaCreacion = x.UltimoHistorial.FechaCreacion,
-                            UsuarioCreacion = x.UltimoHistorial.UsuarioCreacion ?? string.Empty,
+                            FechaCreacion = reader.IsDBNull(reader.GetOrdinal("UltimoHist_FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("UltimoHist_FechaCreacion")),
+                            UsuarioCreacion = reader.IsDBNull(reader.GetOrdinal("UltimoHist_UsuarioCreacion")) ? string.Empty : reader.GetString(reader.GetOrdinal("UltimoHist_UsuarioCreacion"))
                         };
 
                         historiales.Add(histDto);
                     }
 
-                    if (x.HistorialInteraccionTipo10 != null)
+                    if (!reader.IsDBNull(reader.GetOrdinal("HistInter_Id")))
                     {
-                        dto.IdHistorialInteraccion = x.HistorialInteraccionTipo10.Id;
-
-                        var fr = x.HistorialInteraccionTipo10.FechaRecordatorio;
-                        // Si FechaRecordatorio < ahora => NULL, si >= ahora => devolver la fecha
-                        dto.FechaRecordatorio = (fr.HasValue && fr.Value.ToUniversalTime() >= now) ? fr.Value : (DateTime?)null;
+                        dto.IdHistorialInteraccion = reader.GetInt32(reader.GetOrdinal("HistInter_Id"));
+                        var fr = reader.IsDBNull(reader.GetOrdinal("HistInter_FechaRecordatorio")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("HistInter_FechaRecordatorio"));
+                        dto.FechaRecordatorio = fr ?? (DateTime?)null;
                     }
 
-                    lista.Add(dto);
+                    oportunidades.Add(dto);
                 }
 
-                respuesta.Oportunidad = lista;
+                respuesta.Oportunidad = oportunidades;
                 respuesta.HistorialActual = historiales;
                 respuesta.Codigo = SR._C_SIN_ERROR;
                 respuesta.Mensaje = string.Empty;
@@ -749,6 +677,7 @@ namespace CapaNegocio.Servicio.Venta
                 respuesta.Codigo = SR._C_ERROR_CRITICO;
                 respuesta.Mensaje = ex.Message;
             }
+
             return respuesta;
         }
 

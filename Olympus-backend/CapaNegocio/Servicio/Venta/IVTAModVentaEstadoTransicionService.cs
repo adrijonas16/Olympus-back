@@ -1,11 +1,12 @@
 ﻿using Modelos.DTO.Configuracion;
+using Modelos.DTO.Venta;
 using System.Collections.Generic;
 
 namespace CapaNegocio.Servicio.Venta
 {
     public interface IVTAModVentaEstadoTransicionService
     {
-        List<VTAModVentaEstadoTransicionService.OcurrenciaDto> ObtenerOcurrenciasPermitidas(int IdOport);
-        CFGRespuestaGenericaDTO CrearHistorialConOcurrencia(int oportunidadId, int ocurrenciaId, string usuario);
+        VTAModVentaOcurrenciasPermitidasDTORPT ObtenerOcurrenciasPermitidas(int oportunidadId);
+        (CFGRespuestaGenericaDTO Respuesta, int NuevoHistorialId) CrearHistorialConOcurrencia(int oportunidadId, int ocurrenciaId, string usuario);
     }
 }

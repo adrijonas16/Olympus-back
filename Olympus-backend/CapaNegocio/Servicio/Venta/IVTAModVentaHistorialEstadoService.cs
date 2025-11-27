@@ -11,5 +11,6 @@ namespace CapaNegocio.Servicio.Venta
         CFGRespuestaGenericaDTO Actualizar(VTAModVentaTHistorialEstadoDTO dto);
         CFGRespuestaGenericaDTO Eliminar(int id);
         CFGRespuestaGenericaDTO InsertarConTipos(VTAModVentaHistorialEstadoCrearTipoDTO dto);
+        CFGRespuestaGenericaDTO IncrementarLlamadas(int idOportunidad, string tipo, string usuario = "SYSTEM");
     }
 }

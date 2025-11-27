@@ -242,6 +242,7 @@ namespace CapaNegocio.Servicio.Venta
                     }
                 }
 
+                // 1) Producto (primer resultset)
                 if (reader.HasRows && reader.Read())
                 {
                     respuesta.Producto = new VTAModVentaProductoDTO
@@ -255,6 +256,7 @@ namespace CapaNegocio.Servicio.Venta
                     };
                 }
 
+                // 2) Horarios
                 if (reader.NextResult())
                 {
                     var horarios = new List<VTAModVentaHorarioDTO>();
@@ -295,6 +297,7 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.Horarios = horarios;
                 }
 
+                // 3) Inversiones
                 if (reader.NextResult())
                 {
                     var inv = new List<VTAModVentaInversionDTO>();
@@ -307,9 +310,9 @@ namespace CapaNegocio.Servicio.Venta
                             IdOportunidad = GetVal(reader, "IdOportunidad") as int? ?? 0,
                             CostoTotal = GetVal(reader, "CostoTotal") as decimal? ?? 0m,
                             Moneda = GetVal(reader, "Moneda")?.ToString() ?? string.Empty,
-                            DescuentoPorcentaje = GetVal(reader, "DescuentoPorcentaje") as decimal? ?? 0m,
-                            DescuentoMonto = GetVal(reader, "DescuentoMonto") as decimal? ?? 0m,
-                            CostoOfrecido = GetVal(reader, "CostoOfrecido") as decimal? ?? 0m,
+                            DescuentoPorcentaje = GetVal(reader, "DescuentoPorcentaje") as decimal?,
+                            DescuentoMonto = GetVal(reader, "DescuentoMonto") as decimal?,
+                            CostoOfrecido = GetVal(reader, "CostoOfrecido") as decimal?,
                             Estado = GetVal(reader, "Estado") as bool? ?? true,
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
                             UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
@@ -318,6 +321,7 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.Inversiones = inv;
                 }
 
+                // 4) Estructuras
                 if (reader.NextResult())
                 {
                     var ecs = new List<VTAModVentaEstructuraCurricularDTO>();
@@ -336,6 +340,7 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.Estructuras = ecs;
                 }
 
+                // 5) Módulos
                 if (reader.NextResult())
                 {
                     var mods = new List<VTAModVentaEstructuraCurricularModuloDTO>();
@@ -366,6 +371,7 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.EstructuraModulos = mods;
                 }
 
+                // 6) Docentes por módulo
                 if (reader.NextResult())
                 {
                     var docs = new List<VTAModVentaEstructuraCurricularModuloDTO>();
@@ -384,6 +390,7 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.DocentesPorModulo = docs;
                 }
 
+                // 7) ProductoCertificados
                 if (reader.NextResult())
                 {
                     var pcs = new List<VTAModVentaProductoCertificadoDTO>();
@@ -394,6 +401,7 @@ namespace CapaNegocio.Servicio.Venta
                             Id = GetVal(reader, "IdProductoCertificado") as int? ?? 0,
                             IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
                             IdCertificado = GetVal(reader, "IdCertificado") as int? ?? 0,
+                            NombreCertificado = GetVal(reader, "NombreCertificado")?.ToString() ?? string.Empty, // <--- nombre
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
                             UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty,
                         });
@@ -401,6 +409,7 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.ProductoCertificados = pcs;
                 }
 
+                // 8) MetodoPagoProducto
                 if (reader.NextResult())
                 {
                     var mpps = new List<VTAModVentaMetodoPagoProductoDTO>();
@@ -411,6 +420,7 @@ namespace CapaNegocio.Servicio.Venta
                             Id = GetVal(reader, "IdMetodoPagoProducto") as int? ?? 0,
                             IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
                             IdMetodoPago = GetVal(reader, "IdMetodoPago") as int? ?? 0,
+                            NombreMetodoPago = GetVal(reader, "NombreMetodoPago")?.ToString() ?? string.Empty, // <--- nombre
                             Activo = GetVal(reader, "Activo") as bool? ?? true,
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
                             UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
@@ -419,6 +429,7 @@ namespace CapaNegocio.Servicio.Venta
                     respuesta.MetodosPago = mpps;
                 }
 
+                // 9) Beneficios
                 if (reader.NextResult())
                 {
                     var ben = new List<VTAModVentaBeneficioDTO>();
@@ -453,5 +464,6 @@ namespace CapaNegocio.Servicio.Venta
                 };
             }
         }
+
     }
 }

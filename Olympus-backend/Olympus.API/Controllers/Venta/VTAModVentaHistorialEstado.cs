@@ -4,6 +4,7 @@ using CapaNegocio.Servicio.Venta;
 using Microsoft.AspNetCore.Mvc;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
+using Modelos.Entidades;
 using System;
 using System.Collections.Generic;
 
@@ -129,58 +130,68 @@ namespace Olympus.API.Controllers.Venta
 
         /// Devuelve las ocurrencias disponibles para la oportunidad, con la bandera Allowed/Permitida.
         /// GET /api/VTAModVentaHistorialEstado/{oportunidadId}/ocurrenciasDisponibles
-        [HttpGet("{oportunidadId:int}/ocurrenciasDisponibles")]
-        public IActionResult ObtenerOcurrenciasDisponibles(int oportunidadId)
+        [HttpGet("OcurrenciasPermitidas/{IdOportunidad}")]
+        public VTAModVentaOcurrenciasPermitidasDTORPT OcurrenciasPermitidas(int IdOportunidad)
         {
+            var respuesta = new VTAModVentaOcurrenciasPermitidasDTORPT();
             try
             {
-                var ocurrencias = _estadoTransicionService.ObtenerOcurrenciasPermitidas(oportunidadId);
-
-                return Ok(new
-                {
-                    Ocurrencias = ocurrencias,
-                    Codigo = SR._C_SIN_ERROR,
-                    Mensaje = string.Empty
-                });
+                respuesta = _estadoTransicionService.ObtenerOcurrenciasPermitidas(IdOportunidad);
             }
             catch (Exception ex)
             {
                 _errorLogService.RegistrarError(ex);
-                return StatusCode(500, new { Codigo = SR._C_ERROR_CRITICO, Mensaje = ex.Message });
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
             }
+            return respuesta;
         }
 
         /// Crea un HistorialEstado a partir de la ocurrencia seleccionada.
         /// POST /api/VTAModVentaHistorialEstado/{oportunidadId}/crear-con-ocurrencia
         /// Body: { "ocurrenciaId": 2, "usuario": "j.ramirez" }
-        [HttpPost("{oportunidadId:int}/crearConOcurrencia")]
-        public IActionResult CrearConOcurrencia(int oportunidadId, [FromBody] CrearHistorialRequest request)
+        [HttpPost("CrearHistorialConOcurrencia/{IdOportunidad}")]
+        public IActionResult CrearHistorialConOcurrencia(int IdOportunidad, [FromBody] VTAModVentaCrearHistorialDTO request)
         {
-            if (request == null)
-                return BadRequest(new CFGRespuestaGenericaDTO { Codigo = SR._C_ERROR_CONTROLADO, Mensaje = "Cuerpo de solicitud vacío" });
-
             try
             {
-                var resp = _estadoTransicionService.CrearHistorialConOcurrencia(oportunidadId, request.OcurrenciaId, request.Usuario);
-                if (resp == null)
-                    return StatusCode(500, new CFGRespuestaGenericaDTO { Codigo = SR._C_ERROR_CRITICO, Mensaje = "Respuesta nula del servicio" });
+                var (respuesta, nuevoId) = _estadoTransicionService.CrearHistorialConOcurrencia(IdOportunidad, request.OcurrenciaId, request.Usuario);
+                return Ok(new
+                {
+                    Codigo = respuesta.Codigo,
+                    Mensaje = respuesta.Mensaje,
+                    NuevoHistorialId = nuevoId
+                });
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                return Problem(ex.Message);
+            }
+        }
 
+        [HttpPost("{IdOportunidad}/IncrementarLlamadas")]
+        public IActionResult IncrementarLlamadas(int IdOportunidad, [FromBody] VTAModVentaIncrementarLlamadaDTO request)
+        {
+            try
+            {
+                if (request == null)
+                    return BadRequest("request is required");
+
+                var tipo = (request.Tipo ?? string.Empty).Trim().ToUpper();
+                var usuario = string.IsNullOrWhiteSpace(request.Usuario) ? "SYSTEM" : request.Usuario;
+
+                var resp = _historialEstadoService.IncrementarLlamadas(IdOportunidad, tipo, usuario);
                 if (resp.Codigo == SR._C_SIN_ERROR)
                     return Ok(resp);
-
                 return BadRequest(resp);
             }
             catch (Exception ex)
             {
                 _errorLogService.RegistrarError(ex);
-                return StatusCode(500, new CFGRespuestaGenericaDTO { Codigo = SR._C_ERROR_CRITICO, Mensaje = ex.Message });
+                return Problem(detail: ex.Message);
             }
         }
 
-        public class CrearHistorialRequest
-        {
-            public int OcurrenciaId { get; set; }
-            public string Usuario { get; set; } = "SYSTEM";
-        }
     }
 }

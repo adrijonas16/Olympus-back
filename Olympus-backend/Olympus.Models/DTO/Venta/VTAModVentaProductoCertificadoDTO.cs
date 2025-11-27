@@ -12,6 +12,7 @@ namespace Modelos.DTO.Venta
         public int Id { get; set; }
         public int IdProducto { get; set; }
         public int IdCertificado { get; set; }
+        public string NombreCertificado { get; set; } = string.Empty;
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
