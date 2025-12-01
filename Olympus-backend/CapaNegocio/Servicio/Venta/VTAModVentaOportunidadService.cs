@@ -10,6 +10,7 @@ using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -260,188 +261,142 @@ namespace CapaNegocio.Servicio.Venta
 
             try
             {
-                var oportunidadQuery = _unitOfWork.OportunidadRepository
-                    .Query()
-                    .AsNoTracking()
-                    .Include(o => o.PotencialCliente)
-                        .ThenInclude(pc => pc.Persona)
-                    .Include(o => o.Producto)
-                    .Where(o => o.Id == id);
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SP_ObtenerDetalleOportunidadPorId";
 
-                var oportunidad = oportunidadQuery
-                    .Select(o => new VTAModVentaOportunidadDetalleDTO
-                    {
-                        Id = o.Id,
-                        IdPotencialCliente = o.IdPotencialCliente,
-                        PersonaNombre = o.PotencialCliente != null && o.PotencialCliente.Persona != null
-                        ? ((o.PotencialCliente.Persona.Nombres ?? string.Empty) + " " + (o.PotencialCliente.Persona.Apellidos ?? string.Empty)).Trim()
-                        : string.Empty,
-                        IdProducto = o.IdProducto,
-                        ProductoNombre = o.Producto != null ? o.Producto.Nombre : string.Empty,
-                        CodigoLanzamiento = o.CodigoLanzamiento,
-                        Origen = o.Origen,
-                        Estado = o.Estado,
-                        FechaCreacion = o.FechaCreacion,
-                        UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
-                        FechaModificacion = o.FechaModificacion,
-                        UsuarioModificacion = o.UsuarioModificacion ?? string.Empty,
-                        TotalOportunidadesPersona = 0,
-                    })
-                    .FirstOrDefault();
+                var p = cmd.CreateParameter();
+                p.ParameterName = "@IdOportunidad";
+                p.DbType = DbType.Int32;
+                p.Value = id;
+                cmd.Parameters.Add(p);
 
-                if (oportunidad == null)
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var reader = cmd.ExecuteReader();
+
+                var ord = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                int Ord(DbDataReader r, string name)
                 {
-                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
-                    return respuesta;
+                    if (!ord.TryGetValue(name, out var i))
+                    {
+                        i = r.GetOrdinal(name);
+                        ord[name] = i;
+                    }
+                    return i;
                 }
 
-                // Obtener el último HistorialEstado creado
-                var ultimoHistorial = _unitOfWork.HistorialEstadoRepository
-                    .Query()
-                    .AsNoTracking()
-                    .Where(h => h.IdOportunidad == id)
-                    .OrderByDescending(h => h.FechaCreacion)
-                    .ThenByDescending(h => h.Id)
-                    .Select(h => new
-                    {
-                        h.Id,
-                        h.IdOportunidad,
-                        h.IdAsesor,
-                        h.IdEstado,
-                        h.Observaciones,
-                        h.CantidadLlamadasContestadas,
-                        h.CantidadLlamadasNoContestadas,
-                        h.Estado,
-                        h.FechaCreacion,
-                        h.FechaModificacion,
-                        h.UsuarioCreacion,
-                        h.UsuarioModificacion
-                    })
-                    .FirstOrDefault();
-
-                VTAModVentaTHistorialEstadoDetalleDTO? historialDto = null;
-
-                if (ultimoHistorial != null)
+                if (reader.Read())
                 {
-                    // Asesor
-                    VTAModVentaTAsesorDTO? asesorDto = null;
-                    if (ultimoHistorial.IdAsesor.HasValue)
+                    // Leer columnas oportunudad/principal
+                    int opId = reader.IsDBNull(Ord(reader, "OportunidadId")) ? 0 : reader.GetInt32(Ord(reader, "OportunidadId"));
+                    int? idPotencial = reader.IsDBNull(Ord(reader, "IdPotencialCliente")) ? (int?)null : reader.GetInt32(Ord(reader, "IdPotencialCliente"));
+
+                    string personaNombres = reader.IsDBNull(Ord(reader, "Persona_Nombres")) ? string.Empty : reader.GetString(Ord(reader, "Persona_Nombres"));
+                    string personaApellidos = reader.IsDBNull(Ord(reader, "Persona_Apellidos")) ? string.Empty : reader.GetString(Ord(reader, "Persona_Apellidos"));
+
+                    int idProducto = reader.IsDBNull(Ord(reader, "IdProducto")) ? 0 : reader.GetInt32(Ord(reader, "IdProducto"));
+                    string productoNombre = reader.IsDBNull(Ord(reader, "Producto_Nombre")) ? string.Empty : reader.GetString(Ord(reader, "Producto_Nombre"));
+                    string codigoLanzamiento = reader.IsDBNull(Ord(reader, "CodigoLanzamiento")) ? string.Empty : reader.GetString(Ord(reader, "CodigoLanzamiento"));
+                    string origen = reader.IsDBNull(Ord(reader, "Origen")) ? string.Empty : reader.GetString(Ord(reader, "Origen"));
+                    bool estado = reader.IsDBNull(Ord(reader, "Estado")) ? true : reader.GetBoolean(Ord(reader, "Estado"));
+                    DateTime fechaCreacion = reader.IsDBNull(Ord(reader, "Oportunidad_FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(Ord(reader, "Oportunidad_FechaCreacion"));
+                    string usuarioCreacion = reader.IsDBNull(Ord(reader, "Oportunidad_UsuarioCreacion")) ? string.Empty : reader.GetString(Ord(reader, "Oportunidad_UsuarioCreacion"));
+
+                    int totalHistSinAsesor = reader.IsDBNull(Ord(reader, "TotalHistorialesSinAsesor")) ? 0 : reader.GetInt32(Ord(reader, "TotalHistorialesSinAsesor"));
+
+                    var oportunidadDto = new VTAModVentaOportunidadDetalleDTO
                     {
-                        var asesor = _unitOfWork.AsesorRepository
-                            .Query()
-                            .AsNoTracking()
-                            .Where(a => a.Id == ultimoHistorial.IdAsesor.Value)
-                            .Select(a => new { a.Id, a.Nombres, a.Apellidos, a.Correo, a.Celular })
-                            .FirstOrDefault();
-
-                        if (asesor != null)
-                        {
-                            asesorDto = new VTAModVentaTAsesorDTO
-                            {
-                                Id = asesor.Id,
-                                Nombres = asesor.Nombres ?? string.Empty,
-                                Apellidos = asesor.Apellidos ?? string.Empty,
-                                Correo = asesor.Correo ?? string.Empty,
-                                Celular = asesor.Celular ?? string.Empty
-                            };
-                        }
-                    }
-
-                    // Estado referencia
-                    VTAModVentaTEstadoDTO? estadoRefDto = null;
-                    if (ultimoHistorial.IdEstado.HasValue)
-                    {
-                        var estadoRef = _unitOfWork.EstadoRepository
-                            .Query()
-                            .AsNoTracking()
-                            .Where(e => e.Id == ultimoHistorial.IdEstado.Value)
-                            .Select(e => new { e.Id, e.Nombre, IdTipo = (int?)e.IdTipo })
-                            .FirstOrDefault();
-
-                        if (estadoRef != null)
-                        {
-                            string tipoNombre = string.Empty;
-                            string tipoCategoria = string.Empty;
-
-                            if (estadoRef.IdTipo.HasValue)
-                            {
-                                var tipo = _unitOfWork.TipoRepository
-                                    .Query()
-                                    .AsNoTracking()
-                                    .Where(t => t.Id == estadoRef.IdTipo.Value)
-                                    .Select(t => new { t.Id, t.Nombre, t.Categoria })
-                                    .FirstOrDefault();
-
-                                if (tipo != null)
-                                {
-                                    tipoNombre = tipo.Nombre ?? string.Empty;
-                                    tipoCategoria = tipo.Categoria ?? string.Empty;
-                                }
-                            }
-
-                            estadoRefDto = new VTAModVentaTEstadoDTO
-                            {
-                                Id = estadoRef.Id,
-                                Nombre = estadoRef.Nombre ?? string.Empty,
-                                IdTipo = estadoRef.IdTipo ?? 0,
-                                TipoNombre = tipoNombre,
-                                TipoCategoria = tipoCategoria
-                            };
-                        }
-                    }
-
-                    // DTO final
-                    historialDto = new VTAModVentaTHistorialEstadoDetalleDTO
-                    {
-                        Id = ultimoHistorial.Id,
-                        IdOportunidad = ultimoHistorial.IdOportunidad,
-                        IdAsesor = ultimoHistorial.IdAsesor,
-                        IdEstado = ultimoHistorial.IdEstado,
-                        Observaciones = ultimoHistorial.Observaciones ?? string.Empty,
-                        CantidadLlamadasContestadas = ultimoHistorial.CantidadLlamadasContestadas,
-                        CantidadLlamadasNoContestadas = ultimoHistorial.CantidadLlamadasNoContestadas,
-                        Estado = ultimoHistorial.Estado,
-                        FechaCreacion = ultimoHistorial.FechaCreacion,
-                        FechaModificacion = ultimoHistorial.FechaModificacion,
-                        UsuarioCreacion = ultimoHistorial.UsuarioCreacion ?? string.Empty,
-                        UsuarioModificacion = ultimoHistorial.UsuarioModificacion
+                        Id = opId,
+                        IdPotencialCliente = idPotencial ?? 0,
+                        PersonaNombre = $"{personaNombres} {personaApellidos}".Trim(),
+                        PersonaCorreo = reader.IsDBNull(Ord(reader, "Persona_Correo")) ? string.Empty : reader.GetString(Ord(reader, "Persona_Correo")),
+                        IdProducto = idProducto,
+                        ProductoNombre = productoNombre ?? string.Empty,
+                        CodigoLanzamiento = codigoLanzamiento ?? string.Empty,
+                        Origen = origen,
+                        Estado = estado,
+                        TotalOportunidadesPersona = totalHistSinAsesor,
+                        FechaCreacion = fechaCreacion,
+                        UsuarioCreacion = usuarioCreacion ?? string.Empty
                     };
 
-                    historialDto.Asesor = asesorDto;
-                    historialDto.EstadoReferencia = estadoRefDto;
+                    // Si hay UltimoHist_Id, construir historial DTO
+                    if (!reader.IsDBNull(Ord(reader, "UltimoHist_Id")))
+                    {
+                        var histDto = new VTAModVentaTHistorialEstadoDetalleDTO
+                        {
+                            Id = reader.GetInt32(Ord(reader, "UltimoHist_Id")),
+                            IdOportunidad = reader.IsDBNull(Ord(reader, "UltimoHist_IdOportunidad")) ? opId : reader.GetInt32(Ord(reader, "UltimoHist_IdOportunidad")),
+                            IdAsesor = reader.IsDBNull(Ord(reader, "UltimoHist_IdAsesor")) ? (int?)null : reader.GetInt32(Ord(reader, "UltimoHist_IdAsesor")),
+                            IdEstado = reader.IsDBNull(Ord(reader, "UltimoHist_IdEstado")) ? (int?)null : reader.GetInt32(Ord(reader, "UltimoHist_IdEstado")),
+                            Observaciones = reader.IsDBNull(Ord(reader, "UltimoHist_Observaciones")) ? string.Empty : reader.GetString(Ord(reader, "UltimoHist_Observaciones")),
+                            CantidadLlamadasContestadas = reader.IsDBNull(Ord(reader, "UltimoHist_CantidadLlamadasContestadas")) ? (int?)0 : reader.GetInt32(Ord(reader, "UltimoHist_CantidadLlamadasContestadas")),
+                            CantidadLlamadasNoContestadas = reader.IsDBNull(Ord(reader, "UltimoHist_CantidadLlamadasNoContestadas")) ? (int?)0 : reader.GetInt32(Ord(reader, "UltimoHist_CantidadLlamadasNoContestadas")),
+                            Estado = true,
+                            FechaCreacion = reader.IsDBNull(Ord(reader, "UltimoHist_FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(Ord(reader, "UltimoHist_FechaCreacion")),
+                            FechaModificacion = reader.IsDBNull(Ord(reader, "UltimoHist_FechaModificacion")) ? (DateTime?)null : reader.GetDateTime(Ord(reader, "UltimoHist_FechaModificacion")),
+                            UsuarioCreacion = reader.IsDBNull(Ord(reader, "UltimoHist_UsuarioCreacion")) ? string.Empty : reader.GetString(Ord(reader, "UltimoHist_UsuarioCreacion")),
+                            UsuarioModificacion = reader.IsDBNull(Ord(reader, "UltimoHist_UsuarioModificacion")) ? string.Empty : reader.GetString(Ord(reader, "UltimoHist_UsuarioModificacion"))
+                        };
 
-                    respuesta.HistorialActual.Add(historialDto);
+                        // Asesor info
+                        if (!reader.IsDBNull(Ord(reader, "Asesor_Id")))
+                        {
+                            var asesorDto = new VTAModVentaTAsesorDTO
+                            {
+                                Id = reader.GetInt32(Ord(reader, "Asesor_Id")),
+                                Nombres = reader.IsDBNull(Ord(reader, "Asesor_Nombres")) ? string.Empty : reader.GetString(Ord(reader, "Asesor_Nombres")),
+                                Apellidos = reader.IsDBNull(Ord(reader, "Asesor_Apellidos")) ? string.Empty : reader.GetString(Ord(reader, "Asesor_Apellidos")),
+                                Correo = reader.IsDBNull(Ord(reader, "Asesor_Correo")) ? string.Empty : reader.GetString(Ord(reader, "Asesor_Correo")),
+                                Celular = reader.IsDBNull(Ord(reader, "Asesor_Celular")) ? string.Empty : reader.GetString(Ord(reader, "Asesor_Celular"))
+                            };
+                            histDto.Asesor = asesorDto;
+                        }
+
+                        // Estado referencia y Tipo
+                        if (!reader.IsDBNull(Ord(reader, "Estado_Id")))
+                        {
+                            var estadoDto = new VTAModVentaTEstadoDTO
+                            {
+                                Id = reader.GetInt32(Ord(reader, "Estado_Id")),
+                                Nombre = reader.IsDBNull(Ord(reader, "Estado_Nombre")) ? string.Empty : reader.GetString(Ord(reader, "Estado_Nombre")),
+                                IdTipo = reader.IsDBNull(Ord(reader, "Estado_IdTipo")) ? 0 : reader.GetInt32(Ord(reader, "Estado_IdTipo")),
+                                TipoNombre = reader.IsDBNull(Ord(reader, "Tipo_Nombre")) ? string.Empty : reader.GetString(Ord(reader, "Tipo_Nombre")),
+                                TipoCategoria = reader.IsDBNull(Ord(reader, "Tipo_Categoria")) ? string.Empty : reader.GetString(Ord(reader, "Tipo_Categoria"))
+                            };
+                            histDto.EstadoReferencia = estadoDto;
+                        }
+
+                        respuesta.HistorialActual.Add(histDto);
+                    }
+
+                    // Add oportunidad to response
+                    respuesta.Oportunidad.Add(oportunidadDto);
+                    respuesta.Codigo = SR._C_SIN_ERROR;
+                    respuesta.Mensaje = string.Empty;
+                }
+                else
+                {
+                    // No encontrado
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
                 }
 
-                // Calcular total de historialEstados del mismo IdPotencialCliente donde IdAsesor es NULL
-                var totalHistorialesSinAsesor = _unitOfWork.HistorialEstadoRepository
-                    .Query()
-                    .AsNoTracking()
-                    .Where(h => h.IdAsesor == null
-                                && _unitOfWork.OportunidadRepository
-                                      .Query()
-                                      .Any(o => o.Id == h.IdOportunidad && o.IdPotencialCliente == oportunidad.IdPotencialCliente))
-                    .Count();
-
-                // Rellenar TotalOportunidadesPersona y UltimoHistorial 
-                oportunidad.TotalOportunidadesPersona = totalHistorialesSinAsesor;
-
-                // Agregar a la respuesta
-                respuesta.Oportunidad.Add(oportunidad);
-
-                respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = string.Empty;
+                return respuesta;
             }
             catch (Exception ex)
             {
                 _errorLogService.RegistrarError(ex);
-                respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = ex.Message;
+                return new VTAModVentaOportunidadDetalleDTORPT
+                {
+                    Codigo = SR._C_ERROR_CRITICO,
+                    Mensaje = ex.Message
+                };
             }
-
-            return respuesta;
         }
+
 
         public VTAModVentaTHistorialInteraccionDTORPT ObtenerHistorialInteraccionesPorOportunidad(int id, int? idTipo = null)
         {
