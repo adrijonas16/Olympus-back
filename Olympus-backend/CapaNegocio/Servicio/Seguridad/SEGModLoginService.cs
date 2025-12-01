@@ -94,7 +94,7 @@ public class SEGModLoginService : ISEGModLoginService
         {
             new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
             new Claim(ClaimTypes.Name, usuario.Nombre),
-            new Claim(ClaimTypes.Role, usuario.Rol ?? "Usuario"),
+            new Claim(ClaimTypes.Role, usuario.Rol?.NombreRol ?? "Usuario"),
             new Claim("ip", ip ?? string.Empty)
         };
 

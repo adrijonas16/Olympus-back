@@ -10,7 +10,9 @@
 
         public string Password { get; set; } = null!;
 
-        public string Rol { get; set; } = null!;
+        public int IdRol { get; set; }
+
+        public Rol Rol { get; set; } = null!;
 
         public DateTime FechaCreacion { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using CapaDatos.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Modelos.Entidades;
 
 namespace CapaDatos.Repositorio.Configuracion
@@ -37,7 +38,9 @@ namespace CapaDatos.Repositorio.Configuracion
 
         public Usuario? ObtenerPorCorreo(string correo)
         {
-            return _context.Usuario.FirstOrDefault(u => u.Correo == correo);
+            return _context.Usuario
+                           .Include(u => u.Rol)
+                           .FirstOrDefault(u => u.Correo == correo);
         }
     }
 }

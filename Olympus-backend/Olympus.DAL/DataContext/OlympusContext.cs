@@ -45,6 +45,7 @@ public partial class OlympusContext : DbContext
     public virtual DbSet<CobranzaPago> CobranzaPago { get; set; }
     public virtual DbSet<CobranzaPagoAplicacion> CobranzaPagoAplicacion { get; set; }
     public virtual DbSet<CobranzaPlan> CobranzaPlan { get; set; }
+    public virtual DbSet<Rol> Rol { get; set; }
     public IDbConnection CreateConnection()
     {
         return new SqlConnection(Database.GetConnectionString());
@@ -67,12 +68,17 @@ public partial class OlympusContext : DbContext
             entity.Property(e => e.FechaCreacion)
                   .HasDefaultValueSql("(getdate())")
                   .HasColumnType("datetime");
+
             entity.Property(e => e.Nombre).IsRequired();
             entity.Property(e => e.UsuarioCreacion).HasColumnType("int");
             entity.Property(e => e.UsuarioModificacion).HasColumnType("int");
             entity.Property(e => e.Password).HasMaxLength(255);
-            entity.Property(e => e.Rol).HasMaxLength(50);
+            entity.HasOne(u => u.Rol)
+                  .WithMany(r => r.Usuarios)
+                  .HasForeignKey(u => u.IdRol)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
+
 
         // Configuración de ErrorLog
         modelBuilder.Entity<ErrorLog>(entity =>
@@ -1789,6 +1795,36 @@ public partial class OlympusContext : DbContext
             entity.HasIndex(e => e.IdCuota).HasDatabaseName("IX_CobranzaPagoAplicacion_Cuota");
         });
 
+        modelBuilder.Entity<Rol>(entity =>
+        {
+            entity.ToTable("Rol", schema: "dbo");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.NombreRol)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .IsRequired();
+
+            entity.Property(e => e.Estado)
+                .HasColumnName("Estado")
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.FechaCreacion)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.FechaModificacion)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+
+            entity.Property(e => e.UsuarioCreacion)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.Property(e => e.UsuarioModificacion)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
