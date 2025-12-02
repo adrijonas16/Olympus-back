@@ -556,6 +556,9 @@ namespace CapaNegocio.Servicio.Venta
                     string personaNombres = reader.IsDBNull(reader.GetOrdinal("Persona_Nombres")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Nombres"));
                     string personaApellidos = reader.IsDBNull(reader.GetOrdinal("Persona_Apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Apellidos"));
                     string personaCorreo = reader.IsDBNull(reader.GetOrdinal("Persona_Correo")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Correo"));
+                    
+                    int? personaPaisId = reader.IsDBNull(reader.GetOrdinal("Persona_PaisId")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("Persona_PaisId"));
+                    string personaPaisNombre = reader.IsDBNull(reader.GetOrdinal("Persona_PaisNombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_PaisNombre"));
 
                     int idProducto = reader.IsDBNull(reader.GetOrdinal("IdProducto")) ? 0 : reader.GetInt32(reader.GetOrdinal("IdProducto"));
                     string productoNombre = reader.IsDBNull(reader.GetOrdinal("Producto_Nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("Producto_Nombre"));
@@ -576,6 +579,8 @@ namespace CapaNegocio.Servicio.Venta
                         IdProducto = idProducto,
                         ProductoNombre = productoNombre ?? string.Empty,
                         CodigoLanzamiento = codigoLanzamiento ?? string.Empty,
+                        PersonaPaisId = personaPaisId,
+                        PersonaPaisNombre = personaPaisNombre ?? string.Empty,
                         Origen = origen,
                         Estado = estado,
                         TotalOportunidadesPersona = totalOportunidadesPersona,
