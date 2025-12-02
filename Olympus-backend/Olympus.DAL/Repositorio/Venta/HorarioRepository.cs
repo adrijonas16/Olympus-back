@@ -37,7 +37,7 @@ namespace CapaDatos.Repositorio.Venta
         public Horario? ObtenerPorId(int id)
         {
             return _context.Horario
-                .Include(h => h.Producto)
+                .Include(h => h.EstructuraCurricularModulo)
                 .FirstOrDefault(h => h.Id == id);
         }
 

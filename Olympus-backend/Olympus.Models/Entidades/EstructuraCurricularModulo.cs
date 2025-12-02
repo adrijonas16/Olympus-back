@@ -28,5 +28,7 @@ namespace Modelos.Entidades
         // Navegaciones
         public EstructuraCurricular? EstructuraCurricular { get; set; }
         public Modulo? Modulo { get; set; }
+        public List<Horario> Horarios { get; set; } = new List<Horario>();
+
     }
 }

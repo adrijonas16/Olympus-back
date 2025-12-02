@@ -289,7 +289,6 @@ namespace CapaNegocio.Servicio.Venta
 
                 if (reader.Read())
                 {
-                    // Leer columnas oportunudad/principal
                     int opId = reader.IsDBNull(Ord(reader, "OportunidadId")) ? 0 : reader.GetInt32(Ord(reader, "OportunidadId"));
                     int? idPotencial = reader.IsDBNull(Ord(reader, "IdPotencialCliente")) ? (int?)null : reader.GetInt32(Ord(reader, "IdPotencialCliente"));
 

@@ -33,12 +33,10 @@ namespace CapaNegocio.Servicio.Venta
                 var lista = _unitOfWork.HorarioRepository
                     .Query()                                 // IQueryable<Horario>
                     .AsNoTracking()
-                    .Include(h => h.Producto)
                     .Select(h => new VTAModVentaHorarioDTO
                     {
                         Id = h.Id,
-                        IdProducto = h.IdProducto,
-                        ProductoNombre = h.Producto != null ? (h.Producto.Nombre ?? string.Empty) : string.Empty,
+                        IdEstructuraCurricularModulo = h.IdEstructuraCurricularModulo,
                         Dia = h.Dia ?? string.Empty,
                         HoraInicio = h.HoraInicio,
                         HoraFin = h.HoraFin,
@@ -73,13 +71,12 @@ namespace CapaNegocio.Servicio.Venta
                 var ent = _unitOfWork.HorarioRepository
                     .Query()
                     .AsNoTracking()
-                    .Include(h => h.Producto)
+                    .Include(h => h.EstructuraCurricularModulo)
                     .Where(h => h.Id == id)
                     .Select(h => new VTAModVentaHorarioDTO
                     {
                         Id = h.Id,
-                        IdProducto = h.IdProducto,
-                        ProductoNombre = h.Producto != null ? (h.Producto.Nombre ?? string.Empty) : string.Empty,
+                        IdEstructuraCurricularModulo = h.IdEstructuraCurricularModulo,
                         Dia = h.Dia ?? string.Empty,
                         HoraInicio = h.HoraInicio,
                         HoraFin = h.HoraFin,
@@ -107,18 +104,9 @@ namespace CapaNegocio.Servicio.Venta
             var respuesta = new CFGRespuestaGenericaDTO();
             try
             {
-                // Validar que exista el Producto
-                var producto = _unitOfWork.ProductoRepository.ObtenerPorId(dto.IdProducto);
-                if (producto == null)
-                {
-                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                    respuesta.Mensaje = "Producto no encontrado.";
-                    return respuesta;
-                }
-
                 var ent = new Horario
                 {
-                    IdProducto = dto.IdProducto,
+                    IdEstructuraCurricularModulo = dto.IdEstructuraCurricularModulo,
                     Dia = dto.Dia,
                     HoraInicio = dto.HoraInicio,
                     HoraFin = dto.HoraFin,
@@ -159,16 +147,7 @@ namespace CapaNegocio.Servicio.Venta
                     return respuesta;
                 }
 
-                // Validar Producto
-                var producto = _unitOfWork.ProductoRepository.ObtenerPorId(dto.IdProducto);
-                if (producto == null)
-                {
-                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                    respuesta.Mensaje = "Producto no encontrado.";
-                    return respuesta;
-                }
-
-                ent.IdProducto = dto.IdProducto;
+                ent.IdEstructuraCurricularModulo = dto.IdEstructuraCurricularModulo;
                 ent.Dia = dto.Dia;
                 ent.HoraInicio = dto.HoraInicio;
                 ent.HoraFin = dto.HoraFin;

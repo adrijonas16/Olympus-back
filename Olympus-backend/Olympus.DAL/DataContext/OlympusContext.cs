@@ -959,10 +959,6 @@ public partial class OlympusContext : DbContext
             entity.ToTable("Horario", schema: "adm");
             entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.IdProducto)
-                  .HasColumnName("IdProducto")
-                  .IsRequired();
-
             entity.Property(e => e.Dia)
                   .HasMaxLength(50)
                   .IsUnicode(false)
@@ -1004,15 +1000,17 @@ public partial class OlympusContext : DbContext
                   .IsUnicode(false)
                   .IsRequired();
 
-            // Relación con Producto (ON DELETE CASCADE según DDL)
-            entity.HasOne(h => h.Producto)
-                  .WithMany() // si Producto tiene colección (eg. Product.Horarios) cámbialo por .WithMany(p => p.Horarios)
-                  .HasForeignKey(h => h.IdProducto)
-                  .HasConstraintName("FK_Horario_Producto")
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity.Property<int?>("IdEstructuraCurricularModulo")
+                  .HasColumnName("IdEstructuraCurricularModulo");
 
-            // Índice para consultas por producto
-            entity.HasIndex(h => h.IdProducto).HasDatabaseName("IX_Horario_IdProducto");
+            entity.HasOne(h => h.EstructuraCurricularModulo) 
+                  .WithMany(ecm => ecm.Horarios) 
+                  .HasForeignKey("IdEstructuraCurricularModulo")
+                  .HasConstraintName("FK_Horario_EstructuraCurricularModulo")
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex("IdEstructuraCurricularModulo")
+                  .HasDatabaseName("IX_Horario_IdEstructuraCurricularModulo");
         });
 
         // Configuración InversionDescuento
@@ -1488,13 +1486,6 @@ public partial class OlympusContext : DbContext
                   .IsUnicode(false);
 
             // Relaciones
-
-            // Horarios
-            entity.HasMany(p => p.Horarios)
-                  .WithOne(h => h.Producto)
-                  .HasForeignKey(h => h.IdProducto)
-                  .HasConstraintName("FK_Horario_Producto")
-                  .OnDelete(DeleteBehavior.Restrict);
 
             // Inversiones
             entity.HasMany(p => p.Inversiones)

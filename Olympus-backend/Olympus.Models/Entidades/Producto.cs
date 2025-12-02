@@ -13,6 +13,7 @@ namespace Modelos.Entidades
         public string Nombre { get; set; } = string.Empty;
         public string? CodigoLanzamiento { get; set; } = string.Empty;
         public DateTime? FechaInicio { get; set; }
+        public DateTime? FechaFin { get; set; }
         public DateTime? FechaPresentacion { get; set; }
         public string? DatosImportantes { get; set; } = string.Empty;
         public bool Estado { get; set; } = true;
