@@ -556,7 +556,7 @@ namespace CapaNegocio.Servicio.Venta
                     string personaNombres = reader.IsDBNull(reader.GetOrdinal("Persona_Nombres")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Nombres"));
                     string personaApellidos = reader.IsDBNull(reader.GetOrdinal("Persona_Apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Apellidos"));
                     string personaCorreo = reader.IsDBNull(reader.GetOrdinal("Persona_Correo")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_Correo"));
-                    
+
                     int? personaPaisId = reader.IsDBNull(reader.GetOrdinal("Persona_PaisId")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("Persona_PaisId"));
                     string personaPaisNombre = reader.IsDBNull(reader.GetOrdinal("Persona_PaisNombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("Persona_PaisNombre"));
 
@@ -597,6 +597,15 @@ namespace CapaNegocio.Servicio.Venta
                         dto.NombreEstado = reader.IsDBNull(reader.GetOrdinal("UltimoHist_NombreEstado"))
                             ? string.Empty
                             : reader.GetString(reader.GetOrdinal("UltimoHist_NombreEstado"));
+                        int? ultimoHist_IdOcurrencia = null;
+                        if (!reader.IsDBNull(reader.GetOrdinal("UltimoHist_IdOcurrencia")))
+                            ultimoHist_IdOcurrencia = reader.GetInt32(reader.GetOrdinal("UltimoHist_IdOcurrencia"));
+                        if (ultimoHist_IdOcurrencia == null && !reader.IsDBNull(reader.GetOrdinal("UltimoHist_OcurrenciaId")))
+                            ultimoHist_IdOcurrencia = reader.GetInt32(reader.GetOrdinal("UltimoHist_OcurrenciaId"));
+
+                        string ultimoHist_OcurrenciaNombre = string.Empty;
+                        if (!reader.IsDBNull(reader.GetOrdinal("UltimoHist_OcurrenciaNombre")))
+                            ultimoHist_OcurrenciaNombre = reader.GetString(reader.GetOrdinal("UltimoHist_OcurrenciaNombre"));
 
                         var histDto = new VTAModVentaTHistorialEstadoDetalleDTO
                         {
@@ -611,6 +620,15 @@ namespace CapaNegocio.Servicio.Venta
                             FechaCreacion = reader.IsDBNull(reader.GetOrdinal("UltimoHist_FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("UltimoHist_FechaCreacion")),
                             UsuarioCreacion = reader.IsDBNull(reader.GetOrdinal("UltimoHist_UsuarioCreacion")) ? string.Empty : reader.GetString(reader.GetOrdinal("UltimoHist_UsuarioCreacion"))
                         };
+
+                        histDto.IdOcurrencia = ultimoHist_IdOcurrencia;
+
+                        if (!string.IsNullOrEmpty(ultimoHist_OcurrenciaNombre))
+                        {
+
+                            histDto.OcurrenciaNombre = ultimoHist_OcurrenciaNombre;
+
+                        }
 
                         historiales.Add(histDto);
                     }
@@ -639,6 +657,7 @@ namespace CapaNegocio.Servicio.Venta
 
             return respuesta;
         }
+
 
         public VTAModVentaOportunidadDetalleDTO ObtenerOportunidadPorIdConRecordatorio(int id)
         {
