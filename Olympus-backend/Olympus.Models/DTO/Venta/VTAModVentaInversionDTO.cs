@@ -15,7 +15,6 @@ namespace Modelos.DTO.Venta
         public decimal CostoTotal { get; set; }
         public string Moneda { get; set; } = string.Empty;
         public decimal? DescuentoPorcentaje { get; set; }
-        public decimal? DescuentoMonto { get; set; }
         public decimal? CostoOfrecido { get; set; }
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }

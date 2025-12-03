@@ -1166,10 +1166,6 @@ public partial class OlympusContext : DbContext
                   .HasColumnType("decimal(18,2)")
                   .IsRequired(false);
 
-            entity.Property(e => e.DescuentoMonto)
-                  .HasColumnType("decimal(18,2)")
-                  .IsRequired(false);
-
             entity.Property(e => e.CostoOfrecido)
                   .HasColumnType("decimal(18,2)")
                   .IsRequired(false);

@@ -314,7 +314,6 @@ namespace CapaNegocio.Servicio.Venta
                             CostoTotal = GetVal(reader, "CostoTotal") as decimal? ?? 0m,
                             Moneda = GetVal(reader, "Moneda")?.ToString() ?? string.Empty,
                             DescuentoPorcentaje = GetVal(reader, "DescuentoPorcentaje") as decimal?,
-                            DescuentoMonto = GetVal(reader, "DescuentoMonto") as decimal?,
                             CostoOfrecido = GetVal(reader, "CostoOfrecido") as decimal?,
                             Estado = GetVal(reader, "Estado") as bool? ?? true,
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,

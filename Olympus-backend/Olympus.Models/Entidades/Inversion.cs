@@ -14,7 +14,6 @@ namespace Modelos.Entidades
         public decimal CostoTotal { get; set; } = 0m;
         public string Moneda { get; set; } = string.Empty;
         public decimal? DescuentoPorcentaje { get; set; }
-        public decimal? DescuentoMonto { get; set; }
         public decimal? CostoOfrecido { get; set; }
         public bool Estado { get; set; } = true;
         public int? IdMigracion { get; set; }
