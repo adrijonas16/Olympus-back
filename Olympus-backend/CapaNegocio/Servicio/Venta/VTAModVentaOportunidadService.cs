@@ -607,6 +607,9 @@ namespace CapaNegocio.Servicio.Venta
                         if (!reader.IsDBNull(reader.GetOrdinal("UltimoHist_OcurrenciaNombre")))
                             ultimoHist_OcurrenciaNombre = reader.GetString(reader.GetOrdinal("UltimoHist_OcurrenciaNombre"));
 
+                        dto.IdOcurrencia = ultimoHist_IdOcurrencia;
+                        dto.NombreOcurrencia = !string.IsNullOrWhiteSpace(ultimoHist_OcurrenciaNombre) ? ultimoHist_OcurrenciaNombre : string.Empty;
+
                         var histDto = new VTAModVentaTHistorialEstadoDetalleDTO
                         {
                             Id = uhId,

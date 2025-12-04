@@ -21,6 +21,8 @@ namespace Modelos.DTO.Venta
         public int? IdHistorialEstado { get; set; }      // último historialEstado.Id
         public int? IdEstado { get; set; }               // último historialEstado.IdEstado
         public string NombreEstado { get; set; } = string.Empty;
+        public int? IdOcurrencia { get; set; }           // último historialEstado.IdOcurrencia
+        public string? NombreOcurrencia { get; set; }    // último historialEstado.OcurrenciaNombre
         public int? IdHistorialInteraccion { get; set; } // la interacción tipo 10
         public DateTime? FechaRecordatorio { get; set; }
         public int? PersonaPaisId { get; set; }
