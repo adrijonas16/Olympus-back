@@ -141,9 +141,17 @@ public partial class OlympusContext : DbContext
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("(getdate())");
 
+            // FechaModificacion
             entity.Property(e => e.FechaModificacion)
                 .HasColumnType("datetime")
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("(getdate())")
+                .IsRequired(false);
+
+            // Agrego UsuarioModificacion
+            entity.Property(e => e.UsuarioModificacion)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .IsRequired(false);
 
             entity.Property(e => e.IdPais)
                 .HasColumnName("IdPais")
@@ -158,6 +166,7 @@ public partial class OlympusContext : DbContext
             // índice opcional
             entity.HasIndex(e => e.IdPais).HasDatabaseName("IX_Persona_IdPais");
         });
+
 
         // Configuración Asesor
         modelBuilder.Entity<Asesor>(entity =>
@@ -846,7 +855,7 @@ public partial class OlympusContext : DbContext
             entity.HasIndex(e => e.IdProducto).HasDatabaseName("IX_Corporativo_IdProducto");
         });
 
-        // Configuración Docente
+        // Configuración Docente 
         modelBuilder.Entity<Docente>(entity =>
         {
             entity.ToTable("Docente", schema: "adm");
@@ -872,17 +881,21 @@ public partial class OlympusContext : DbContext
                   .HasColumnType("datetime")
                   .HasDefaultValueSql("(getdate())");
 
+            // FechaModificacion
             entity.Property(e => e.FechaModificacion)
                   .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
+                  .HasDefaultValueSql("(getdate())")
+                  .IsRequired(false);
 
             entity.Property(e => e.UsuarioCreacion)
                   .HasMaxLength(50)
                   .IsUnicode(false);
 
+            // UsuarioModificacion
             entity.Property(e => e.UsuarioModificacion)
                   .HasMaxLength(50)
-                  .IsUnicode(false);
+                  .IsUnicode(false)
+                  .IsRequired(false);
 
             entity.Property(e => e.IdPersona)
                   .HasColumnName("IdPersona")
@@ -900,6 +913,7 @@ public partial class OlympusContext : DbContext
                   .IsUnique()
                   .HasDatabaseName("UX_Docente_IdPersona");
         });
+
 
         // Configuración HistorialEstadoTipo
         modelBuilder.Entity<HistorialEstadoTipo>(entity =>
@@ -1469,17 +1483,21 @@ public partial class OlympusContext : DbContext
                   .HasColumnType("datetime")
                   .HasDefaultValueSql("(getdate())");
 
+            // FechaModificacion nullable
             entity.Property(e => e.FechaModificacion)
                   .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
+                  .HasDefaultValueSql("(getdate())")
+                  .IsRequired(false);
 
             entity.Property(e => e.UsuarioCreacion)
                   .HasMaxLength(50)
                   .IsUnicode(false);
 
+            // UsuarioModificacion nullable
             entity.Property(e => e.UsuarioModificacion)
                   .HasMaxLength(50)
-                  .IsUnicode(false);
+                  .IsUnicode(false)
+                  .IsRequired(false);
 
             // Relaciones
 

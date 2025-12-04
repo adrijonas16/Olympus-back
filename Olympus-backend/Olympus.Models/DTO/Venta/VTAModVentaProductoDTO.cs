@@ -19,8 +19,8 @@ namespace Modelos.DTO.Venta
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
-        public DateTime FechaModificacion { get; set; }
-        public string UsuarioModificacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; } = string.Empty;
     }
     public class VTAModVentaProductoDTORPT : CFGRespuestaGenericaDTO {    
         public List<VTAModVentaProductoDTO> Productos { get; set; } = new(); 

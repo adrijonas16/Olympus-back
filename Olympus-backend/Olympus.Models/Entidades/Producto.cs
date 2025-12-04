@@ -20,8 +20,8 @@ namespace Modelos.Entidades
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
-        public DateTime FechaModificacion { get; set; }
-        public string UsuarioModificacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; } = string.Empty;
 
         // Navegaciones
         public List<Horario> Horarios { get; set; } = new List<Horario>();
