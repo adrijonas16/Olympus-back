@@ -1,5 +1,6 @@
 ﻿using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.UnitOfWork;
+using CapaDatos.Repositorio.Venta;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
 using CapaNegocio.Servicio.Venta;
@@ -18,11 +19,14 @@ namespace Olympus.API.Extensions
             services.AddScoped<IAreaRepository, AreaRepository>();
             services.AddScoped<IModuloRepository, ModuloRepository>();
             services.AddScoped<IFormularioRepository, FormularioRepository>();
+            services.AddScoped<IPersonaRepository, PersonaRepository>();
+            services.AddScoped<IRolRepository, RolRepository>();
 
             // Servicios de negocio
             services.AddScoped<ISEGModLoginService, SEGModLoginService>();
             services.AddScoped<IErrorLogService, ErrorLogService>();
             services.AddScoped<ICFGModPermisosService, CFGModPermisosService>();
+            services.AddScoped<ICFGModUsuariosService, CFGModUsuariosService>();
 
             // Aquí agregas todos los demás servicios
             services.AddScoped<IVTAModVentaPersonaService, VTAModVentaPersonaService>();

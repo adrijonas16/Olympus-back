@@ -35,13 +35,26 @@ namespace CapaDatos.Repositorio.Venta
         public Persona? ObtenerPorId(int id)
         {
             return _context.Persona
-               .Include(p => p.Pais)
-               .FirstOrDefault(p => p.Id == id);
+                .Include(p => p.Pais)
+                .Include(p => p.Usuario)
+                .FirstOrDefault(p => p.Id == id);
         }
 
         public IQueryable<Persona> ObtenerTodos()
         {
-            return _context.Persona.AsQueryable();
+            return _context.Persona
+                .Include(p => p.Pais)
+                .Include(p => p.Usuario);
         }
+
+        public Persona? ObtenerPorIdUsuario(int idUsuario)
+        {
+            return _context.Persona
+                .Include(p => p.Pais)
+                .Include(p => p.Usuario)
+                .FirstOrDefault(p => p.IdUsuario == idUsuario);
+        }
+
+
     }
 }

@@ -55,6 +55,8 @@ public class SEGModLoginService : ISEGModLoginService
                 var userToken = new UserToken
                 {
                     IdUsuario = usuario.Id,
+                    IdRol = usuario.IdRol,
+                    NombreRol = usuario.Rol.NombreRol,
                     Token = Token,
                     Expiration = expiration,
                     IsRevoked = false,

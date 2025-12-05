@@ -1,9 +1,4 @@
 ﻿using Modelos.DTO.Configuracion;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Modelos.DTO.Venta
 {
@@ -19,4 +14,12 @@ namespace Modelos.DTO.Venta
     {
         public List<VTAModVentaOcurrenciaSimpleDTO> Ocurrencias { get; set; } = new List<VTAModVentaOcurrenciaSimpleDTO>();
     }
+
+    public class VTAModVentaAsignarAsesorDTO
+    {
+        public List<int> IdOportunidades { get; set; } = new List<int>();
+        public int IdAsesor { get; set; }
+        public string? UsuarioModificacion { get; set; }
+    }
+
 }

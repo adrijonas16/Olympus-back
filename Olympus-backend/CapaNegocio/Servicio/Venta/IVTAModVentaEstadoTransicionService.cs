@@ -8,5 +8,7 @@ namespace CapaNegocio.Servicio.Venta
     {
         VTAModVentaOcurrenciasPermitidasDTORPT ObtenerOcurrenciasPermitidas(int oportunidadId);
         (CFGRespuestaGenericaDTO Respuesta, int NuevoHistorialId) CrearHistorialConOcurrencia(int oportunidadId, int ocurrenciaId, string usuario);
+        VTAModVentaOcurrenciasPermitidasDTORPT ObtenerOcurrenciasPermitidas2(int IdOportunidad, int IdUsuario, int IdRol);
+
     }
 }

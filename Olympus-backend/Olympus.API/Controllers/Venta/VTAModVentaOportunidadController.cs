@@ -178,12 +178,14 @@ namespace Olympus.API.Controllers.Venta
         /// Lista todas las oportunidades con NombrePais y HistorialInteraccion de IdTipo = 10
         /// GET api/VTAModVentaOportunidad/ObtenerTodasConRecordatorio
         [HttpGet("ObtenerTodasConRecordatorio")]
-        public VTAModVentaOportunidadDetalleDTORPT ObtenerTodasConRecordatorio()
+        public VTAModVentaOportunidadDetalleDTORPT ObtenerTodasConRecordatorio(
+            [FromQuery] int idUsuario,
+            [FromQuery] int idRol)
         {
             var respuesta = new VTAModVentaOportunidadDetalleDTORPT();
             try
             {
-                respuesta = _oportunidadService.ObtenerTodasOportunidadesRecordatorio();
+                respuesta = _oportunidadService.ObtenerTodasOportunidadesRecordatorio2(idUsuario, idRol);
             }
             catch (Exception ex)
             {
@@ -230,6 +232,24 @@ namespace Olympus.API.Controllers.Venta
             }
             return respuesta;
         }
+
+        [HttpPost("AsignarAsesor")]
+        public CFGRespuestaGenericaDTO AsignarAsesor([FromBody] VTAModVentaAsignarAsesorDTO dto)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                respuesta = _oportunidadService.AsignarAsesor(dto);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
 
     }
 }

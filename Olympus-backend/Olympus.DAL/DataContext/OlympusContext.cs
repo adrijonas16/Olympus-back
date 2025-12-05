@@ -149,15 +149,27 @@ public partial class OlympusContext : DbContext
                 .HasColumnName("IdPais")
                 .IsRequired(false);
 
+            entity.Property(e => e.IdUsuario)
+                .HasColumnName("IdUsuario")
+                .IsRequired(false);
+
+            entity.HasOne(p => p.Usuario)
+                .WithMany()                     
+                .HasForeignKey(p => p.IdUsuario)
+                .HasConstraintName("FK_Persona_Usuario")
+                .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasOne(p => p.Pais)
                 .WithMany(pa => pa.Personas)
                 .HasForeignKey(p => p.IdPais)
                 .HasConstraintName("FK_Persona_Pais")
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // índice opcional
             entity.HasIndex(e => e.IdPais).HasDatabaseName("IX_Persona_IdPais");
+
+            entity.HasIndex(e => e.IdUsuario).HasDatabaseName("IX_Persona_IdUsuario");
         });
+
 
         // Configuración Asesor
         modelBuilder.Entity<Asesor>(entity =>

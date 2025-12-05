@@ -14,10 +14,11 @@ namespace CapaNegocio.Servicio.Venta
         VTAModVentaTHistorialInteraccionDTORPT ObtenerHistorialInteraccionesPorOportunidad(int id, int? idTipo = null);
         VTAModVentaTOportunidadDetalleDTORPT ObtenerHistorialEstadoPorOportunidad(int id);
         VTAModVentaOportunidadDetalleDTORPT ObtenerTodasOportunidadesRecordatorio();
+        VTAModVentaOportunidadDetalleDTORPT ObtenerTodasOportunidadesRecordatorio2(int idUsuario, int idRol);
         VTAModVentaOportunidadDetalleDTO ObtenerOportunidadPorIdConRecordatorio(int id);
         VTAModVentaPotencialClienteDTO ObtenerPotencialPorOportunidadId(int idOportunidad);
         CFGRespuestaGenericaDTO InsertarOportunidadHistorialRegistrado(VTAModVentaTOportunidadDTO dto);
-
+        CFGRespuestaGenericaDTO AsignarAsesor(VTAModVentaAsignarAsesorDTO dto);
 
         //VTAModVentaTOportunidadDTORPT ObtenerPorPersona(int idPersona);
         //VTAModVentaTControlOportunidadDTORPT ObtenerControlOportunidadesPorOportunidad(int idOportunidad);

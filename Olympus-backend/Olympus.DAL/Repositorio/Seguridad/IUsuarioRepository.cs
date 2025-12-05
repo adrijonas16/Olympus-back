@@ -11,5 +11,7 @@ namespace CapaDatos.Repositorio.Configuracion
         Usuario ObtenerPorId(int id);
         Usuario ObtenerPorCorreo(string correo);
         IQueryable<Usuario> ObtenerTodos();
+        IQueryable<Usuario> ObtenerPorRol(int idRol);
+
     }
 }

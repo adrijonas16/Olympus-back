@@ -464,6 +464,5 @@ namespace CapaNegocio.Servicio.Venta
                 };
             }
         }
-
     }
 }

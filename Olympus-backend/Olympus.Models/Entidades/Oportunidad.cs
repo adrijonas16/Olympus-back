@@ -16,7 +16,7 @@ namespace Modelos.Entidades
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
-        
+        public int? IdPersona { get; set; }
 
         // Navegaciones
         public PotencialCliente? PotencialCliente { get; set; }

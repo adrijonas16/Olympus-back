@@ -76,6 +76,96 @@ namespace CapaNegocio.Servicio.Venta
 
             return respuesta;
         }
+        public VTAModVentaOcurrenciasPermitidasDTORPT ObtenerOcurrenciasPermitidas2(int IdOportunidad, int IdUsuario, int IdRol)
+        {
+            var respuesta = new VTAModVentaOcurrenciasPermitidasDTORPT();
+
+            try
+            {
+                // 1) Obtener la oportunidad
+                var op = _unitOfWork.OportunidadRepository.ObtenerPorId(IdOportunidad);
+
+                if (op == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "La oportunidad no existe.";
+                    return respuesta;
+                }
+
+                // 2) Obtener la persona asociada al usuario (si existe)
+                // Asumimos que existe un repositorio o método para obtener Persona por IdUsuario.
+                // Si tu repo tiene otro nombre, cámbialo aquí.
+                var personaUsuario = _unitOfWork.PersonaRepository.ObtenerPorIdUsuario(IdUsuario);
+                // personaUsuario puede ser null si no hay persona ligada al usuario.
+
+                bool tienePermiso = false;
+
+                // 3) Permiso si la persona del usuario es la misma que la persona asociada a la oportunidad
+                // Nota: op.IdPersona es la FK que mencionaste (la oportunidad guarda IdPersona)
+                if (personaUsuario != null && op.IdPersona == personaUsuario.Id)
+                {
+                    tienePermiso = true;
+                }
+
+                // 4) Permiso si el usuario es el asesor asignado a la oportunidad
+                // Dependiendo de tu modelo, op.IdAsesor puede contener la IdPersona del asesor.
+                // Compararemos con personaUsuario.Id si existe.
+                if (!tienePermiso && personaUsuario != null && op.IdPersona.HasValue && op.IdPersona.Value == personaUsuario.Id)
+                {
+                    tienePermiso = true;
+                }
+
+                // 5) Permiso por rol (Supervisor, Gerente, Administrador, Desarrollador)
+                if (!tienePermiso && (IdRol == 2 || IdRol == 3 || IdRol == 4 || IdRol == 5))
+                {
+                    tienePermiso = true;
+                }
+
+                if (!tienePermiso)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = "No tienes permiso para ver esta oportunidad.";
+                    return respuesta;
+                }
+
+                // 6) Si tiene permiso -> ejecutar SP para obtener ocurrencias permitidas
+                var lista = new List<VTAModVentaOcurrenciaSimpleDTO>();
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "adm.SP_ObtenerOcurrenciasPermitidasPorOportunidad";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@IdOportunidad", IdOportunidad));
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    lista.Add(new VTAModVentaOcurrenciaSimpleDTO
+                    {
+                        Id = reader.IsDBNull(reader.GetOrdinal("Id")) ? 0 : reader.GetInt32(reader.GetOrdinal("Id")),
+                        Nombre = reader.IsDBNull(reader.GetOrdinal("Nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("Nombre")),
+                        IdEstado = reader.IsDBNull(reader.GetOrdinal("IdEstado")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdEstado")),
+                        Allowed = reader.IsDBNull(reader.GetOrdinal("Allowed")) ? false : reader.GetBoolean(reader.GetOrdinal("Allowed"))
+                    });
+                }
+
+                respuesta.Ocurrencias = lista;
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+
+            return respuesta;
+        }
+
+
 
         /// <summary>
         /// Crea un nuevo HistorialEstado a partir de la ocurrencia seleccionada.

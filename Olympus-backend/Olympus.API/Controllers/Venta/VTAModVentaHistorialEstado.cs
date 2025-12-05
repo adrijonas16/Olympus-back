@@ -129,14 +129,14 @@ namespace Olympus.API.Controllers.Venta
         }
 
         /// Devuelve las ocurrencias disponibles para la oportunidad, con la bandera Allowed/Permitida.
-        /// GET /api/VTAModVentaHistorialEstado/{oportunidadId}/ocurrenciasDisponibles
-        [HttpGet("OcurrenciasPermitidas/{IdOportunidad}")]
-        public VTAModVentaOcurrenciasPermitidasDTORPT OcurrenciasPermitidas(int IdOportunidad)
+        /// GET /api/VTAModVentaHistorialEstado/OcurrenciasPermitidas/{IdOportunidad}/{idUsuario}/{idRol}
+        [HttpGet("OcurrenciasPermitidas/{IdOportunidad}/{idUsuario}/{idRol}")]
+        public VTAModVentaOcurrenciasPermitidasDTORPT OcurrenciasPermitidas(int IdOportunidad, int idUsuario, int idRol)
         {
             var respuesta = new VTAModVentaOcurrenciasPermitidasDTORPT();
             try
             {
-                respuesta = _estadoTransicionService.ObtenerOcurrenciasPermitidas(IdOportunidad);
+                respuesta = _estadoTransicionService.ObtenerOcurrenciasPermitidas2(IdOportunidad, idUsuario, idRol);
             }
             catch (Exception ex)
             {

@@ -10,6 +10,8 @@ namespace Modelos.Entidades
     public partial class UserToken
     {
         public int Id { get; set; }
+        public int IdRol { get; set; }
+        public string NombreRol { get; set; }
         public int IdUsuario { get; set; }
         public string Token { get; set; } = string.Empty;
         public DateTime Expiration { get; set; }
