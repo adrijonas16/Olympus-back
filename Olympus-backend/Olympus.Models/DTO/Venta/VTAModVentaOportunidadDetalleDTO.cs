@@ -13,25 +13,28 @@ namespace Modelos.DTO.Venta
         public int IdPotencialCliente { get; set; }
         public string PersonaNombre { get; set; } = string.Empty;
         public int? IdAsesor { get; set; }
-        public string AsesorNombre { get; set; } = string.Empty; // nueva propiedad
+        public string AsesorNombre { get; set; } = string.Empty;
         public int? IdProducto { get; set; }
         public string ProductoNombre { get; set; } = string.Empty;
         public string PersonaCorreo { get; set; } = string.Empty;
         public string? CodigoLanzamiento { get; set; }
         public int TotalOportunidadesPersona { get; set; }
         public string? Origen { get; set; }
-        public int? IdHistorialEstado { get; set; }
-        public int? IdEstado { get; set; }
+        public int? IdHistorialEstado { get; set; }      // último historialEstado.Id
+        public int? IdEstado { get; set; }               // último historialEstado.IdEstado
         public string NombreEstado { get; set; } = string.Empty;
-        public int? IdHistorialInteraccion { get; set; }
+        public int? IdOcurrencia { get; set; }           // último historialEstado.IdOcurrencia
+        public string? NombreOcurrencia { get; set; }    // último historialEstado.OcurrenciaNombre
+        public int? IdHistorialInteraccion { get; set; } // la interacción tipo 10
         public DateTime? FechaRecordatorio { get; set; }
+        public int? PersonaPaisId { get; set; }
+        public string PersonaPaisNombre { get; set; } = string.Empty;
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
     }
-
     public class VTAModVentaOportunidadDetalleDTORPT : CFGRespuestaGenericaDTO
     {
         public List<VTAModVentaOportunidadDetalleDTO> Oportunidad { get; set; } = new List<VTAModVentaOportunidadDetalleDTO>();

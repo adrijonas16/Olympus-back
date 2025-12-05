@@ -1,6 +1,7 @@
 ﻿using CapaNegocio.Servicio.Venta;
 using Microsoft.AspNetCore.Mvc;
 using Modelos.DTO.Venta;
+using Modelos.Entidades;
 
 [ApiController]
 [Route("api/Cobranza")]
@@ -60,4 +61,45 @@ public class CobranzaController : ControllerBase
             return Problem(detail: ex.Message, title: "Error al obtener plan por oportunidad", statusCode: 500);
         }
     }
+
+    /// <summary>
+    /// Crea un plan de cobranza de 1 cuota para convertido
+    /// </summary>
+    [HttpPost("ConvertidoDirecto/Plan")]
+    public ActionResult<VTAModVentaCobranzaConvertidoResultadoDTO> CrearConvertidoDirectoPlan([FromBody] VTAModVentaCobranzaConvertidoCrearDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            var resultado = _cobranzaService.CrearConvertidoDirectoPlan(dto);
+            return Ok(resultado);
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message, title: "Error al crear plan convertido directo", statusCode: 500);
+        }
+    }
+
+    /// <summary>
+    /// Crea un plan de cobranza y registra el pago de esa cuota
+    /// </summary>
+    [HttpPost("ConvertidoDirecto/ConDetalle")]
+    public ActionResult<VTAModVentaCobranzaConvertidoResultadoDTO> CrearConvertidoDirectoConDetalle([FromBody] VTAModVentaCobranzaConvertidoCrearDTO dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            var resultado = _cobranzaService.CrearConvertidoDirectoYRegistrarPagoConDetalle(dto);
+            return Ok(resultado);
+        }
+        catch (Exception ex)
+        {
+            return Problem(detail: ex.Message, title: "Error al procesar convertido directo", statusCode: 500);
+        }
+    }
+
 }

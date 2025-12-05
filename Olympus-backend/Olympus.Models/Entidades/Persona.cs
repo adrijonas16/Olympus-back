@@ -16,8 +16,8 @@
         public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;
-        public DateTime FechaModificacion { get; set; }
-        public string UsuarioModificacion { get; set; } = string.Empty;
+        public DateTime? FechaModificacion { get; set; }
+        public string? UsuarioModificacion { get; set; } = string.Empty;
         public int? IdUsuario { get; set; }
         public Usuario? Usuario { get; set; }
         public Docente? Docente { get; set; }

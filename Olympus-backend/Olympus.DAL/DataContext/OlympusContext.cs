@@ -141,9 +141,17 @@ public partial class OlympusContext : DbContext
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("(getdate())");
 
+            // FechaModificacion
             entity.Property(e => e.FechaModificacion)
                 .HasColumnType("datetime")
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("(getdate())")
+                .IsRequired(false);
+
+            // Agrego UsuarioModificacion
+            entity.Property(e => e.UsuarioModificacion)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .IsRequired(false);
 
             entity.Property(e => e.IdPais)
                 .HasColumnName("IdPais")
@@ -858,7 +866,7 @@ public partial class OlympusContext : DbContext
             entity.HasIndex(e => e.IdProducto).HasDatabaseName("IX_Corporativo_IdProducto");
         });
 
-        // Configuración Docente
+        // Configuración Docente 
         modelBuilder.Entity<Docente>(entity =>
         {
             entity.ToTable("Docente", schema: "adm");
@@ -884,17 +892,21 @@ public partial class OlympusContext : DbContext
                   .HasColumnType("datetime")
                   .HasDefaultValueSql("(getdate())");
 
+            // FechaModificacion
             entity.Property(e => e.FechaModificacion)
                   .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
+                  .HasDefaultValueSql("(getdate())")
+                  .IsRequired(false);
 
             entity.Property(e => e.UsuarioCreacion)
                   .HasMaxLength(50)
                   .IsUnicode(false);
 
+            // UsuarioModificacion
             entity.Property(e => e.UsuarioModificacion)
                   .HasMaxLength(50)
-                  .IsUnicode(false);
+                  .IsUnicode(false)
+                  .IsRequired(false);
 
             entity.Property(e => e.IdPersona)
                   .HasColumnName("IdPersona")
@@ -912,6 +924,7 @@ public partial class OlympusContext : DbContext
                   .IsUnique()
                   .HasDatabaseName("UX_Docente_IdPersona");
         });
+
 
         // Configuración HistorialEstadoTipo
         modelBuilder.Entity<HistorialEstadoTipo>(entity =>
@@ -971,10 +984,6 @@ public partial class OlympusContext : DbContext
             entity.ToTable("Horario", schema: "adm");
             entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.IdProducto)
-                  .HasColumnName("IdProducto")
-                  .IsRequired();
-
             entity.Property(e => e.Dia)
                   .HasMaxLength(50)
                   .IsUnicode(false)
@@ -1016,15 +1025,17 @@ public partial class OlympusContext : DbContext
                   .IsUnicode(false)
                   .IsRequired();
 
-            // Relación con Producto (ON DELETE CASCADE según DDL)
-            entity.HasOne(h => h.Producto)
-                  .WithMany() // si Producto tiene colección (eg. Product.Horarios) cámbialo por .WithMany(p => p.Horarios)
-                  .HasForeignKey(h => h.IdProducto)
-                  .HasConstraintName("FK_Horario_Producto")
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity.Property<int?>("IdEstructuraCurricularModulo")
+                  .HasColumnName("IdEstructuraCurricularModulo");
 
-            // Índice para consultas por producto
-            entity.HasIndex(h => h.IdProducto).HasDatabaseName("IX_Horario_IdProducto");
+            entity.HasOne(h => h.EstructuraCurricularModulo) 
+                  .WithMany(ecm => ecm.Horarios) 
+                  .HasForeignKey("IdEstructuraCurricularModulo")
+                  .HasConstraintName("FK_Horario_EstructuraCurricularModulo")
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex("IdEstructuraCurricularModulo")
+                  .HasDatabaseName("IX_Horario_IdEstructuraCurricularModulo");
         });
 
         // Configuración InversionDescuento
@@ -1177,10 +1188,6 @@ public partial class OlympusContext : DbContext
                   .IsRequired();
 
             entity.Property(e => e.DescuentoPorcentaje)
-                  .HasColumnType("decimal(18,2)")
-                  .IsRequired(false);
-
-            entity.Property(e => e.DescuentoMonto)
                   .HasColumnType("decimal(18,2)")
                   .IsRequired(false);
 
@@ -1487,26 +1494,23 @@ public partial class OlympusContext : DbContext
                   .HasColumnType("datetime")
                   .HasDefaultValueSql("(getdate())");
 
+            // FechaModificacion nullable
             entity.Property(e => e.FechaModificacion)
                   .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
+                  .HasDefaultValueSql("(getdate())")
+                  .IsRequired(false);
 
             entity.Property(e => e.UsuarioCreacion)
                   .HasMaxLength(50)
                   .IsUnicode(false);
 
+            // UsuarioModificacion nullable
             entity.Property(e => e.UsuarioModificacion)
                   .HasMaxLength(50)
-                  .IsUnicode(false);
+                  .IsUnicode(false)
+                  .IsRequired(false);
 
             // Relaciones
-
-            // Horarios
-            entity.HasMany(p => p.Horarios)
-                  .WithOne(h => h.Producto)
-                  .HasForeignKey(h => h.IdProducto)
-                  .HasConstraintName("FK_Horario_Producto")
-                  .OnDelete(DeleteBehavior.Restrict);
 
             // Inversiones
             entity.HasMany(p => p.Inversiones)

@@ -14,6 +14,7 @@ namespace Modelos.DTO.Venta
         public int? IdAsesor { get; set; }
         public int? IdEstado { get; set; }
         public int? IdOcurrencia { get; set; }
+        public string? OcurrenciaNombre { get; set; }
         public string Observaciones { get; set; } = string.Empty;
         public int? CantidadLlamadasContestadas { get; set; }
         public int? CantidadLlamadasNoContestadas { get; set; }

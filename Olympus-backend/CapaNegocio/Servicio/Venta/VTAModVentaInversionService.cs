@@ -42,7 +42,6 @@ namespace CapaNegocio.Servicio.Venta
                         CostoTotal = i.CostoTotal,
                         Moneda = i.Moneda ?? string.Empty,
                         DescuentoPorcentaje = i.DescuentoPorcentaje,
-                        DescuentoMonto = i.DescuentoMonto,
                         CostoOfrecido = i.CostoOfrecido,
                         Estado = i.Estado,
                         FechaCreacion = i.FechaCreacion,
@@ -84,7 +83,6 @@ namespace CapaNegocio.Servicio.Venta
                         CostoTotal = i.CostoTotal,
                         Moneda = i.Moneda ?? string.Empty,
                         DescuentoPorcentaje = i.DescuentoPorcentaje,
-                        DescuentoMonto = i.DescuentoMonto,
                         CostoOfrecido = i.CostoOfrecido,
                         Estado = i.Estado,
                         FechaCreacion = i.FechaCreacion,
@@ -144,7 +142,6 @@ namespace CapaNegocio.Servicio.Venta
                     CostoTotal = dto.CostoTotal,
                     Moneda = dto.Moneda,
                     DescuentoPorcentaje = dto.DescuentoPorcentaje,
-                    DescuentoMonto = dto.DescuentoMonto,
                     CostoOfrecido = dto.CostoOfrecido,
                     Estado = dto.Estado,
                     FechaCreacion = DateTime.UtcNow,
@@ -217,7 +214,6 @@ namespace CapaNegocio.Servicio.Venta
                 ent.CostoTotal = dto.CostoTotal;
                 ent.Moneda = dto.Moneda;
                 ent.DescuentoPorcentaje = dto.DescuentoPorcentaje;
-                ent.DescuentoMonto = dto.DescuentoMonto;
                 ent.CostoOfrecido = dto.CostoOfrecido;
                 ent.Estado = dto.Estado;
                 ent.FechaModificacion = DateTime.UtcNow;
