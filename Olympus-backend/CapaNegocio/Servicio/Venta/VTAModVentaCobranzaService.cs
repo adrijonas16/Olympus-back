@@ -184,5 +184,100 @@ namespace CapaNegocio.Servicio.Venta
                 throw;
             }
         }
+        public VTAModVentaCobranzaConvertidoResultadoDTO CrearConvertidoDirectoPlan(VTAModVentaCobranzaConvertidoCrearDTO dto)
+        {
+            try
+            {
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "adm.SP_CrearConvertidoDirecto";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@IdOportunidad", SqlDbType.Int) { Value = dto.IdOportunidad });
+                var pTotal = new SqlParameter("@Total", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = dto.Total };
+                cmd.Parameters.Add(pTotal);
+                cmd.Parameters.Add(new SqlParameter("@FechaInicio", SqlDbType.DateTime) { Value = (object?)dto.FechaPago ?? DBNull.Value });
+                cmd.Parameters.Add(new SqlParameter("@Usuario", SqlDbType.VarChar, 50) { Value = dto.UsuarioCreacion ?? "SYSTEM" });
+
+                var pNewPlanId = new SqlParameter("@NewPlanId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var pNewCuotaId = new SqlParameter("@NewCuotaId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+                cmd.Parameters.Add(pNewPlanId);
+                cmd.Parameters.Add(pNewCuotaId);
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+                cmd.ExecuteNonQuery();
+
+                return new VTAModVentaCobranzaConvertidoResultadoDTO
+                {
+                    PlanId = (int)(pNewPlanId.Value ?? 0),
+                    CuotaId = (int)(pNewCuotaId.Value ?? 0)
+                };
+            }
+            catch (Exception ex)
+            {
+                _errorLog.RegistrarError(ex);
+                throw;
+            }
+        }
+
+        public VTAModVentaCobranzaConvertidoResultadoDTO CrearConvertidoDirectoYRegistrarPagoConDetalle(VTAModVentaCobranzaConvertidoCrearDTO dto)
+        {
+            try
+            {
+                var planId = dto.IdCobranzaPlan;
+                if (planId <= 0)
+                    throw new ArgumentException("Se requiere IdCobranzaPlan en el DTO para registrar el pago.");
+
+                // 1) Registrar el pago en el plan existente (no crear el plan)
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+
+                cmd.CommandText = "adm.SP_CrearConvertidoDirectoRegistrarPago";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@IdCobranzaPlan", SqlDbType.Int) { Value = planId });
+                var pTotal = new SqlParameter("@Total", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = dto.Total };
+                cmd.Parameters.Add(pTotal);
+                cmd.Parameters.Add(new SqlParameter("@FechaPago", SqlDbType.DateTime) { Value = (object?)dto.FechaPago ?? DBNull.Value });
+                cmd.Parameters.Add(new SqlParameter("@IdMetodoPago", SqlDbType.Int) { Value = (object?)dto.IdMetodoPago ?? DBNull.Value });
+                cmd.Parameters.Add(new SqlParameter("@Usuario", SqlDbType.VarChar, 50) { Value = dto.UsuarioCreacion ?? "SYSTEM" });
+
+                var pNewPagoId = new SqlParameter("@NewPagoId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var pAppliedCuotaId = new SqlParameter("@AppliedCuotaId", SqlDbType.Int) { Direction = ParameterDirection.Output };
+
+                cmd.Parameters.Add(pNewPagoId);
+                cmd.Parameters.Add(pAppliedCuotaId);
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+                cmd.ExecuteNonQuery();
+
+                var pagoId = (int)(pNewPagoId.Value ?? 0);
+                var appliedCuotaId = (int)(pAppliedCuotaId.Value ?? 0);
+
+                VTAModVentaCobranzaPlanConCuotasDTO? planConCuotas = null;
+                try
+                {
+                    planConCuotas = ObtenerPlanPorOportunidad(dto.IdOportunidad);
+                }
+                catch
+                {
+                    planConCuotas = null;
+                }
+
+                return new VTAModVentaCobranzaConvertidoResultadoDTO
+                {
+                    PlanId = planId,
+                    CuotaId = appliedCuotaId,
+                    PagoId = pagoId,
+                    PlanConCuotas = planConCuotas
+                };
+            }
+            catch (Exception ex)
+            {
+                _errorLog.RegistrarError(ex);
+                throw;
+            }
+        }
     }
 }

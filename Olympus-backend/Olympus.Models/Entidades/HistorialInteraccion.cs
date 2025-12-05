@@ -12,7 +12,7 @@ namespace Modelos.Entidades
         public int IdOportunidad { get; set; }
         public int IdTipo { get; set; }
         public string Detalle { get; set; } = string.Empty;
-        public string Celular { get; set; } = string.Empty;
+        public string? Celular { get; set; } = string.Empty;
         public DateTime? FechaRecordatorio { get; set; }
         public bool Estado { get; set; } = true;
         public int? IdMigracion { get; set; }

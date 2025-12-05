@@ -9,7 +9,6 @@ namespace Modelos.Entidades
     public class Horario
     {
         public int Id { get; set; }
-        public int IdProducto { get; set; }
         public string Dia { get; set; } = string.Empty;
         public TimeSpan? HoraInicio { get; set; }
         public TimeSpan? HoraFin { get; set; }
@@ -21,8 +20,8 @@ namespace Modelos.Entidades
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
-
-        // Navegación
-        public Producto? Producto { get; set; }
+        public int? IdEstructuraCurricularModulo { get; set; }
+        public EstructuraCurricularModulo? EstructuraCurricularModulo { get; set; }
     }
 }
+

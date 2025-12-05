@@ -12,7 +12,9 @@ namespace CapaNegocio.Servicio.Venta
     {
         int CrearPlanCobranza(VTAModVentaCobranzaCrearPlanDTO dto);
         int RegistrarPago(VTAModVentaCobranzaPagoRegistroDTO dto, bool usarAcumulada = false);
-        IEnumerable<VTAModVentaCobranzaCuotaDTO> ObtenerCuotasPorPlan(int idPlan);
+        IEnumerable<VTAModVentaCobranzaCuotaDTO> ObtenerCuotasPorPlan(int idPlans);
         VTAModVentaCobranzaPlanConCuotasDTO? ObtenerPlanPorOportunidad(int idOportunidad);
+        VTAModVentaCobranzaConvertidoResultadoDTO CrearConvertidoDirectoYRegistrarPagoConDetalle(VTAModVentaCobranzaConvertidoCrearDTO dto);
+        VTAModVentaCobranzaConvertidoResultadoDTO CrearConvertidoDirectoPlan(VTAModVentaCobranzaConvertidoCrearDTO dto);
     }
 }

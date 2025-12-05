@@ -38,7 +38,6 @@ namespace CapaDatos.Repositorio.Venta
         {
             return _context.Producto
                 .AsNoTracking()
-                .Include(p => p.Horarios)
                 .Include(p => p.Inversiones)
                     .ThenInclude(inv => inv.Descuentos)              // incluye descuentos de cada inversion
                 .Include(p => p.MetodoPagoProductos)

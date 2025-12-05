@@ -251,6 +251,7 @@ namespace CapaNegocio.Servicio.Venta
                         Nombre = GetVal(reader, "Nombre")?.ToString() ?? string.Empty,
                         CodigoLanzamiento = GetVal(reader, "CodigoLanzamiento")?.ToString() ?? string.Empty,
                         FechaInicio = GetVal(reader, "FechaInicio") as DateTime?,
+                        FechaFin = GetVal(reader, "FechaFin") as DateTime?,
                         FechaPresentacion = GetVal(reader, "FechaPresentacion") as DateTime?,
                         DatosImportantes = GetVal(reader, "DatosImportantes")?.ToString() ?? string.Empty,
                     };
@@ -284,14 +285,16 @@ namespace CapaNegocio.Servicio.Venta
                         horarios.Add(new VTAModVentaHorarioDTO
                         {
                             Id = GetVal(reader, "IdHorario") as int? ?? 0,
-                            IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
                             Dia = GetVal(reader, "Dia")?.ToString() ?? string.Empty,
                             HoraInicio = horaInicio,
                             HoraFin = horaFin,
                             Detalle = GetVal(reader, "Detalle")?.ToString() ?? string.Empty,
                             Orden = GetVal(reader, "Orden") as int?,
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
-                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
+                            UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty,
+                            IdEstructuraCurricularModulo = GetVal(reader, "IdEstructuraCurricularModulo") as int?,
+                            IdModulo = GetVal(reader, "IdModulo") as int?,
+                            ModuloNombre = GetVal(reader, "ModuloNombre")?.ToString() ?? string.Empty
                         });
                     }
                     respuesta.Horarios = horarios;
@@ -311,7 +314,6 @@ namespace CapaNegocio.Servicio.Venta
                             CostoTotal = GetVal(reader, "CostoTotal") as decimal? ?? 0m,
                             Moneda = GetVal(reader, "Moneda")?.ToString() ?? string.Empty,
                             DescuentoPorcentaje = GetVal(reader, "DescuentoPorcentaje") as decimal?,
-                            DescuentoMonto = GetVal(reader, "DescuentoMonto") as decimal?,
                             CostoOfrecido = GetVal(reader, "CostoOfrecido") as decimal?,
                             Estado = GetVal(reader, "Estado") as bool? ?? true,
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
@@ -401,7 +403,7 @@ namespace CapaNegocio.Servicio.Venta
                             Id = GetVal(reader, "IdProductoCertificado") as int? ?? 0,
                             IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
                             IdCertificado = GetVal(reader, "IdCertificado") as int? ?? 0,
-                            NombreCertificado = GetVal(reader, "NombreCertificado")?.ToString() ?? string.Empty, // <--- nombre
+                            NombreCertificado = GetVal(reader, "NombreCertificado")?.ToString() ?? string.Empty,
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
                             UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty,
                         });
@@ -420,7 +422,7 @@ namespace CapaNegocio.Servicio.Venta
                             Id = GetVal(reader, "IdMetodoPagoProducto") as int? ?? 0,
                             IdProducto = GetVal(reader, "IdProducto") as int? ?? 0,
                             IdMetodoPago = GetVal(reader, "IdMetodoPago") as int? ?? 0,
-                            NombreMetodoPago = GetVal(reader, "NombreMetodoPago")?.ToString() ?? string.Empty, // <--- nombre
+                            NombreMetodoPago = GetVal(reader, "NombreMetodoPago")?.ToString() ?? string.Empty,
                             Activo = GetVal(reader, "Activo") as bool? ?? true,
                             FechaCreacion = GetVal(reader, "FechaCreacion") as DateTime? ?? default,
                             UsuarioCreacion = GetVal(reader, "UsuarioCreacion")?.ToString() ?? string.Empty
