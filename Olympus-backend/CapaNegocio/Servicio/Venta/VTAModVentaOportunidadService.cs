@@ -674,7 +674,7 @@ namespace CapaNegocio.Servicio.Venta
                     {
                         o.Id,
                         o.IdPotencialCliente,
-                        PotencialCliente = o.PotencialCliente,
+                        o.PotencialCliente,
                         PersonaNombres = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Nombres : null,
                         PersonaApellidos = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.Apellidos : null,
                         IdPais = o.PotencialCliente != null && o.PotencialCliente.Persona != null ? o.PotencialCliente.Persona.IdPais : null,
@@ -684,10 +684,10 @@ namespace CapaNegocio.Servicio.Venta
                         ProductoNombre = o.Producto != null ? o.Producto.Nombre : null,
                         o.CodigoLanzamiento,
                         o.Estado,
-                        FechaCreacion = o.FechaCreacion,
+                        o.FechaCreacion,
                         UsuarioCreacion = o.UsuarioCreacion ?? string.Empty,
-                        FechaModificacion = o.FechaModificacion,
-                        UsuarioModificacion = o.UsuarioModificacion,
+                        o.FechaModificacion,
+                        o.UsuarioModificacion,
 
                         // Último historialEstado
                         UltimoHistorial = o.HistorialEstado
@@ -821,9 +821,10 @@ namespace CapaNegocio.Servicio.Venta
                     return respuesta;
                 }
 
+                Producto? producto = null;
                 if (dto.IdProducto.HasValue)
                 {
-                    var producto = _unitOfWork.ProductoRepository.ObtenerPorId(dto.IdProducto.Value);
+                    producto = _unitOfWork.ProductoRepository.ObtenerPorId(dto.IdProducto.Value);
                     if (producto == null)
                     {
                         respuesta.Codigo = SR._C_ERROR_CONTROLADO;
@@ -949,6 +950,29 @@ namespace CapaNegocio.Servicio.Venta
                             _unitOfWork.HistorialInteraccionRepository.Insertar(historialInteraccion);
                             _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
+                            if (producto != null && ent.IdProducto.HasValue)
+                            {
+                                decimal costoTotal = producto.CostoBase ?? 0m;
+                                var inversion = new Inversion
+                                {
+                                    IdProducto = ent.IdProducto.Value,
+                                    IdOportunidad = ent.Id,
+                                    CostoTotal = costoTotal,
+                                    Moneda = "USD",
+                                    DescuentoPorcentaje = null,
+                                    CostoOfrecido = costoTotal,
+                                    Estado = true,
+                                    IdMigracion = null,
+                                    FechaCreacion = nowUtc(),
+                                    UsuarioCreacion = usuarioCreacion,
+                                    FechaModificacion = nowUtc(),
+                                    UsuarioModificacion = usuarioModificacion
+                                };
+
+                                _unitOfWork.InversionRepository.Insertar(inversion);
+                                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                            }
+
                             tx.Commit();
 
                             respuesta.Codigo = SR._C_SIN_ERROR;
@@ -963,7 +987,6 @@ namespace CapaNegocio.Servicio.Venta
                 }
                 else
                 {
-                    // sin DbContext accesible en el UoW: persistir de forma secuencial
                     _unitOfWork.OportunidadRepository.Insertar(ent);
                     _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
 
@@ -973,6 +996,29 @@ namespace CapaNegocio.Servicio.Venta
                     _unitOfWork.HistorialEstadoRepository.Insertar(historialEstado);
                     _unitOfWork.HistorialInteraccionRepository.Insertar(historialInteraccion);
                     _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                    if (producto != null && ent.IdProducto.HasValue)
+                    {
+                        decimal costoTotal = producto.CostoBase ?? 0m;
+                        var inversion = new Inversion
+                        {
+                            IdProducto = ent.IdProducto.Value,
+                            IdOportunidad = ent.Id,
+                            CostoTotal = costoTotal,
+                            Moneda = "USD",
+                            DescuentoPorcentaje = null,
+                            CostoOfrecido = costoTotal,
+                            Estado = true,
+                            IdMigracion = null,
+                            FechaCreacion = nowUtc(),
+                            UsuarioCreacion = usuarioCreacion,
+                            FechaModificacion = nowUtc(),
+                            UsuarioModificacion = usuarioModificacion
+                        };
+
+                        _unitOfWork.InversionRepository.Insertar(inversion);
+                        _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+                    }
 
                     respuesta.Codigo = SR._C_SIN_ERROR;
                     respuesta.Mensaje = string.Empty;

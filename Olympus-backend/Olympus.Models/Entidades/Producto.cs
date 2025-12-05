@@ -22,6 +22,7 @@ namespace Modelos.Entidades
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime? FechaModificacion { get; set; }
         public string? UsuarioModificacion { get; set; } = string.Empty;
+        public decimal? CostoBase { get; set; }
 
         // Navegaciones
         public List<Horario> Horarios { get; set; } = new List<Horario>();

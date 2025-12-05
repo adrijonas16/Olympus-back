@@ -1450,6 +1450,9 @@ public partial class OlympusContext : DbContext
             entity.ToTable("Producto", schema: "adm");
             entity.HasKey(e => e.Id);
 
+            entity.Property(e => e.Id)
+                  .ValueGeneratedOnAdd();
+
             entity.Property(e => e.Nombre)
                   .HasMaxLength(500)
                   .IsUnicode(false)
@@ -1475,31 +1478,41 @@ public partial class OlympusContext : DbContext
 
             entity.Property(e => e.Estado)
                   .HasColumnName("Estado")
-                  .HasDefaultValue(true);
+                  .HasColumnType("bit")
+                  .HasDefaultValue(true)
+                  .IsRequired();
 
-            entity.Property(e => e.IdMigracion);
+            entity.Property(e => e.IdMigracion)
+                  .IsRequired(false);
 
             entity.Property(e => e.FechaCreacion)
                   .HasColumnType("datetime")
-                  .HasDefaultValueSql("(getdate())");
-
-            // FechaModificacion nullable
-            entity.Property(e => e.FechaModificacion)
-                  .HasColumnType("datetime")
                   .HasDefaultValueSql("(getdate())")
-                  .IsRequired(false);
+                  .IsRequired();
 
             entity.Property(e => e.UsuarioCreacion)
                   .HasMaxLength(50)
-                  .IsUnicode(false);
+                  .IsUnicode(false)
+                  .IsRequired();
 
-            // UsuarioModificacion nullable
+            entity.Property(e => e.FechaModificacion)
+                  .HasColumnType("datetime")
+                  .IsRequired(false);
+
             entity.Property(e => e.UsuarioModificacion)
                   .HasMaxLength(50)
                   .IsUnicode(false)
                   .IsRequired(false);
 
-            // Relaciones
+            entity.Property(e => e.FechaFin)
+                  .HasColumnType("datetime")
+                  .IsRequired(false);
+
+            entity.Property(e => e.CostoBase)
+                  .HasColumnType("decimal(18,2)")
+                  .IsRequired(false);
+
+        // Relaciones
 
             // Inversiones
             entity.HasMany(p => p.Inversiones)
