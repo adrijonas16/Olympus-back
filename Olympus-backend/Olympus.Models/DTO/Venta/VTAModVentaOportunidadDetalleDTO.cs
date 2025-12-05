@@ -12,6 +12,8 @@ namespace Modelos.DTO.Venta
         public int Id { get; set; }
         public int IdPotencialCliente { get; set; }
         public string PersonaNombre { get; set; } = string.Empty;
+        public int? IdAsesor { get; set; }
+        public string AsesorNombre { get; set; } = string.Empty; // nueva propiedad
         public int? IdProducto { get; set; }
         public string ProductoNombre { get; set; } = string.Empty;
         public string PersonaCorreo { get; set; } = string.Empty;

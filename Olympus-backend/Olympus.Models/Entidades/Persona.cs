@@ -23,8 +23,10 @@ namespace Modelos.Entidades
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime? FechaModificacion { get; set; }
         public string? UsuarioModificacion { get; set; } = string.Empty;
+        public int? IdUsuario { get; set; }
 
         // Navegaciones
+        public Usuario? Usuario { get; set; }
         public Docente? Docente { get; set; }
         public PotencialCliente? PotencialCliente { get; set; }
         public Pais? Pais { get; set; }

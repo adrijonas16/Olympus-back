@@ -1034,5 +1034,218 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
+        public VTAModVentaOportunidadDetalleDTORPT ObtenerTodasOportunidadesRecordatorio2(int idUsuario, int idRol)
+        {
+            var respuesta = new VTAModVentaOportunidadDetalleDTORPT();
+            try
+            {
+                var oportunidades = new List<VTAModVentaOportunidadDetalleDTO>();
+                var historiales = new List<VTAModVentaTHistorialEstadoDetalleDTO>();
+
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SP_ObtenerTodasOportunidadesRecordatorio2";
+
+                cmd.Parameters.Add(new SqlParameter("@IdUsuario", idUsuario));
+                cmd.Parameters.Add(new SqlParameter("@IdRol", idRol));
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+                using var reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    int opId = reader.GetInt32(reader.GetOrdinal("OportunidadId"));
+                    int? idPotencial = reader.IsDBNull(reader.GetOrdinal("IdPotencialCliente"))
+                        ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdPotencialCliente"));
+
+                    // Datos Persona
+                    string personaNombres = reader.IsDBNull(reader.GetOrdinal("Persona_Nombres")) ? "" : reader.GetString(reader.GetOrdinal("Persona_Nombres"));
+                    string personaApellidos = reader.IsDBNull(reader.GetOrdinal("Persona_Apellidos")) ? "" : reader.GetString(reader.GetOrdinal("Persona_Apellidos"));
+                    string personaCorreo = reader.IsDBNull(reader.GetOrdinal("Persona_Correo")) ? "" : reader.GetString(reader.GetOrdinal("Persona_Correo"));
+
+                    // 🔥 AGREGADO DEL MÉTODO 1 → País
+                    int? personaPaisId = reader.IsDBNull(reader.GetOrdinal("Persona_PaisId"))
+                        ? (int?)null
+                        : reader.GetInt32(reader.GetOrdinal("Persona_PaisId"));
+
+                    string personaPaisNombre = reader.IsDBNull(reader.GetOrdinal("Persona_PaisNombre"))
+                        ? ""
+                        : reader.GetString(reader.GetOrdinal("Persona_PaisNombre"));
+
+                    // Datos Asesor
+                    int? idAsesor = reader.IsDBNull(reader.GetOrdinal("UltimoHist_Asesor_Id"))
+                        ? (int?)null : reader.GetInt32(reader.GetOrdinal("UltimoHist_Asesor_Id"));
+
+                    string asesorNombres = reader.IsDBNull(reader.GetOrdinal("UltimoHist_Asesor_Nombres"))
+                        ? "" : reader.GetString(reader.GetOrdinal("UltimoHist_Asesor_Nombres"));
+
+                    string asesorApellidos = reader.IsDBNull(reader.GetOrdinal("UltimoHist_Asesor_Apellidos"))
+                        ? "" : reader.GetString(reader.GetOrdinal("UltimoHist_Asesor_Apellidos"));
+
+                    string asesorNombreCompleto = idAsesor.HasValue
+                        ? $"{asesorNombres} {asesorApellidos}".Trim()
+                        : "SIN ASESOR";
+
+                    int idProducto = reader.IsDBNull(reader.GetOrdinal("IdProducto"))
+                        ? 0 : reader.GetInt32(reader.GetOrdinal("IdProducto"));
+
+                    string productoNombre = reader.IsDBNull(reader.GetOrdinal("Producto_Nombre")) ? "" : reader.GetString(reader.GetOrdinal("Producto_Nombre"));
+                    string codigoLanzamiento = reader.IsDBNull(reader.GetOrdinal("CodigoLanzamiento")) ? "" : reader.GetString(reader.GetOrdinal("CodigoLanzamiento"));
+                    string origen = reader.IsDBNull(reader.GetOrdinal("Origen")) ? "" : reader.GetString(reader.GetOrdinal("Origen"));
+                    bool estado = reader.IsDBNull(reader.GetOrdinal("Estado")) ? true : reader.GetBoolean(reader.GetOrdinal("Estado"));
+                    DateTime fechaCreacion = reader.IsDBNull(reader.GetOrdinal("Oportunidad_FechaCreacion"))
+                        ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("Oportunidad_FechaCreacion"));
+
+                    string usuarioCreacion = reader.IsDBNull(reader.GetOrdinal("Oportunidad_UsuarioCreacion"))
+                        ? "" : reader.GetString(reader.GetOrdinal("Oportunidad_UsuarioCreacion"));
+
+                    int totalOportunidadesPersona = reader.IsDBNull(reader.GetOrdinal("TotalOportunidadesPersona"))
+                        ? 0 : reader.GetInt32(reader.GetOrdinal("TotalOportunidadesPersona"));
+
+                    var dto = new VTAModVentaOportunidadDetalleDTO
+                    {
+                        Id = opId,
+                        IdPotencialCliente = idPotencial ?? 0,
+                        PersonaNombre = $"{personaNombres} {personaApellidos}".Trim(),
+                        PersonaCorreo = personaCorreo,
+
+                        // Asesor
+                        AsesorNombre = asesorNombreCompleto,
+                        IdAsesor = idAsesor,
+
+                        IdProducto = idProducto,
+                        ProductoNombre = productoNombre,
+                        CodigoLanzamiento = codigoLanzamiento,
+                        Origen = origen,
+                        Estado = estado,
+                        TotalOportunidadesPersona = totalOportunidadesPersona,
+                        FechaCreacion = fechaCreacion,
+                        UsuarioCreacion = usuarioCreacion,
+
+                        // 🔥 AGREGADO DEL MÉTODO 1 → País
+                        PersonaPaisId = personaPaisId,
+                        PersonaPaisNombre = personaPaisNombre
+                    };
+
+                    // HISTORIAL ESTADO
+                    if (!reader.IsDBNull(reader.GetOrdinal("UltimoHist_Id")))
+                    {
+                        var uhId = reader.GetInt32(reader.GetOrdinal("UltimoHist_Id"));
+
+                        dto.IdHistorialEstado = uhId;
+                        dto.IdEstado = reader.IsDBNull(reader.GetOrdinal("UltimoHist_IdEstado"))
+                            ? (int?)null
+                            : reader.GetInt32(reader.GetOrdinal("UltimoHist_IdEstado"));
+
+                        dto.NombreEstado = reader.IsDBNull(reader.GetOrdinal("UltimoHist_NombreEstado"))
+                            ? "" : reader.GetString(reader.GetOrdinal("UltimoHist_NombreEstado"));
+
+                        // 🔥 AGREGADO DEL MÉTODO 1 → Ocurrencias
+                        int? idOcurrencia = null;
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("UltimoHist_IdOcurrencia")))
+                            idOcurrencia = reader.GetInt32(reader.GetOrdinal("UltimoHist_IdOcurrencia"));
+
+                        if (idOcurrencia == null && !reader.IsDBNull(reader.GetOrdinal("UltimoHist_OcurrenciaId")))
+                            idOcurrencia = reader.GetInt32(reader.GetOrdinal("UltimoHist_OcurrenciaId"));
+
+                        string ocurrenciaNombre = reader.IsDBNull(reader.GetOrdinal("UltimoHist_OcurrenciaNombre"))
+                            ? ""
+                            : reader.GetString(reader.GetOrdinal("UltimoHist_OcurrenciaNombre"));
+
+                        dto.IdOcurrencia = idOcurrencia;
+                        dto.NombreOcurrencia = ocurrenciaNombre;
+
+                        var histDto = new VTAModVentaTHistorialEstadoDetalleDTO
+                        {
+                            Id = uhId,
+                            IdOportunidad = opId,
+                            IdAsesor = idAsesor,
+                            IdEstado = dto.IdEstado,
+                            Observaciones = reader.IsDBNull(reader.GetOrdinal("UltimoHist_Observaciones"))
+                                ? "" : reader.GetString(reader.GetOrdinal("UltimoHist_Observaciones")),
+                            CantidadLlamadasContestadas = reader.IsDBNull(reader.GetOrdinal("UltimoHist_CantidadLlamadasContestadas"))
+                                ? 0 : reader.GetInt32(reader.GetOrdinal("UltimoHist_CantidadLlamadasContestadas")),
+                            CantidadLlamadasNoContestadas = reader.IsDBNull(reader.GetOrdinal("UltimoHist_CantidadLlamadasNoContestadas"))
+                                ? 0 : reader.GetInt32(reader.GetOrdinal("UltimoHist_CantidadLlamadasNoContestadas")),
+                            Estado = true,
+                            FechaCreacion = reader.IsDBNull(reader.GetOrdinal("UltimoHist_FechaCreacion"))
+                                ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("UltimoHist_FechaCreacion")),
+                            UsuarioCreacion = reader.IsDBNull(reader.GetOrdinal("UltimoHist_UsuarioCreacion"))
+                                ? "" : reader.GetString(reader.GetOrdinal("UltimoHist_UsuarioCreacion")),
+
+                            IdOcurrencia = idOcurrencia,
+                            OcurrenciaNombre = ocurrenciaNombre
+                        };
+
+                        historiales.Add(histDto);
+                    }
+
+                    // HISTORIAL INTERACCIÓN
+                    if (!reader.IsDBNull(reader.GetOrdinal("HistInter_Id")))
+                    {
+                        dto.IdHistorialInteraccion = reader.GetInt32(reader.GetOrdinal("HistInter_Id"));
+                        dto.FechaRecordatorio = reader.IsDBNull(reader.GetOrdinal("HistInter_FechaRecordatorio"))
+                            ? null : reader.GetDateTime(reader.GetOrdinal("HistInter_FechaRecordatorio"));
+                    }
+
+                    oportunidades.Add(dto);
+                }
+
+                respuesta.Oportunidad = oportunidades;
+                respuesta.HistorialActual = historiales;
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = "";
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+
+            return respuesta;
+        }
+
+        public CFGRespuestaGenericaDTO AsignarAsesor(VTAModVentaAsignarAsesorDTO dto)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                foreach (var idOportunidad in dto.IdOportunidades)
+                {
+                    var oportunidad = _unitOfWork.OportunidadRepository
+                        .Query()
+                        .FirstOrDefault(i => i.Id == idOportunidad);
+
+                    if (oportunidad != null)
+                    {
+                        oportunidad.IdPersona = dto.IdAsesor;
+                        oportunidad.FechaModificacion = DateTime.UtcNow;
+                        oportunidad.UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion)
+                            ? "SYSTEM"
+                            : dto.UsuarioModificacion;
+
+                        _unitOfWork.OportunidadRepository.Actualizar(oportunidad);
+                    }
+                }
+
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+
+            return respuesta;
+        }
+
     }
 }
