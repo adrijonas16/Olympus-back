@@ -1,12 +1,15 @@
-﻿using CapaDatos.Repositorio.UnitOfWork;
+﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Modelos.DTO.Configuracion;
 using Modelos.DTO.Venta;
 using Modelos.Entidades;
 using System;
+using System.Data;
 using System.Linq;
 
 namespace CapaNegocio.Servicio.Venta
@@ -16,12 +19,14 @@ namespace CapaNegocio.Servicio.Venta
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly IErrorLogService _errorLogService;
+        private readonly OlympusContext _context;
 
-        public VTAModVentaInversionService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
+        public VTAModVentaInversionService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService, OlympusContext context)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _errorLogService = errorLogService;
+            _context = context;
         }
 
         public VTAModVentaInversionDTORPT ObtenerTodas()
@@ -260,5 +265,67 @@ namespace CapaNegocio.Servicio.Venta
             }
             return respuesta;
         }
+
+        public VTAModVentaInversionActualizarDTO ActualizarCostoOfrecido(VTAModVentaInversionActualizarDTO dto)
+        {
+            try
+            {
+                if (dto == null)
+                    throw new ArgumentNullException(nameof(dto));
+
+                if (string.IsNullOrWhiteSpace(dto.UsuarioModificacion))
+                    throw new ArgumentException("UsuarioModificacion no puede ser nulo o vacío.", nameof(dto.UsuarioModificacion));
+
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "adm.SPActualizarCostoOfrecidoInversion";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@IdProducto", SqlDbType.Int) { Value = dto.IdProducto });
+                cmd.Parameters.Add(new SqlParameter("@IdOportunidad", SqlDbType.Int) { Value = dto.IdOportunidad });
+                var pDesc = new SqlParameter("@DescuentoPorcentaje", SqlDbType.Decimal) { Precision = 5, Scale = 2, Value = dto.DescuentoPorcentaje };
+                cmd.Parameters.Add(pDesc);
+                cmd.Parameters.Add(new SqlParameter("@UsuarioModificacion", SqlDbType.VarChar, 100) { Value = dto.UsuarioModificacion });
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                var result = new VTAModVentaInversionActualizarDTO
+                {
+                    IdProducto = dto.IdProducto,
+                    IdOportunidad = dto.IdOportunidad,
+                    DescuentoPorcentaje = dto.DescuentoPorcentaje,
+                    UsuarioModificacion = dto.UsuarioModificacion,
+
+                    Id = null,
+                    CostoTotal = null,
+                    Moneda = string.Empty,
+                    CostoOfrecido = null,
+                    DescuentoAplicado = null,
+                    FechaModificacion = null,
+                    UsuarioModificacionSalida = string.Empty
+                };
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    result.Id = reader["Id"] != DBNull.Value ? Convert.ToInt32(reader["Id"]) : (int?)null;
+                    result.CostoTotal = reader["CostoTotal"] != DBNull.Value ? Convert.ToDecimal(reader["CostoTotal"]) : (decimal?)null;
+                    result.Moneda = reader["Moneda"] != DBNull.Value ? Convert.ToString(reader["Moneda"])! : string.Empty;
+                    result.CostoOfrecido = reader["CostoOfrecido"] != DBNull.Value ? Convert.ToDecimal(reader["CostoOfrecido"]) : (decimal?)null;
+                    result.DescuentoAplicado = reader["DescuentoPorcentaje"] != DBNull.Value ? Convert.ToDecimal(reader["DescuentoPorcentaje"]) : (decimal?)null;
+                    result.FechaModificacion = reader["FechaModificacion"] != DBNull.Value ? Convert.ToDateTime(reader["FechaModificacion"]) : (DateTime?)null;
+                    result.UsuarioModificacionSalida = reader["UsuarioModificacion"] != DBNull.Value ? Convert.ToString(reader["UsuarioModificacion"])! : string.Empty;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                throw;
+            }
+        }
+
+
     }
 }

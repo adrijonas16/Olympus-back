@@ -15,5 +15,6 @@ namespace CapaNegocio.Servicio.Venta
         CFGRespuestaGenericaDTO Insertar(VTAModVentaInversionDTO dto);
         CFGRespuestaGenericaDTO Actualizar(VTAModVentaInversionDTO dto);
         CFGRespuestaGenericaDTO Eliminar(int id);
+        VTAModVentaInversionActualizarDTO ActualizarCostoOfrecido(VTAModVentaInversionActualizarDTO dto);
     }
 }

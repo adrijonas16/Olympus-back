@@ -241,7 +241,7 @@ namespace CapaNegocio.Servicio.Venta
                         return null!;
                     }
                 }
-
+                ordinals.Clear();
                 // 1) Producto (primer resultset)
                 if (reader.HasRows && reader.Read())
                 {
@@ -260,6 +260,7 @@ namespace CapaNegocio.Servicio.Venta
                 // 2) Horarios
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var horarios = new List<VTAModVentaHorarioDTO>();
                     while (reader.Read())
                     {
@@ -303,6 +304,7 @@ namespace CapaNegocio.Servicio.Venta
                 // 3) Inversiones
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var inv = new List<VTAModVentaInversionDTO>();
                     while (reader.Read())
                     {
@@ -326,6 +328,7 @@ namespace CapaNegocio.Servicio.Venta
                 // 4) Estructuras
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var ecs = new List<VTAModVentaEstructuraCurricularDTO>();
                     while (reader.Read())
                     {
@@ -345,6 +348,7 @@ namespace CapaNegocio.Servicio.Venta
                 // 5) Módulos
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var mods = new List<VTAModVentaEstructuraCurricularModuloDTO>();
                     while (reader.Read())
                     {
@@ -376,6 +380,7 @@ namespace CapaNegocio.Servicio.Venta
                 // 6) Docentes por módulo
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var docs = new List<VTAModVentaEstructuraCurricularModuloDTO>();
                     while (reader.Read())
                     {
@@ -385,16 +390,20 @@ namespace CapaNegocio.Servicio.Venta
                             IdModulo = GetVal(reader, "IdModulo") as int? ?? 0,
                             IdDocente = GetVal(reader, "IdDocente") as int?,
                             IdPersonaDocente = GetVal(reader, "IdPersona") as int?,
-                            DocenteNombre = (GetVal(reader, "Nombres")?.ToString() ?? string.Empty) + " " + (GetVal(reader, "Apellidos")?.ToString() ?? string.Empty)
+                            DocenteNombre = (GetVal(reader, "Nombres")?.ToString() ?? string.Empty) + " " + (GetVal(reader, "Apellidos")?.ToString() ?? string.Empty),
+                            DocenteLogros = GetVal(reader, "Logros")?.ToString() ?? string.Empty,
+                            ModuloNombre = GetVal(reader, "ModuloNombre")?.ToString() ?? string.Empty
                         };
                         docs.Add(dto);
                     }
                     respuesta.DocentesPorModulo = docs;
                 }
 
+
                 // 7) ProductoCertificados
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var pcs = new List<VTAModVentaProductoCertificadoDTO>();
                     while (reader.Read())
                     {
@@ -414,6 +423,7 @@ namespace CapaNegocio.Servicio.Venta
                 // 8) MetodoPagoProducto
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var mpps = new List<VTAModVentaMetodoPagoProductoDTO>();
                     while (reader.Read())
                     {
@@ -434,6 +444,7 @@ namespace CapaNegocio.Servicio.Venta
                 // 9) Beneficios
                 if (reader.NextResult())
                 {
+                    ordinals.Clear();
                     var ben = new List<VTAModVentaBeneficioDTO>();
                     while (reader.Read())
                     {

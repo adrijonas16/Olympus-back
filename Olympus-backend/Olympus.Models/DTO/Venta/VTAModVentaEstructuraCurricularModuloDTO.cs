@@ -21,6 +21,8 @@ namespace Modelos.DTO.Venta
         public int? IdDocente { get; set; }
         public int? IdPersonaDocente { get; set; }
         public string? DocenteNombre { get; set; }
+        public string DocenteLogros { get; set; } = string.Empty;
+        public string ModuloNombre { get; set; } = string.Empty;
         public VTAModVentaHorarioDTO? Horarios { get; set; }
     }
 }
