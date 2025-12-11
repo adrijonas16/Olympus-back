@@ -250,6 +250,40 @@ namespace Olympus.API.Controllers.Venta
             return respuesta;
         }
 
+        [HttpPost("ImportarProcesadoLinkedin")]
+        public VTAModVentaImportarLinkedinResultadoDTO ImportarProcesadoLinkedin([FromBody] VTAModVentaImportarLinkedinRequestDTO request)
+        {
+            var respuesta = new VTAModVentaImportarLinkedinResultadoDTO
+            {
+                Respuesta = new CFGRespuestaGenericaDTO { Codigo = "0", Mensaje = string.Empty },
+                FilasProcesadas = 0,
+                FilasSaltadas = 0,
+                FilasEnRango = 0,
+                SkippedSources = new List<VTAModVentaImportarLinkedinSkippedDTO>()
+            };
 
+            try
+            {
+                respuesta = _oportunidadService.ImportarProcesadoLinkedin(request?.FechaInicio, request?.FechaFin);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta = new VTAModVentaImportarLinkedinResultadoDTO
+                {
+                    Respuesta = new CFGRespuestaGenericaDTO
+                    {
+                        Codigo = SR._C_ERROR_CRITICO ?? "1",
+                        Mensaje = ex.Message
+                    },
+                    FilasProcesadas = 0,
+                    FilasSaltadas = 0,
+                    FilasEnRango = 0,
+                    SkippedSources = new List<VTAModVentaImportarLinkedinSkippedDTO>()
+                };
+            }
+
+            return respuesta;
+        }
     }
 }

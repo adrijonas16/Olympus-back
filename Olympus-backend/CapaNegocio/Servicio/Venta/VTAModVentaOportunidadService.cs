@@ -1247,5 +1247,144 @@ namespace CapaNegocio.Servicio.Venta
             return respuesta;
         }
 
+
+        /// <summary>
+        /// Ejecuta el SP adm.SPImportarProcesadoLinkedin y devuelve el resultado parseado.
+        /// </summary>
+        public VTAModVentaImportarLinkedinResultadoDTO ImportarProcesadoLinkedin(DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            var respuesta = new VTAModVentaImportarLinkedinResultadoDTO
+            {
+                Respuesta = new CFGRespuestaGenericaDTO { Codigo = "0", Mensaje = string.Empty },
+                FilasProcesadas = 0,
+                FilasSaltadas = 0,
+                FilasEnRango = 0,
+                SkippedSources = new List<VTAModVentaImportarLinkedinSkippedDTO>()
+            };
+
+            try
+            {
+                using var conn = _context.Database.GetDbConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SPImportarProcesadoLinkedin";
+
+                var p1 = cmd.CreateParameter();
+                p1.ParameterName = "@FechaInicio";
+                p1.DbType = DbType.DateTime;
+                p1.Value = fechaInicio.HasValue ? (object)fechaInicio.Value : DBNull.Value;
+                cmd.Parameters.Add(p1);
+
+                var p2 = cmd.CreateParameter();
+                p2.ParameterName = "@FechaFin";
+                p2.DbType = DbType.DateTime;
+                p2.Value = fechaFin.HasValue ? (object)fechaFin.Value : DBNull.Value;
+                cmd.Parameters.Add(p2);
+
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var reader = cmd.ExecuteReader();
+
+                bool HasColumn(DbDataReader r, string name)
+                {
+                    for (int i = 0; i < r.FieldCount; i++)
+                        if (string.Equals(r.GetName(i), name, StringComparison.OrdinalIgnoreCase))
+                            return true;
+                    return false;
+                }
+
+                do
+                {
+                    if (!reader.HasRows) continue;
+
+                    if (HasColumn(reader, "FilasProcesadas"))
+                    {
+                        if (reader.Read())
+                        {
+                            respuesta.FilasProcesadas = reader.IsDBNull(reader.GetOrdinal("FilasProcesadas"))
+                                ? 0
+                                : reader.GetInt32(reader.GetOrdinal("FilasProcesadas"));
+                        }
+                        continue;
+                    }
+
+                    if (HasColumn(reader, "FilasEnRango"))
+                    {
+                        if (reader.Read())
+                        {
+                            respuesta.FilasEnRango = reader.IsDBNull(reader.GetOrdinal("FilasEnRango"))
+                                ? 0
+                                : reader.GetInt32(reader.GetOrdinal("FilasEnRango"));
+
+                            if (HasColumn(reader, "Mensaje"))
+                                respuesta.Respuesta.Mensaje = reader.IsDBNull(reader.GetOrdinal("Mensaje"))
+                                    ? string.Empty
+                                    : reader.GetString(reader.GetOrdinal("Mensaje"));
+                        }
+                        continue;
+                    }
+
+                    if (HasColumn(reader, "Id") && (HasColumn(reader, "Motivo") || HasColumn(reader, "FormName")))
+                    {
+                        while (reader.Read())
+                        {
+                            var sk = new VTAModVentaImportarLinkedinSkippedDTO
+                            {
+                                Id = HasColumn(reader, "Id") && !reader.IsDBNull(reader.GetOrdinal("Id"))
+                                    ? reader.GetInt32(reader.GetOrdinal("Id")) : 0,
+                                FormName = HasColumn(reader, "FormName") && !reader.IsDBNull(reader.GetOrdinal("FormName"))
+                                    ? reader.GetString(reader.GetOrdinal("FormName")) : string.Empty,
+                                Motivo = HasColumn(reader, "Motivo") && !reader.IsDBNull(reader.GetOrdinal("Motivo"))
+                                    ? reader.GetString(reader.GetOrdinal("Motivo")) : string.Empty,
+                                CreatedDate = HasColumn(reader, "CreatedDate") && !reader.IsDBNull(reader.GetOrdinal("CreatedDate"))
+                                    ? reader.GetDateTime(reader.GetOrdinal("CreatedDate")) : (DateTime?)null
+                            };
+                            respuesta.SkippedSources.Add(sk);
+                        }
+
+                        respuesta.FilasSaltadas = respuesta.SkippedSources.Count;
+                        continue;
+                    }
+
+                    if (HasColumn(reader, "FilasSaltadas"))
+                    {
+                        if (reader.Read())
+                        {
+                            respuesta.FilasSaltadas = reader.IsDBNull(reader.GetOrdinal("FilasSaltadas"))
+                                ? 0
+                                : reader.GetInt32(reader.GetOrdinal("FilasSaltadas"));
+                        }
+                        continue;
+                    }
+
+                } while (reader.NextResult());
+
+                // Resultado exitoso
+                respuesta.Respuesta.Codigo = "0";
+                if (respuesta.FilasProcesadas == 0 && respuesta.SkippedSources.Count == 0 && string.IsNullOrWhiteSpace(respuesta.Respuesta.Mensaje))
+                {
+                    respuesta.Respuesta.Mensaje = "Ejecución completada. Revise los detalles en SkippedSources.";
+                }
+
+                return respuesta;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+
+                return new VTAModVentaImportarLinkedinResultadoDTO
+                {
+                    Respuesta = new CFGRespuestaGenericaDTO
+                    {
+                        Codigo = "1",
+                        Mensaje = ex.Message
+                    },
+                    FilasProcesadas = 0,
+                    FilasSaltadas = 0,
+                    FilasEnRango = 0,
+                    SkippedSources = new List<VTAModVentaImportarLinkedinSkippedDTO>()
+                };
+            }
+        }
     }
 }

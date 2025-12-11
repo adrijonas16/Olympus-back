@@ -19,14 +19,6 @@ namespace CapaNegocio.Servicio.Venta
         VTAModVentaPotencialClienteDTO ObtenerPotencialPorOportunidadId(int idOportunidad);
         CFGRespuestaGenericaDTO InsertarOportunidadHistorialRegistrado(VTAModVentaTOportunidadDTO dto);
         CFGRespuestaGenericaDTO AsignarAsesor(VTAModVentaAsignarAsesorDTO dto);
-
-        //VTAModVentaTOportunidadDTORPT ObtenerPorPersona(int idPersona);
-        //VTAModVentaTControlOportunidadDTORPT ObtenerControlOportunidadesPorOportunidad(int idOportunidad);
-        //VTAModVentaTHistorialInteraccionDTORPT ObtenerHistorialInteraccionesPorOportunidad(int idOportunidad);
-        //VTAModVentaTHistorialEstadoDTORPT ObtenerHistorialEstadoPorOportunidad(int idOportunidad);
-        //VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle();
-        //VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId(int id);
-        //VTAModVentaTOportunidadDetalleDTORPT ObtenerTodasConDetalle_SP_Multi(string? tipoInteraccion = null);
-        //VTAModVentaTOportunidadDetalleDTO ObtenerDetallePorId_SP(int idOportunidad);
+        VTAModVentaImportarLinkedinResultadoDTO ImportarProcesadoLinkedin(DateTime? fechaInicio, DateTime? fechaFin);
     }
 }
