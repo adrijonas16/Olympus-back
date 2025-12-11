@@ -10,7 +10,11 @@ namespace Modelos.Entidades
     public partial class UserToken
     {
         public int Id { get; set; }
-        public int IdRol { get; set; }
+
+        [NotMapped]
+        public int? IdRol { get; set; }
+
+        [NotMapped]
         public string NombreRol { get; set; }
         public int IdUsuario { get; set; }
         public string Token { get; set; } = string.Empty;
