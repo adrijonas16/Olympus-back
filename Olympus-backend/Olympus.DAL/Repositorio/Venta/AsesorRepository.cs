@@ -40,6 +40,12 @@ namespace CapaDatos.Repositorio.Venta
                .FirstOrDefault(p => p.Id == id);
         }
 
+        public Asesor? ObtenerPorIdPersona(int idPersona)
+        {
+            return _context.Asesor.FirstOrDefault(h => h.IdPersona == idPersona);
+        }
+
+
         public IQueryable<Asesor> ObtenerTodos()
         {
             return _context.Asesor.AsQueryable();

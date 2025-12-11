@@ -833,6 +833,18 @@ namespace CapaNegocio.Servicio.Venta
                     }
                 }
 
+                Asesor? asesor = null;
+                if (dto.IdProducto.HasValue)
+                {
+                    asesor = _unitOfWork.AsesorRepository.ObtenerPorIdPersona(dto.IdAsesor);
+                    if (asesor == null)
+                    {
+                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                        respuesta.Mensaje = "Asesor no encontrado.";
+                        return respuesta;
+                    }
+                }
+
                 if (dto.FechaRecordatorio == default(DateTime) || string.IsNullOrWhiteSpace(dto.HoraRecordatorio))
                 {
                     respuesta.Codigo = SR._C_ERROR_CONTROLADO;
@@ -895,7 +907,7 @@ namespace CapaNegocio.Servicio.Venta
 
                 var historialEstado = new HistorialEstado
                 {
-                    IdAsesor = 1,
+                    IdAsesor = asesor.Id,
                     IdEstado = 1,
                     IdOcurrencia = 1,
                     Observaciones = "Estado Inicial",
