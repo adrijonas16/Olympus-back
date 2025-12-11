@@ -2,6 +2,7 @@
 using CapaDatos.Repositorio.UnitOfWork;
 using CapaNegocio.Configuracion;
 using CapaNegocio.Servicio.Configuracion;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -353,5 +354,44 @@ namespace CapaNegocio.Servicio.Venta
             }
 
         }
+
+        public CFGRespuestaGenericaDTO ReiniciarLlamadas(int idOportunidad)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                using var conn = _context.Database.GetDbConnection();
+                if (conn.State != ConnectionState.Open) conn.Open();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "adm.SP_ReiniciarLlamadas";
+
+                cmd.Parameters.Add(new SqlParameter("@IdOportunidad", idOportunidad));
+                cmd.Parameters.Add(new SqlParameter("@Usuario", "SYSTEM"));
+
+                using var reader = cmd.ExecuteReader();
+
+                int resultado = 0;
+                int historialId = 0;
+
+                if (reader.Read())
+                {
+                    resultado = Convert.ToInt32(reader["Resultado"]);
+                    historialId = Convert.ToInt32(reader["HistorialId"]);
+                }
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = $"Reinicio correcto. HistorialId={historialId}";
+                return respuesta;
+            }
+            catch (Exception ex)
+            {
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+                return respuesta;
+            }
+        }
+
     }
 }

@@ -8,6 +8,7 @@ namespace CapaDatos.Repositorio.Venta
         bool Actualizar(Asesor modelo);
         bool Eliminar(int id);
         Asesor? ObtenerPorId(int id);
+        Asesor? ObtenerPorIdPersona(int idPersona);
         IQueryable<Asesor> ObtenerTodos();
         IQueryable<Asesor> Query();
     }

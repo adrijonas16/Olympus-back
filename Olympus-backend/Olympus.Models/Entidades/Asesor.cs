@@ -23,9 +23,11 @@ namespace Modelos.Entidades
         public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime FechaModificacion { get; set; }
         public string UsuarioModificacion { get; set; } = string.Empty;
+        public int IdPersona { get; set; }
 
         // Navegaciones
         public List<HistorialEstado> HistorialEstado { get; set; } = new List<HistorialEstado>();
         public Pais? Pais { get; set; }
+        public Persona? Persona { get; set; }
     }
 }

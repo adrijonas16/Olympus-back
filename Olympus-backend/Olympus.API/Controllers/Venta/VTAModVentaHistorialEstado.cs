@@ -193,5 +193,24 @@ namespace Olympus.API.Controllers.Venta
             }
         }
 
+        [HttpPost("{IdOportunidad}/ReiniciarLlamadas")]
+        public IActionResult ReiniciarLlamadas(int IdOportunidad)
+        {
+            try
+            {
+                if (IdOportunidad == 0)
+                    return BadRequest("request is required");
+
+                var resp = _historialEstadoService.ReiniciarLlamadas(IdOportunidad);
+                if (resp.Codigo == SR._C_SIN_ERROR)
+                    return Ok(resp);
+                return BadRequest(resp);
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                return Problem(detail: ex.Message);
+            }
+        }
     }
 }
