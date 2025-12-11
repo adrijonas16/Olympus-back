@@ -1,0 +1,210 @@
+﻿using CapaDatos.Repositorio.UnitOfWork;
+using CapaNegocio.Configuracion;
+using CapaNegocio.Servicio.Configuracion;
+using Microsoft.Extensions.Configuration;
+using Modelos.DTO.Configuracion;
+using Modelos.DTO.Venta;
+using Modelos.Entidades;
+
+namespace CapaNegocio.Servicio.Venta
+{
+    public class VTAModVentaPersonaService : IVTAModVentaPersonaService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _config;
+        private readonly IErrorLogService _errorLogService;
+
+        public VTAModVentaPersonaService(IUnitOfWork unitOfWork, IConfiguration config, IErrorLogService errorLogService)
+        {
+            _unitOfWork = unitOfWork;
+            _config = config;
+            _errorLogService = errorLogService;
+        }
+
+        public VTAModVentaTPersonaDTORPT ObtenerTodas()
+        {
+            var respuesta = new VTAModVentaTPersonaDTORPT();
+            try
+            {
+                var lista = _unitOfWork.PersonaRepository.ObtenerTodos()
+                    .Select(p => new VTAModVentaTPersonaDTO
+                    {
+                        Id = p.Id,
+                        IdPais = p.IdPais,
+                        Pais = p.Pais != null ? p.Pais.Nombre : string.Empty,
+                        Nombres = p.Nombres ?? string.Empty,
+                        Apellidos = p.Apellidos ?? string.Empty,
+                        Celular = p.Celular ?? string.Empty,
+                        PrefijoPaisCelular = p.PrefijoPaisCelular ?? string.Empty,
+                        Correo = p.Correo ?? string.Empty,
+                        AreaTrabajo = p.AreaTrabajo ?? string.Empty,
+                        Industria = p.Industria ?? string.Empty,
+                        Estado = p.Estado,
+                        UsuarioCreacion = p.UsuarioCreacion,
+                        FechaCreacion = p.FechaCreacion,
+                        UsuarioModificacion = p.UsuarioModificacion,
+                        FechaModificacion = p.FechaModificacion
+                    })
+                    .ToList();
+
+                respuesta.Personas = lista;
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
+        public VTAModVentaTPersonaDTO ObtenerPorId(int id)
+        {
+            var dto = new VTAModVentaTPersonaDTO();
+            try
+            {
+                var ent = _unitOfWork.PersonaRepository.ObtenerPorId(id);
+                if (ent != null)
+                {
+                    dto.Id = ent.Id;
+                    dto.IdPais = ent.IdPais;
+                    dto.Pais = ent.Pais != null ? ent.Pais.Nombre : string.Empty;
+                    dto.Nombres = ent.Nombres ?? string.Empty;
+                    dto.Apellidos = ent.Apellidos ?? string.Empty;
+                    dto.Celular = ent.Celular ?? string.Empty;
+                    dto.PrefijoPaisCelular = ent.PrefijoPaisCelular ?? string.Empty;
+                    dto.Correo = ent.Correo ?? string.Empty;
+                    dto.AreaTrabajo = ent.AreaTrabajo ?? string.Empty;
+                    dto.Industria = ent.Industria ?? string.Empty;
+                    dto.Estado = ent.Estado;
+                    dto.UsuarioCreacion = ent.UsuarioCreacion;
+                    dto.FechaCreacion = ent.FechaCreacion;
+                    dto.UsuarioModificacion = ent.UsuarioModificacion;
+                    dto.FechaModificacion = ent.FechaModificacion;
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+            }
+            return dto;
+        }
+
+        public CFGRespuestaGenericaDTO Insertar(VTAModVentaTPersonaDTO dto)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                var ent = new Persona
+                {
+                    IdPais = dto.IdPais,
+                    Nombres = dto.Nombres,
+                    Apellidos = dto.Apellidos,
+                    Celular = dto.Celular,
+                    PrefijoPaisCelular = dto.PrefijoPaisCelular,
+                    Correo = dto.Correo,
+                    AreaTrabajo = dto.AreaTrabajo,
+                    Industria = dto.Industria,
+                    Estado = dto.Estado,
+                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioCreacion = string.IsNullOrWhiteSpace(dto.UsuarioCreacion) ? "SYSTEM" : dto.UsuarioCreacion,
+                    FechaModificacion = DateTime.UtcNow,
+                    UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion
+                };
+
+                _unitOfWork.PersonaRepository.Insertar(ent);
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
+        public CFGRespuestaGenericaDTO Actualizar(VTAModVentaTPersonaDTO dto)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                var ent = _unitOfWork.PersonaRepository.ObtenerPorId(dto.Id);
+                if (ent == null)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
+                    return respuesta;
+                }
+                if (dto.IdPais.HasValue)
+                {
+                    var pais = _unitOfWork.PaisRepository.ObtenerPorId(dto.IdPais.Value);
+                    if (pais == null)
+                    {
+                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                        respuesta.Mensaje = "País no encontrado.";
+                        return respuesta;
+                    }
+                    // Estado del Pais
+                }
+
+                ent.IdPais = dto.IdPais;
+                ent.Nombres = dto.Nombres;
+                ent.Apellidos = dto.Apellidos;
+                ent.Celular = dto.Celular;
+                ent.PrefijoPaisCelular = dto.PrefijoPaisCelular;
+                ent.Correo = dto.Correo;
+                ent.AreaTrabajo = dto.AreaTrabajo;
+                ent.Industria = dto.Industria;
+                ent.Estado = dto.Estado;
+                ent.FechaModificacion = DateTime.UtcNow;
+                ent.UsuarioModificacion = string.IsNullOrWhiteSpace(dto.UsuarioModificacion) ? "SYSTEM" : dto.UsuarioModificacion;
+
+                _unitOfWork.PersonaRepository.Actualizar(ent);
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+
+        public CFGRespuestaGenericaDTO Eliminar(int id)
+        {
+            var respuesta = new CFGRespuestaGenericaDTO();
+            try
+            {
+                var success = _unitOfWork.PersonaRepository.Eliminar(id);
+                if (!success)
+                {
+                    respuesta.Codigo = SR._C_ERROR_CONTROLADO;
+                    respuesta.Mensaje = SR._M_NO_ENCONTRADO;
+                    return respuesta;
+                }
+
+                _unitOfWork.SaveChangesAsync().GetAwaiter().GetResult();
+
+                respuesta.Codigo = SR._C_SIN_ERROR;
+                respuesta.Mensaje = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorLogService.RegistrarError(ex);
+                respuesta.Codigo = SR._C_ERROR_CRITICO;
+                respuesta.Mensaje = ex.Message;
+            }
+            return respuesta;
+        }
+    }
+}

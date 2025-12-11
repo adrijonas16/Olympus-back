@@ -11,6 +11,8 @@ namespace Modelos.DTO.Seguridad
     {
         public string Correo { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+
+        public string Ip { get; set; } = string.Empty;
     }
 
     public class LoginResponseDTO: CFGRespuestaGenericaDTO

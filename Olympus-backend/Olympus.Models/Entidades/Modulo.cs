@@ -10,11 +10,17 @@ namespace Modelos.Entidades
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
-        public int IdArea { get; set; }
+        public string? Codigo { get; set; }
+        public string? Descripcion { get; set; }
+        public int? DuracionHoras { get; set; }
+        public bool Estado { get; set; } = true;
+        public int? IdMigracion { get; set; }
         public DateTime FechaCreacion { get; set; }
-        public int UsuarioCreacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
         public DateTime? FechaModificacion { get; set; }
-        public int? UsuarioModificacion { get; set; }
-        public bool Activo { get; set; }
+        public string? UsuarioModificacion { get; set; } = string.Empty;
+
+        // Navegaciones
+        public ICollection<EstructuraCurricularModulo> EstructurasModulos { get; set; } = new List<EstructuraCurricularModulo>();
     }
 }

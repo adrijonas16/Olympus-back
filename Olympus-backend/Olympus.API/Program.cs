@@ -1,4 +1,5 @@
 ﻿using CapaDatos.DataContext;
+using CapaDatos.Repositorio.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -7,17 +8,22 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Environment.IsDevelopment()
-    ? builder.Configuration.GetConnectionString("Development")
-    : builder.Configuration.GetConnectionString("Production");
+var connectionString = builder.Configuration.GetConnectionString("Production")
+    ?? throw new InvalidOperationException("Connection string 'Production' not found.");
+
+//var connectionString = builder.Environment.IsDevelopment()
+//    ? builder.Configuration.GetConnectionString("Development")
+//    : builder.Configuration.GetConnectionString("Production");
 
 builder.Services.AddDbContext<OlympusContext>(options =>
     options.UseSqlServer(connectionString)
 );
 
-
 // 🔹 Agregar repositorios
 builder.Services.AgregarServiciosAplicacion();
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<TokenService>();
 
 // 🔹 Configurar autenticación con JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -34,6 +40,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+
+builder.Services.AddDefaultAuthorizationPolicy();
 
 // 🔹 Agregar controladores
 builder.Services.AddControllers();
