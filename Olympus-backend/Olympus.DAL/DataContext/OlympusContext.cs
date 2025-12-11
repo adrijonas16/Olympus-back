@@ -221,6 +221,12 @@ public partial class OlympusContext : DbContext
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("(getdate())");
 
+            entity.Property(e => e.IdPersona)
+                  .HasColumnName("IdPersona");
+            entity.HasOne(e => e.Persona)
+                  .WithMany()
+                  .HasForeignKey(e => e.IdPersona);
+
             entity.Property(e => e.IdPais)
                 .HasColumnName("IdPais");
 

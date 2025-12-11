@@ -29,6 +29,11 @@ namespace Modelos.DTO.Venta
         public DateTime? FechaRecordatorio { get; set; }
         public int? PersonaPaisId { get; set; }
         public string PersonaPaisNombre { get; set; } = string.Empty;
+        public int? IdPersonaAsignada { get; set; }
+        public string PersonaAsignadaNombre { get; set; } = string.Empty;
+        public string PersonaAsignadaApellidos { get; set; } = string.Empty;
+        public string PersonaAsignadaCorreo { get; set; } = string.Empty;
+        public DateTime FechaFormulario { get; set; }
         public bool Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public string UsuarioCreacion { get; set; } = string.Empty;

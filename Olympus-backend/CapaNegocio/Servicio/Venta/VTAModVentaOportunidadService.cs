@@ -302,8 +302,15 @@ namespace CapaNegocio.Servicio.Venta
                     bool estado = reader.IsDBNull(Ord(reader, "Estado")) ? true : reader.GetBoolean(Ord(reader, "Estado"));
                     DateTime fechaCreacion = reader.IsDBNull(Ord(reader, "Oportunidad_FechaCreacion")) ? DateTime.MinValue : reader.GetDateTime(Ord(reader, "Oportunidad_FechaCreacion"));
                     string usuarioCreacion = reader.IsDBNull(Ord(reader, "Oportunidad_UsuarioCreacion")) ? string.Empty : reader.GetString(Ord(reader, "Oportunidad_UsuarioCreacion"));
+                    DateTime fechaFormulario = reader.IsDBNull(Ord(reader, "Oportunidad_FechaFormulario")) ? DateTime.MinValue : reader.GetDateTime(Ord(reader, "Oportunidad_FechaFormulario"));
 
                     int totalHistSinAsesor = reader.IsDBNull(Ord(reader, "TotalHistorialesSinAsesor")) ? 0 : reader.GetInt32(Ord(reader, "TotalHistorialesSinAsesor"));
+
+                    int? idPersonaAsignada = reader.IsDBNull(Ord(reader, "Oportunidad_IdPersona")) ? (int?)null : reader.GetInt32(Ord(reader, "Oportunidad_IdPersona"));
+                    string personaAsignadaNombres = reader.IsDBNull(Ord(reader, "OportunidadPersona_Nombres")) ? string.Empty : reader.GetString(Ord(reader, "OportunidadPersona_Nombres"));
+                    string personaAsignadaApellidos = reader.IsDBNull(Ord(reader, "OportunidadPersona_Apellidos")) ? string.Empty : reader.GetString(Ord(reader, "OportunidadPersona_Apellidos"));
+                    string personaAsignadaCorreo = reader.IsDBNull(Ord(reader, "OportunidadPersona_Correo")) ? string.Empty : reader.GetString(Ord(reader, "OportunidadPersona_Correo"));
+
 
                     var oportunidadDto = new VTAModVentaOportunidadDetalleDTO
                     {
@@ -318,7 +325,12 @@ namespace CapaNegocio.Servicio.Venta
                         Estado = estado,
                         TotalOportunidadesPersona = totalHistSinAsesor,
                         FechaCreacion = fechaCreacion,
-                        UsuarioCreacion = usuarioCreacion ?? string.Empty
+                        UsuarioCreacion = usuarioCreacion ?? string.Empty,
+                        FechaFormulario = fechaFormulario,
+                        IdPersonaAsignada = idPersonaAsignada,
+                        PersonaAsignadaNombre = $"{personaAsignadaNombres}".Trim(),
+                        PersonaAsignadaApellidos = $"{personaAsignadaApellidos}".Trim(),
+                        PersonaAsignadaCorreo = personaAsignadaCorreo ?? string.Empty
                     };
 
                     // Si hay UltimoHist_Id, construir historial DTO
@@ -833,16 +845,20 @@ namespace CapaNegocio.Servicio.Venta
                     }
                 }
 
-                Asesor? asesor = null;
-                if (dto.IdProducto.HasValue)
+                // Determinar IdPersona asignada (compatibilidad con dto.IdPersona o dto.IdAsesor si sólo existe ese campo)
+                int? personaAsignadaId = null;
+                var propIdPersona = dto.GetType().GetProperty("IdPersona");
+                if (propIdPersona != null)
                 {
-                    asesor = _unitOfWork.AsesorRepository.ObtenerPorIdPersona(dto.IdAsesor);
-                    if (asesor == null)
-                    {
-                        respuesta.Codigo = SR._C_ERROR_CONTROLADO;
-                        respuesta.Mensaje = "Asesor no encontrado.";
-                        return respuesta;
-                    }
+                    var val = propIdPersona.GetValue(dto);
+                    if (val != null && int.TryParse(val.ToString(), out var parsed))
+                        personaAsignadaId = parsed;
+                }
+                if (!personaAsignadaId.HasValue)
+                {
+                    // si dto.IdAsesor es int no-nullable, asumimos >0 es válido
+                    if (dto.IdAsesor > 0)
+                        personaAsignadaId = dto.IdAsesor;
                 }
 
                 if (dto.FechaRecordatorio == default(DateTime) || string.IsNullOrWhiteSpace(dto.HoraRecordatorio))
@@ -858,7 +874,7 @@ namespace CapaNegocio.Servicio.Venta
 
                 DateTime BuildFechaRecordatorio()
                 {
-                    var fecha = dto.FechaRecordatorio; // ya validado no-default
+                    var fecha = dto.FechaRecordatorio;
                     var horaStr = dto.HoraRecordatorio ?? string.Empty;
 
                     if (TimeSpan.TryParse(horaStr, out var ts))
@@ -899,15 +915,27 @@ namespace CapaNegocio.Servicio.Venta
                     CodigoLanzamiento = dto.CodigoLanzamiento,
                     Origen = dto.Origen,
                     Estado = dto.Estado,
+                    // guardamos idPersona en la oportunidad (si viene)
+                    IdPersona = personaAsignadaId,
                     FechaCreacion = nowUtc(),
                     UsuarioCreacion = usuarioCreacion,
                     FechaModificacion = nowUtc(),
                     UsuarioModificacion = usuarioModificacion
                 };
 
+                // Si recibimos personaAsignadaId intentamos encontrar el Asesor correspondiente (FK)
+                Asesor? asesorEntity = null;
+                if (personaAsignadaId.HasValue)
+                {
+                    // ObtenerPorIdPersona debe devolver el registro Asesor cuya columna IdPersona = personaAsignadaId
+                    asesorEntity = _unitOfWork.AsesorRepository.ObtenerPorIdPersona(personaAsignadaId.Value);
+                    // asesorEntity será null si no existe un Asesor vinculado a esa persona
+                }
+
                 var historialEstado = new HistorialEstado
                 {
-                    IdAsesor = asesor.Id,
+                    // Asignar IdAsesor solamente si encontramos un Asesor; si no, dejar null
+                    IdAsesor = asesorEntity?.Id,
                     IdEstado = 1,
                     IdOcurrencia = 1,
                     Observaciones = "Estado Inicial",
@@ -933,6 +961,7 @@ namespace CapaNegocio.Servicio.Venta
                     UsuarioModificacion = usuarioModificacion
                 };
 
+                // ... resto igual: transacción, insertar oportunidad, historial, interaccion, inversion ...
                 DbContext? dbContext = null;
                 var uwType = _unitOfWork.GetType();
                 var propCandidates = new[] { "Context", "_context", "DbContext", "Contexto", "ContextoDb" };
@@ -1109,6 +1138,8 @@ namespace CapaNegocio.Servicio.Venta
                     bool estado = reader.IsDBNull(reader.GetOrdinal("Estado")) ? true : reader.GetBoolean(reader.GetOrdinal("Estado"));
                     DateTime fechaCreacion = reader.IsDBNull(reader.GetOrdinal("Oportunidad_FechaCreacion"))
                         ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("Oportunidad_FechaCreacion"));
+                    DateTime fechaFormulario = reader.IsDBNull(reader.GetOrdinal("Oportunidad_FechaFormulario"))
+                        ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("Oportunidad_FechaFormulario"));
 
                     string usuarioCreacion = reader.IsDBNull(reader.GetOrdinal("Oportunidad_UsuarioCreacion"))
                         ? "" : reader.GetString(reader.GetOrdinal("Oportunidad_UsuarioCreacion"));
@@ -1134,6 +1165,7 @@ namespace CapaNegocio.Servicio.Venta
                         Estado = estado,
                         TotalOportunidadesPersona = totalOportunidadesPersona,
                         FechaCreacion = fechaCreacion,
+                        FechaFormulario = fechaFormulario,
                         UsuarioCreacion = usuarioCreacion,
 
                         // 🔥 AGREGADO DEL MÉTODO 1 → País
