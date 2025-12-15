@@ -21,6 +21,7 @@ namespace Olympus.API.Extensions
             services.AddScoped<IFormularioRepository, FormularioRepository>();
             services.AddScoped<IPersonaRepository, PersonaRepository>();
             services.AddScoped<IRolRepository, RolRepository>();
+            services.AddScoped<IAsesorRepository, AsesorRepository>();
 
             // Servicios de negocio
             services.AddScoped<ISEGModLoginService, SEGModLoginService>();

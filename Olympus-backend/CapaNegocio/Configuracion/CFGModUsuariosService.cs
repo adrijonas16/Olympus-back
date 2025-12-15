@@ -3,7 +3,6 @@ using CapaDatos.Repositorio.Configuracion;
 using CapaDatos.Repositorio.Venta;
 using Modelos.DTO.Configuracion;
 using Modelos.Entidades;
-using Microsoft.EntityFrameworkCore;
 
 namespace CapaNegocio.Configuracion
 {
@@ -12,18 +11,21 @@ namespace CapaNegocio.Configuracion
         private readonly OlympusContext _context;
         private readonly IUsuarioRepository _usuarioRepo;
         private readonly IPersonaRepository _personaRepo;
+        private readonly IAsesorRepository _asesorRepo;
         private readonly IRolRepository _rolRepo;
 
         public CFGModUsuariosService(
             OlympusContext context,
             IUsuarioRepository usuarioRepo,
             IPersonaRepository personaRepo,
+            IAsesorRepository asesorRepo,
             IRolRepository rolRepo)
         {
             _context = context;
             _usuarioRepo = usuarioRepo;
             _personaRepo = personaRepo;
             _rolRepo = rolRepo;
+            _asesorRepo = asesorRepo;
         }
 
         public CFGModUsuariosTUsuarioDTORPT RegistrarUsuarioYPersona(CFGModUsuariosTUsuarioDTO modelo)
@@ -74,6 +76,32 @@ namespace CapaNegocio.Configuracion
                 _personaRepo.Insertar(persona);
                 _context.SaveChanges();
 
+                int idPersonaNueva = persona.Id;
+
+                if (modelo.IdRol == 1)
+                {
+                    var asesor = new Asesor
+                    {
+                        IdPersona = idPersonaNueva,
+                        IdPais = modelo.IdPais,
+                        Nombres = modelo.Nombres,
+                        Apellidos = modelo.Apellidos,
+                        Correo = modelo.CorreoUsuario,
+                        Celular = modelo.Celular,
+                        PrefijoPaisCelular = modelo.PrefijoPaisCelular,
+                        AreaTrabajo = modelo.AreaTrabajo,
+                        Estado = true,
+                        Cesado = false,
+                        FechaCreacion = DateTime.Now,
+                        UsuarioCreacion = "SYSTEM",
+                        FechaModificacion = DateTime.Now,
+                        UsuarioModificacion = "SYSTEM"
+                    };
+
+                    _asesorRepo.Insertar(asesor);
+                    _context.SaveChanges();
+                }
+
                 transaction.Commit();
 
                 // Respuesta genérica OK
@@ -86,7 +114,7 @@ namespace CapaNegocio.Configuracion
             {
                 transaction.Rollback();
                 respuesta.Codigo = SR._C_ERROR_CRITICO;
-                respuesta.Mensaje = "Error al registrar: " + ex.Message;
+                respuesta.Mensaje = "Error al registrar: " + (ex.InnerException?.Message ?? ex.Message);
             }
 
             return respuesta;
@@ -101,6 +129,7 @@ namespace CapaNegocio.Configuracion
                 var lista = (from u in _context.Usuario
                              join p in _context.Persona on u.Id equals p.IdUsuario
                              join r in _context.Rol on u.IdRol equals r.Id
+                             orderby u.FechaCreacion descending
                              select new CFGModUsuariosListadoDTO
                              {
                                  IdUsuario = u.Id,
@@ -202,7 +231,7 @@ namespace CapaNegocio.Configuracion
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                // 1. Obtener usuario y persona
+                // 1. Obtener usuario
                 var usuario = _usuarioRepo.ObtenerPorId(idUsuario);
                 if (usuario == null)
                 {
@@ -218,14 +247,25 @@ namespace CapaNegocio.Configuracion
                     _context.SaveChanges();
                 }
 
-                // 2. Eliminar usuario
+                if (usuario.IdRol == 1)
+                {
+                    var asesor = _context.Asesor
+                        .FirstOrDefault(a => a.IdPersona == persona.Id);
+
+                    if (asesor != null)
+                    {
+                        _context.Asesor.Remove(asesor);
+                        _context.SaveChanges();
+                    }
+                }
+
                 _usuarioRepo.Eliminar(idUsuario);
                 _context.SaveChanges();
 
                 transaction.Commit();
 
                 respuesta.Codigo = SR._C_SIN_ERROR;
-                respuesta.Mensaje = "Usuario y persona eliminados correctamente";
+                respuesta.Mensaje = "Usuario, persona y asesor eliminados correctamente";
                 respuesta.IdUsuario = idUsuario;
                 respuesta.IdPersona = persona?.Id ?? 0;
             }
